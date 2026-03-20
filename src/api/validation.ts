@@ -24,7 +24,6 @@ export const createProjectSchema = z.object({
 
 export const createNoteSchema = z.object({
   projectId: z.string(),
-  userId: z.string(),
   content: z.string().min(1),
 });
 

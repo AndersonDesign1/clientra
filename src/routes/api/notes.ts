@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { internalServerError, parseJsonBody } from "@/api/route-utils";
 import { createNoteSchema } from "@/api/validation";
+import { getMockSessionUser } from "@/auth/session";
 import { createProjectNoteRecord } from "@/db/records";
 
 export const Route = createFileRoute("/api/notes")({
@@ -13,9 +14,11 @@ export const Route = createFileRoute("/api/notes")({
           return parsed.error;
         }
 
+        const sessionUser = getMockSessionUser();
         const created = await createProjectNoteRecord({
           ...parsed.data,
           id: crypto.randomUUID(),
+          userId: sessionUser.id,
         });
 
         if (!created) {

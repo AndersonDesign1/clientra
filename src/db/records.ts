@@ -1,9 +1,10 @@
-import { desc, eq, like, or, sql } from "drizzle-orm";
+import { desc, eq, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import {
   clients as clientsTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
+  users as usersTable,
 } from "./schema";
 
 interface ClientInsert {
@@ -39,6 +40,13 @@ let hasSeededRecords = false;
 
 function serializeTags(tags: string[]) {
   return JSON.stringify(tags);
+}
+
+function escapeLikePattern(value: string) {
+  return value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("%", "\\%")
+    .replaceAll("_", "\\_");
 }
 
 function parseTags(tags: string | null) {
@@ -167,7 +175,7 @@ export async function createProjectNoteRecord(input: NoteInsert) {
 }
 
 export async function searchRecords(query: string) {
-  const normalized = `%${query.toLowerCase()}%`;
+  const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
 
   const [matchedClients, matchedProjects] = await Promise.all([
     db
@@ -175,15 +183,15 @@ export async function searchRecords(query: string) {
       .from(clientsTable)
       .where(
         or(
-          like(sql`lower(${clientsTable.name})`, normalized),
-          like(sql`lower(${clientsTable.company})`, normalized)
+          sql`lower(${clientsTable.name}) like ${normalized} escape '\\'`,
+          sql`lower(${clientsTable.company}) like ${normalized} escape '\\'`
         )
       )
       .orderBy(desc(clientsTable.createdAt)),
     db
       .select()
       .from(projectsTable)
-      .where(like(sql`lower(${projectsTable.title})`, normalized))
+      .where(sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`)
       .orderBy(desc(projectsTable.createdAt)),
   ]);
 
@@ -198,6 +206,34 @@ export async function seedIfEmpty() {
     return;
   }
 
+  const now = new Date();
+
+  await db
+    .insert(usersTable)
+    .values([
+      {
+        createdAt: now,
+        email: "admin@clientra.app",
+        emailVerified: true,
+        id: "usr_admin_1",
+        image: null,
+        name: "Clientra Admin",
+        role: "admin",
+        updatedAt: now,
+      },
+      {
+        createdAt: now,
+        email: "client@acme.co",
+        emailVerified: true,
+        id: "usr_client_1",
+        image: null,
+        name: "Acme Client",
+        role: "client",
+        updatedAt: now,
+      },
+    ])
+    .onConflictDoNothing();
+
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(clientsTable);
@@ -206,8 +242,6 @@ export async function seedIfEmpty() {
     hasSeededRecords = true;
     return;
   }
-
-  const now = new Date();
 
   await db.insert(clientsTable).values([
     {
