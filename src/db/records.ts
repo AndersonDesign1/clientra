@@ -2,6 +2,7 @@ import { and, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { ROLES, type SessionUser } from "@/auth/roles";
 import { db } from "./client";
 import {
+  accounts as accountsTable,
   clients as clientsTable,
   clientUsers as clientUsersTable,
   invites as invitesTable,
@@ -10,7 +11,10 @@ import {
   users as usersTable,
 } from "./schema";
 
-type DatabaseExecutor = Pick<typeof db, "insert" | "select" | "update">;
+type DatabaseExecutor = Pick<
+  typeof db,
+  "delete" | "insert" | "select" | "transaction" | "update"
+>;
 
 interface ClientInsert {
   company: string;
@@ -47,6 +51,17 @@ interface InviteInsert {
   expiresAt: Date;
   id: string;
   token: string;
+}
+
+interface ManagedUser {
+  createdAt: Date;
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  image: string | null;
+  name: string;
+  providers: string[];
+  role: "admin" | "client";
 }
 
 let hasSeededRecords = false;
@@ -112,6 +127,22 @@ function mapInvite(row: typeof invitesTable.$inferSelect) {
     expiresAt: row.expiresAt,
     id: row.id,
     token: row.token,
+  };
+}
+
+function mapManagedUser(
+  row: typeof usersTable.$inferSelect,
+  providers: string[]
+): ManagedUser {
+  return {
+    createdAt: row.createdAt,
+    email: row.email,
+    emailVerified: row.emailVerified,
+    id: row.id,
+    image: row.image,
+    name: row.name,
+    providers,
+    role: row.role,
   };
 }
 
@@ -399,6 +430,68 @@ export async function updateUserRole(
     .update(usersTable)
     .set({ role, updatedAt: new Date() })
     .where(eq(usersTable.id, userId));
+}
+
+export async function listUsersForAdmin() {
+  const [userRows, accountRows] = await Promise.all([
+    db.select().from(usersTable).orderBy(desc(usersTable.createdAt)),
+    db
+      .select({
+        providerId: accountsTable.providerId,
+        userId: accountsTable.userId,
+      })
+      .from(accountsTable),
+  ]);
+
+  const providersByUserId = new Map<string, string[]>();
+
+  for (const account of accountRows) {
+    const current = providersByUserId.get(account.userId) ?? [];
+
+    if (!current.includes(account.providerId)) {
+      current.push(account.providerId);
+      providersByUserId.set(account.userId, current);
+    }
+  }
+
+  return userRows.map((row) =>
+    mapManagedUser(row, providersByUserId.get(row.id) ?? [])
+  );
+}
+
+export async function setUserRole(userId: string, role: "admin" | "client") {
+  await updateUserRole(userId, role);
+
+  const [updated] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, userId))
+    .limit(1);
+
+  if (!updated) {
+    return null;
+  }
+
+  const linkedAccounts = await db
+    .select({ providerId: accountsTable.providerId })
+    .from(accountsTable)
+    .where(eq(accountsTable.userId, userId));
+
+  return mapManagedUser(
+    updated,
+    linkedAccounts.map((account) => account.providerId)
+  );
+}
+
+export function deleteUserById(userId: string) {
+  return db.transaction(async (tx) => {
+    const deletedUsers = await tx
+      .delete(usersTable)
+      .where(eq(usersTable.id, userId))
+      .returning({ id: usersTable.id });
+
+    return deletedUsers.length > 0;
+  });
 }
 
 export async function listPendingInvitesForClient(clientId: string) {

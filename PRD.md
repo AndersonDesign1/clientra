@@ -27,6 +27,18 @@ Clientra is a lightweight client and project management system for freelancers, 
 7. Client invites by email.
 8. Global search for clients/projects.
 
+## Current Implementation Status
+- Done: Email/password auth, GitHub sign-in, Google sign-in wiring, role-based redirects, and invite-only client onboarding.
+- Done: Admin dashboard, clients list/detail, projects list, settings, and client portal routes are built and connected to real API data.
+- Done: API routes are running through TanStack Start with Drizzle + Turso persistence for users, clients, projects, notes, sessions, and invites.
+- Done: Global search across clients and projects.
+- Ongoing: Dashboard recent activity and some timeline-style UI sections still rely on placeholder content.
+- Ongoing: Notes exist at the API/data layer, but richer collaboration history and UX are still limited.
+- Not started: File upload/storage flows in the client portal.
+- Not started: Comment threads and richer client collaboration features.
+- Not started: In-app admin user management and role management UI.
+- Not started: Automated end-to-end test coverage.
+
 ## Routes
 ### Public
 - `/login`

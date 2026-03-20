@@ -6,6 +6,7 @@ const adminNav = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/clients", label: "Clients" },
   { href: "/projects", label: "Projects" },
+  { href: "/users", label: "Users" },
   { href: "/settings", label: "Settings" },
 ];
 

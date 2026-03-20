@@ -45,6 +45,10 @@ export const adminSignupSchema = z.object({
   password: z.string().min(8),
 });
 
+export const updateUserRoleSchema = z.object({
+  role: roleSchema,
+});
+
 export const searchSchema = z.object({
   query: z.string().trim().default(""),
 });

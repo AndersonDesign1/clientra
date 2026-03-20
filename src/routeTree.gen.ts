@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -20,6 +21,7 @@ import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as ClientsIndexRouteImport } from './routes/clients/index'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as ClientsIdRouteImport } from './routes/clients/$id'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiProjectsRouteImport } from './routes/api/projects'
 import { Route as ApiNotesRouteImport } from './routes/api/notes'
@@ -28,10 +30,16 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as PortalProjectsIndexRouteImport } from './routes/portal/projects/index'
 import { Route as PortalProjectsIdRouteImport } from './routes/portal/projects/$id'
+import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
 import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
 import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
   id: '/unauthorized',
   path: '/unauthorized',
@@ -87,6 +95,11 @@ const ClientsIdRoute = ClientsIdRouteImport.update({
   path: '/clients/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUsersRoute = ApiUsersRouteImport.update({
+  id: '/api/users',
+  path: '/api/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSearchRoute = ApiSearchRouteImport.update({
   id: '/api/search',
   path: '/api/search',
@@ -127,6 +140,11 @@ const PortalProjectsIdRoute = PortalProjectsIdRouteImport.update({
   path: '/portal/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUsersIdRoute = ApiUsersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiUsersRoute,
+} as any)
 const ApiInvitesRedeemRoute = ApiInvitesRedeemRouteImport.update({
   id: '/redeem',
   path: '/redeem',
@@ -150,12 +168,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
   '/api/clients': typeof ApiClientsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/api/search': typeof ApiSearchRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/clients/': typeof ClientsIndexRoute
@@ -164,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
 }
@@ -174,12 +195,14 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
   '/api/clients': typeof ApiClientsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/api/search': typeof ApiSearchRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/clients': typeof ClientsIndexRoute
@@ -188,6 +211,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/portal/projects': typeof PortalProjectsIndexRoute
 }
@@ -199,12 +223,14 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
   '/api/clients': typeof ApiClientsRoute
   '/api/health': typeof ApiHealthRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/api/search': typeof ApiSearchRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
   '/clients/': typeof ClientsIndexRoute
@@ -213,6 +239,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
 }
@@ -225,12 +252,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/unauthorized'
+    | '/users'
     | '/api/clients'
     | '/api/health'
     | '/api/invites'
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
     | '/clients/'
@@ -239,6 +268,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/invites/redeem'
+    | '/api/users/$id'
     | '/portal/projects/$id'
     | '/portal/projects/'
   fileRoutesByTo: FileRoutesByTo
@@ -249,12 +279,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/unauthorized'
+    | '/users'
     | '/api/clients'
     | '/api/health'
     | '/api/invites'
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
     | '/clients'
@@ -263,6 +295,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/invites/redeem'
+    | '/api/users/$id'
     | '/portal/projects/$id'
     | '/portal/projects'
   id:
@@ -273,12 +306,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/unauthorized'
+    | '/users'
     | '/api/clients'
     | '/api/health'
     | '/api/invites'
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
     | '/clients/'
@@ -287,6 +322,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/invites/redeem'
+    | '/api/users/$id'
     | '/portal/projects/$id'
     | '/portal/projects/'
   fileRoutesById: FileRoutesById
@@ -298,12 +334,14 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
+  UsersRoute: typeof UsersRoute
   ApiClientsRoute: typeof ApiClientsRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
   ApiNotesRoute: typeof ApiNotesRoute
   ApiProjectsRoute: typeof ApiProjectsRoute
   ApiSearchRoute: typeof ApiSearchRoute
+  ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ClientsIdRoute: typeof ClientsIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
@@ -317,6 +355,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unauthorized': {
       id: '/unauthorized'
       path: '/unauthorized'
@@ -394,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/search': {
       id: '/api/search'
       path: '/api/search'
@@ -450,6 +502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalProjectsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/users/$id': {
+      id: '/api/users/$id'
+      path: '/$id'
+      fullPath: '/api/users/$id'
+      preLoaderRoute: typeof ApiUsersIdRouteImport
+      parentRoute: typeof ApiUsersRoute
+    }
     '/api/invites/redeem': {
       id: '/api/invites/redeem'
       path: '/redeem'
@@ -486,6 +545,18 @@ const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(
   ApiInvitesRouteChildren,
 )
 
+interface ApiUsersRouteChildren {
+  ApiUsersIdRoute: typeof ApiUsersIdRoute
+}
+
+const ApiUsersRouteChildren: ApiUsersRouteChildren = {
+  ApiUsersIdRoute: ApiUsersIdRoute,
+}
+
+const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
+  ApiUsersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
@@ -493,12 +564,14 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   UnauthorizedRoute: UnauthorizedRoute,
+  UsersRoute: UsersRoute,
   ApiClientsRoute: ApiClientsRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
   ApiNotesRoute: ApiNotesRoute,
   ApiProjectsRoute: ApiProjectsRoute,
   ApiSearchRoute: ApiSearchRoute,
+  ApiUsersRoute: ApiUsersRouteWithChildren,
   ClientsIdRoute: ClientsIdRoute,
   InviteTokenRoute: InviteTokenRoute,
   ClientsIndexRoute: ClientsIndexRoute,

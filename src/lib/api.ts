@@ -7,6 +7,17 @@ export interface SearchResults {
   projects: Project[];
 }
 
+export interface ManagedUser {
+  createdAt: string;
+  email: string;
+  emailVerified: boolean;
+  id: string;
+  image: string | null;
+  name: string;
+  providers: string[];
+  role: "admin" | "client";
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path);
 
@@ -28,6 +39,57 @@ export function getProjects() {
 export function searchRecords(query: string) {
   const params = new URLSearchParams({ query });
   return fetchJson<SearchResults>(`/api/search?${params.toString()}`);
+}
+
+export function getUsers() {
+  return fetchJson<ManagedUser[]>("/api/users");
+}
+
+export async function updateUserRole(id: string, role: ManagedUser["role"]) {
+  const response = await fetch(`/api/users/${id}`, {
+    body: JSON.stringify({ role }),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ManagedUser
+    | { error?: string }
+    | null;
+
+  const errorMessage =
+    data && "error" in data && typeof data.error === "string"
+      ? data.error
+      : null;
+
+  if (!response.ok) {
+    throw new Error(
+      errorMessage ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data as ManagedUser;
+}
+
+export async function deleteUser(id: string) {
+  const response = await fetch(`/api/users/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
 }
 
 function useLoadState<T>() {
@@ -86,6 +148,44 @@ export function useClientsData() {
 export function useProjectsData() {
   const state = useLoadState<Project[]>();
   const runLoad = useEffectEvent(getProjects);
+  const { setData, setError, setIsLoading } = state;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    setIsLoading(true);
+    setError(null);
+
+    runLoad()
+      .then((result) => {
+        if (!isCancelled) {
+          setData(result);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!isCancelled) {
+          setError(
+            err instanceof Error ? err.message : "Something went wrong."
+          );
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [setData, setError, setIsLoading]);
+
+  return state;
+}
+
+export function useUsersData() {
+  const state = useLoadState<ManagedUser[]>();
+  const runLoad = useEffectEvent(getUsers);
   const { setData, setError, setIsLoading } = state;
 
   useEffect(() => {
