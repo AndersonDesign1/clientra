@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDeferredValue, useState } from "react";
+import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -9,7 +10,10 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
 import { useClientsData, useSearchData } from "@/lib/api";
 
-export const Route = createFileRoute("/clients/")({ component: ClientsPage });
+export const Route = createFileRoute("/clients/")({
+  beforeLoad: requireAdminSession,
+  component: ClientsPage,
+});
 
 function ClientsPage() {
   const [query, setQuery] = useState("");

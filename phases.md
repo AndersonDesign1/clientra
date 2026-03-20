@@ -13,7 +13,7 @@ Status: Ongoing
 ## Phase 2 — Backend, DB, and Auth Foundation
 Status: Done
 
-- Done: Create Elysia API server with modular endpoints
+- Done: Expose modular API routes through TanStack Start server handlers
 - Done: Add Zod validation schemas for core payloads
 - Done: Define Drizzle schema for required tables
 - Done: Add Turso Drizzle client wiring
@@ -22,11 +22,11 @@ Status: Done
 ## Phase 3 — Feature Wiring and Domain Flows
 Status: Ongoing
 
-- Done: Add invites endpoint flow with placeholder link generation
-- Done: Add global search endpoint over clients and projects (mock-backed)
+- Done: Add invite generation and invite redemption flows
+- Done: Add global search over clients and projects with DB-backed filtering
 - Done: Add notes, projects, and client creation endpoint validation
-- Done: Establish role and guard utilities for RBAC scaffolding
-- Ongoing: Connect the frontend to these endpoints and move features off local mock data
+- Done: Establish real role guards, redirects, and auth-backed route protection
+- Ongoing: Replace remaining placeholder-only collaboration areas like files/comments with working product flows
 
 ## Phase 4 — Documentation and Readiness
 Status: Ongoing

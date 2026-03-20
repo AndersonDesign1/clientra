@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -8,7 +9,10 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
 import { useProjectsData } from "@/lib/api";
 
-export const Route = createFileRoute("/projects/")({ component: ProjectsPage });
+export const Route = createFileRoute("/projects/")({
+  beforeLoad: requireAdminSession,
+  component: ProjectsPage,
+});
 
 function ProjectsPage() {
   const projectsQuery = useProjectsData();

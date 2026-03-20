@@ -54,7 +54,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 
 ## Architecture
 - **Frontend**: TanStack Start + React + Tailwind + shadcn/ui
-- **Backend**: Elysia
+- **Backend**: TanStack Start server routes
 - **Database**: Turso (SQLite)
 - **ORM**: Drizzle
 - **Auth**: Better Auth

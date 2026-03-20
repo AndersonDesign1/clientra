@@ -99,6 +99,18 @@ export const clientUsers = sqliteTable(
   })
 );
 
+export const invites = sqliteTable("invites", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  consumedAt: integer("consumed_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export const projects = sqliteTable("projects", {
   id: text("id").primaryKey(),
   clientId: text("client_id")

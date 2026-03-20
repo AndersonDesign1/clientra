@@ -1,16 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { internalServerError, parseJsonBody } from "@/api/route-utils";
+import {
+  forbiddenError,
+  internalServerError,
+  parseJsonBody,
+  unauthorizedError,
+} from "@/api/route-utils";
 import { createProjectSchema } from "@/api/validation";
-import { createProjectRecord, listProjects, seedIfEmpty } from "@/db/records";
+import { ROLES } from "@/auth/roles";
+import { getSessionUserFromHeaders } from "@/auth/session.server";
+import {
+  createProjectRecord,
+  listProjectsForUser,
+  seedIfEmpty,
+} from "@/db/records";
 
 export const Route = createFileRoute("/api/projects")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
         await seedIfEmpty();
-        return Response.json(await listProjects());
+        const user = await getSessionUserFromHeaders(request.headers);
+
+        if (!user) {
+          return unauthorizedError();
+        }
+
+        return Response.json(await listProjectsForUser(user));
       },
       POST: async ({ request }) => {
+        const user = await getSessionUserFromHeaders(request.headers);
+
+        if (!user) {
+          return unauthorizedError();
+        }
+
+        if (user.role !== ROLES.ADMIN) {
+          return forbiddenError();
+        }
+
         const parsed = await parseJsonBody(request, createProjectSchema);
 
         if (!parsed.ok) {

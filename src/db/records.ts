@@ -1,11 +1,16 @@
-import { desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { ROLES, type SessionUser } from "@/auth/roles";
 import { db } from "./client";
 import {
   clients as clientsTable,
+  clientUsers as clientUsersTable,
+  invites as invitesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
   users as usersTable,
 } from "./schema";
+
+type DatabaseExecutor = Pick<typeof db, "insert" | "select" | "update">;
 
 interface ClientInsert {
   company: string;
@@ -34,6 +39,14 @@ interface NoteInsert {
   id: string;
   projectId: string;
   userId: string;
+}
+
+interface InviteInsert {
+  clientId: string;
+  email: string;
+  expiresAt: Date;
+  id: string;
+  token: string;
 }
 
 let hasSeededRecords = false;
@@ -90,6 +103,18 @@ function mapProject(row: typeof projectsTable.$inferSelect) {
   };
 }
 
+function mapInvite(row: typeof invitesTable.$inferSelect) {
+  return {
+    clientId: row.clientId,
+    consumedAt: row.consumedAt,
+    createdAt: row.createdAt,
+    email: row.email,
+    expiresAt: row.expiresAt,
+    id: row.id,
+    token: row.token,
+  };
+}
+
 export async function checkDatabaseHealth() {
   await db.run(sql`select 1`);
 }
@@ -101,6 +126,21 @@ export async function listClients() {
     .orderBy(desc(clientsTable.createdAt));
 
   return rows.map(mapClient);
+}
+
+export async function listClientsForUser(user: SessionUser) {
+  if (user.role === ROLES.ADMIN) {
+    return listClients();
+  }
+
+  const linkedClientRows = await db
+    .select({ client: clientsTable })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(eq(clientUsersTable.userId, user.id))
+    .orderBy(desc(clientsTable.createdAt));
+
+  return linkedClientRows.map(({ client }) => mapClient(client));
 }
 
 export async function createClientRecord(input: ClientInsert) {
@@ -133,6 +173,24 @@ export async function listProjects() {
     .orderBy(desc(projectsTable.createdAt));
 
   return rows.map(mapProject);
+}
+
+export async function listProjectsForUser(user: SessionUser) {
+  if (user.role === ROLES.ADMIN) {
+    return listProjects();
+  }
+
+  const linkedProjects = await db
+    .select({ project: projectsTable })
+    .from(clientUsersTable)
+    .innerJoin(
+      projectsTable,
+      eq(projectsTable.clientId, clientUsersTable.clientId)
+    )
+    .where(eq(clientUsersTable.userId, user.id))
+    .orderBy(desc(projectsTable.createdAt));
+
+  return linkedProjects.map(({ project }) => mapProject(project));
 }
 
 export async function createProjectRecord(input: ProjectInsert) {
@@ -174,11 +232,45 @@ export async function createProjectNoteRecord(input: NoteInsert) {
   return created ?? null;
 }
 
-export async function searchRecords(query: string) {
-  const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
+export async function canAccessProject(user: SessionUser, projectId: string) {
+  if (user.role === ROLES.ADMIN) {
+    return true;
+  }
 
-  const [matchedClients, matchedProjects] = await Promise.all([
-    db
+  const [match] = await db
+    .select({ projectId: projectsTable.id })
+    .from(clientUsersTable)
+    .innerJoin(
+      projectsTable,
+      eq(projectsTable.clientId, clientUsersTable.clientId)
+    )
+    .where(
+      and(eq(clientUsersTable.userId, user.id), eq(projectsTable.id, projectId))
+    )
+    .limit(1);
+
+  return Boolean(match);
+}
+
+export async function searchRecords(query: string, user: SessionUser) {
+  const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
+  const projectWhere =
+    user.role === ROLES.ADMIN
+      ? sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`
+      : sql`lower(${projectsTable.title}) like ${normalized} escape '\\' and ${projectsTable.clientId} in (
+          select ${clientUsersTable.clientId}
+          from ${clientUsersTable}
+          where ${clientUsersTable.userId} = ${user.id}
+        )`;
+
+  const matchedProjects = await db
+    .select()
+    .from(projectsTable)
+    .where(projectWhere)
+    .orderBy(desc(projectsTable.createdAt));
+
+  if (user.role === ROLES.ADMIN) {
+    const matchedClients = await db
       .select()
       .from(clientsTable)
       .where(
@@ -187,18 +279,138 @@ export async function searchRecords(query: string) {
           sql`lower(${clientsTable.company}) like ${normalized} escape '\\'`
         )
       )
-      .orderBy(desc(clientsTable.createdAt)),
-    db
-      .select()
-      .from(projectsTable)
-      .where(sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`)
-      .orderBy(desc(projectsTable.createdAt)),
-  ]);
+      .orderBy(desc(clientsTable.createdAt));
+
+    return {
+      clients: matchedClients.map(mapClient),
+      projects: matchedProjects.map(mapProject),
+    };
+  }
+
+  const matchedClients = await db
+    .select({ row: clientsTable })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(
+      and(
+        eq(clientUsersTable.userId, user.id),
+        or(
+          sql`lower(${clientsTable.name}) like ${normalized} escape '\\'`,
+          sql`lower(${clientsTable.company}) like ${normalized} escape '\\'`
+        )
+      )
+    )
+    .orderBy(desc(clientsTable.createdAt));
 
   return {
-    clients: matchedClients.map(mapClient),
+    clients: matchedClients.map(({ row }) => mapClient(row)),
     projects: matchedProjects.map(mapProject),
   };
+}
+
+export async function createInviteRecord(input: InviteInsert) {
+  await db.insert(invitesTable).values({
+    clientId: input.clientId,
+    consumedAt: null,
+    createdAt: new Date(),
+    email: input.email,
+    expiresAt: input.expiresAt,
+    id: input.id,
+    token: input.token,
+  });
+}
+
+export async function getInviteRecordById(id: string) {
+  const [created] = await db
+    .select()
+    .from(invitesTable)
+    .where(eq(invitesTable.id, id))
+    .limit(1);
+
+  return created ? mapInvite(created) : null;
+}
+
+export async function getActiveInviteByToken(token: string) {
+  const [invite] = await db
+    .select()
+    .from(invitesTable)
+    .where(
+      and(
+        eq(invitesTable.token, token),
+        isNull(invitesTable.consumedAt),
+        or(
+          isNull(invitesTable.expiresAt),
+          gt(invitesTable.expiresAt, new Date())
+        )
+      )
+    )
+    .limit(1);
+
+  if (!invite) {
+    return null;
+  }
+
+  return mapInvite(invite);
+}
+
+export async function consumeInvite(
+  token: string,
+  executor: DatabaseExecutor = db
+) {
+  const consumedInvites = await executor
+    .update(invitesTable)
+    .set({ consumedAt: new Date() })
+    .where(
+      and(
+        eq(invitesTable.token, token),
+        isNull(invitesTable.consumedAt),
+        or(
+          isNull(invitesTable.expiresAt),
+          gt(invitesTable.expiresAt, new Date())
+        )
+      )
+    )
+    .returning({ token: invitesTable.token });
+
+  return consumedInvites.length > 0;
+}
+
+export async function linkUserToClient(
+  clientId: string,
+  userId: string,
+  executor: DatabaseExecutor = db
+) {
+  await executor
+    .insert(clientUsersTable)
+    .values({
+      clientId,
+      id: crypto.randomUUID(),
+      userId,
+    })
+    .onConflictDoNothing();
+}
+
+export async function updateUserRole(
+  userId: string,
+  role: "admin" | "client",
+  executor: DatabaseExecutor = db
+) {
+  await executor
+    .update(usersTable)
+    .set({ role, updatedAt: new Date() })
+    .where(eq(usersTable.id, userId));
+}
+
+export async function listPendingInvitesForClient(clientId: string) {
+  const rows = await db
+    .select()
+    .from(invitesTable)
+    .where(
+      and(eq(invitesTable.clientId, clientId), isNull(invitesTable.consumedAt))
+    )
+    .orderBy(desc(invitesTable.createdAt));
+
+  return rows.map(mapInvite);
 }
 
 export async function seedIfEmpty() {

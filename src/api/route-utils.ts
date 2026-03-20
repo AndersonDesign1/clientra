@@ -54,3 +54,19 @@ export function validationError(error: ZodError) {
 export function internalServerError(message = "Unable to complete request.") {
   return jsonError(500, { error: message });
 }
+
+export function unauthorizedError(message = "You must be signed in.") {
+  return jsonError(401, { error: message });
+}
+
+export function forbiddenError(
+  message = "You do not have access to this resource."
+) {
+  return jsonError(403, { error: message });
+}
+
+export function notFoundError(
+  message = "The requested resource was not found."
+) {
+  return jsonError(404, { error: message });
+}

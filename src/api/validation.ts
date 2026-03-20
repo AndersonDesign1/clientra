@@ -32,6 +32,19 @@ export const inviteSchema = z.object({
   clientId: z.string(),
 });
 
+export const inviteRedeemSchema = z.object({
+  email: z.email(),
+  name: z.string().min(1),
+  password: z.string().min(8),
+  token: z.string().min(1),
+});
+
+export const adminSignupSchema = z.object({
+  email: z.email(),
+  name: z.string().min(1),
+  password: z.string().min(8),
+});
+
 export const searchSchema = z.object({
   query: z.string().trim().default(""),
 });

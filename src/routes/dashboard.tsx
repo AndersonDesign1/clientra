@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminSession } from "@/auth/guards";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { recentActivity } from "@/features/dashboard/mock-data";
 import { useClientsData, useProjectsData } from "@/lib/api";
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: requireAdminSession,
   component: DashboardPage,
 });
 
