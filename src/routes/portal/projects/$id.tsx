@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
+import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import { projectTimeline } from "@/features/projects/mock-data";
 import { useProjectsData } from "@/lib/api";
 
@@ -55,10 +56,7 @@ function PortalProjectDetailPage() {
           ))}
         </ul>
       </section>
-      <section className="rounded-xl border bg-white p-4 text-slate-600 text-sm">
-        <p>Files: upload/download UI placeholder</p>
-        <p>Comments: client feedback thread placeholder</p>
-      </section>
+      <ProjectFilesPanel canDelete={false} projectId={project.id} />
     </PortalShell>
   );
 }

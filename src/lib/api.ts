@@ -18,6 +18,39 @@ export interface ManagedUser {
   role: "admin" | "client";
 }
 
+export interface ProjectFile {
+  createdAt: string;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  id: string;
+  mimeType: string;
+  projectId: string;
+  storageKey: string;
+  uploadedBy: string;
+  uploaderName: string;
+}
+
+function isManagedUser(value: unknown): value is ManagedUser {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.name === "string" &&
+    typeof candidate.email === "string" &&
+    (candidate.role === "admin" || candidate.role === "client") &&
+    typeof candidate.emailVerified === "boolean" &&
+    (typeof candidate.image === "string" || candidate.image === null) &&
+    typeof candidate.createdAt === "string" &&
+    Array.isArray(candidate.providers) &&
+    candidate.providers.every((provider) => typeof provider === "string")
+  );
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await fetch(path);
 
@@ -45,6 +78,10 @@ export function getUsers() {
   return fetchJson<ManagedUser[]>("/api/users");
 }
 
+export function getProjectFiles(projectId: string) {
+  return fetchJson<ProjectFile[]>(`/api/projects/${projectId}/files`);
+}
+
 export async function updateUserRole(id: string, role: ManagedUser["role"]) {
   const response = await fetch(`/api/users/${id}`, {
     body: JSON.stringify({ role }),
@@ -70,11 +107,36 @@ export async function updateUserRole(id: string, role: ManagedUser["role"]) {
     );
   }
 
-  return data as ManagedUser;
+  if (!isManagedUser(data)) {
+    throw new Error(
+      errorMessage ?? "The server returned an invalid user payload."
+    );
+  }
+
+  return data;
 }
 
 export async function deleteUser(id: string) {
   const response = await fetch(`/api/users/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+export async function deleteProjectFile(id: string) {
+  const response = await fetch(`/api/files/${id}`, {
     method: "DELETE",
   });
 
@@ -217,6 +279,44 @@ export function useUsersData() {
       isCancelled = true;
     };
   }, [setData, setError, setIsLoading]);
+
+  return state;
+}
+
+export function useProjectFilesData(projectId: string) {
+  const state = useLoadState<ProjectFile[]>();
+  const runLoad = useEffectEvent(getProjectFiles);
+  const { setData, setError, setIsLoading } = state;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    setIsLoading(true);
+    setError(null);
+
+    runLoad(projectId)
+      .then((result) => {
+        if (!isCancelled) {
+          setData(result);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!isCancelled) {
+          setError(
+            err instanceof Error ? err.message : "Something went wrong."
+          );
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [projectId, setData, setError, setIsLoading]);
 
   return state;
 }

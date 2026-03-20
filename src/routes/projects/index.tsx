@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
@@ -37,7 +37,15 @@ function ProjectsPage() {
           {projectsQuery.data?.map((project) => (
             <div className="rounded-xl border bg-white p-4" key={project.id}>
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="font-medium">{project.title}</h2>
+                <h2 className="font-medium">
+                  <Link
+                    className="hover:underline"
+                    params={{ id: project.id }}
+                    to="/projects/$id"
+                  >
+                    {project.title}
+                  </Link>
+                </h2>
                 <StatusBadge value={project.status} />
               </div>
               <p className="text-slate-600 text-sm">{project.description}</p>

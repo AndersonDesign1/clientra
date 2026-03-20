@@ -146,6 +146,10 @@ export const files = sqliteTable("files", {
   uploadedBy: text("uploaded_by")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  storageKey: text("storage_key").notNull().unique(),
   fileUrl: text("file_url").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });

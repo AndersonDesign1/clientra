@@ -5,6 +5,7 @@ import {
   accounts as accountsTable,
   clients as clientsTable,
   clientUsers as clientUsersTable,
+  files as filesTable,
   invites as invitesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
@@ -45,6 +46,17 @@ interface NoteInsert {
   userId: string;
 }
 
+interface ProjectFileInsert {
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  id: string;
+  mimeType: string;
+  projectId: string;
+  storageKey: string;
+  uploadedBy: string;
+}
+
 interface InviteInsert {
   clientId: string;
   email: string;
@@ -62,6 +74,19 @@ interface ManagedUser {
   name: string;
   providers: string[];
   role: "admin" | "client";
+}
+
+interface ProjectFileRecord extends Record<string, unknown> {
+  createdAt: Date;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  id: string;
+  mimeType: string;
+  projectId: string;
+  storageKey: string;
+  uploadedBy: string;
+  uploaderName: string;
 }
 
 let hasSeededRecords = false;
@@ -143,6 +168,24 @@ function mapManagedUser(
     name: row.name,
     providers,
     role: row.role,
+  };
+}
+
+function mapProjectFile(
+  row: typeof filesTable.$inferSelect,
+  uploaderName: string | null
+): ProjectFileRecord {
+  return {
+    createdAt: row.createdAt,
+    fileName: row.fileName,
+    fileSize: row.fileSize,
+    fileUrl: row.fileUrl,
+    id: row.id,
+    mimeType: row.mimeType,
+    projectId: row.projectId,
+    storageKey: row.storageKey,
+    uploadedBy: row.uploadedBy,
+    uploaderName: uploaderName ?? "",
   };
 }
 
@@ -263,6 +306,32 @@ export async function createProjectNoteRecord(input: NoteInsert) {
   return created ?? null;
 }
 
+export async function createProjectFileRecord(input: ProjectFileInsert) {
+  await db.insert(filesTable).values({
+    createdAt: new Date(),
+    fileName: input.fileName,
+    fileSize: input.fileSize,
+    fileUrl: input.fileUrl,
+    id: input.id,
+    mimeType: input.mimeType,
+    projectId: input.projectId,
+    storageKey: input.storageKey,
+    uploadedBy: input.uploadedBy,
+  });
+
+  const [created] = await db
+    .select({
+      file: filesTable,
+      uploaderName: usersTable.name,
+    })
+    .from(filesTable)
+    .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .where(eq(filesTable.id, input.id))
+    .limit(1);
+
+  return created ? mapProjectFile(created.file, created.uploaderName) : null;
+}
+
 export async function canAccessProject(user: SessionUser, projectId: string) {
   if (user.role === ROLES.ADMIN) {
     return true;
@@ -281,6 +350,54 @@ export async function canAccessProject(user: SessionUser, projectId: string) {
     .limit(1);
 
   return Boolean(match);
+}
+
+export async function listProjectFilesForUser(
+  projectId: string,
+  user: SessionUser
+) {
+  const hasAccess = await canAccessProject(user, projectId);
+
+  if (!hasAccess) {
+    return null;
+  }
+
+  const rows = await db
+    .select({
+      file: filesTable,
+      uploaderName: usersTable.name,
+    })
+    .from(filesTable)
+    .innerJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .where(eq(filesTable.projectId, projectId))
+    .orderBy(desc(filesTable.createdAt));
+
+  return rows.map(({ file, uploaderName }) =>
+    mapProjectFile(file, uploaderName)
+  );
+}
+
+export async function getProjectFileById(fileId: string) {
+  const [file] = await db
+    .select({
+      file: filesTable,
+      uploaderName: usersTable.name,
+    })
+    .from(filesTable)
+    .innerJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .where(eq(filesTable.id, fileId))
+    .limit(1);
+
+  return file ? mapProjectFile(file.file, file.uploaderName) : null;
+}
+
+export async function deleteProjectFileRecord(fileId: string) {
+  const deletedFiles = await db
+    .delete(filesTable)
+    .where(eq(filesTable.id, fileId))
+    .returning();
+
+  return deletedFiles[0] ?? null;
 }
 
 export async function searchRecords(query: string, user: SessionUser) {

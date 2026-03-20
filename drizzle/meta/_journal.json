@@ -29,6 +29,13 @@
       "when": 1774022100000,
       "tag": "0003_least_privilege_role_and_invite_index",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1774038998380,
+      "tag": "0004_woozy_shape",
+      "breakpoints": true
     }
   ]
 }
