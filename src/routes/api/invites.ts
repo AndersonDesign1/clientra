@@ -1,15 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { parseJsonBody } from "@/api/route-utils";
 import { inviteSchema } from "@/api/validation";
 
 export const Route = createFileRoute("/api/invites")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = await request.json();
-        const invite = inviteSchema.parse(body);
+        const parsed = await parseJsonBody(request, inviteSchema);
+
+        if (!parsed.ok) {
+          return parsed.error;
+        }
+
+        const inviteUrl = new URL(
+          `/invite/${crypto.randomUUID()}`,
+          request.url
+        );
+
         return Response.json({
-          ...invite,
-          inviteLink: `https://clientra.app/invite/${crypto.randomUUID()}`,
+          ...parsed.data,
+          inviteLink: inviteUrl.toString(),
         });
       },
     },

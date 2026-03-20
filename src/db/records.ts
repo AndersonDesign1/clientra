@@ -35,6 +35,8 @@ interface NoteInsert {
   userId: string;
 }
 
+let hasSeededRecords = false;
+
 function serializeTags(tags: string[]) {
   return JSON.stringify(tags);
 }
@@ -192,11 +194,16 @@ export async function searchRecords(query: string) {
 }
 
 export async function seedIfEmpty() {
+  if (hasSeededRecords) {
+    return;
+  }
+
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(clientsTable);
 
   if (count > 0) {
+    hasSeededRecords = true;
     return;
   }
 
@@ -251,4 +258,6 @@ export async function seedIfEmpty() {
       title: "iOS Client Portal",
     },
   ]);
+
+  hasSeededRecords = true;
 }

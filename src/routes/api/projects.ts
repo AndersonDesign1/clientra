@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { internalServerError, parseJsonBody } from "@/api/route-utils";
 import { createProjectSchema } from "@/api/validation";
 import { createProjectRecord, listProjects, seedIfEmpty } from "@/db/records";
 
@@ -10,12 +11,23 @@ export const Route = createFileRoute("/api/projects")({
         return Response.json(await listProjects());
       },
       POST: async ({ request }) => {
-        const body = await request.json();
-        const project = createProjectSchema.parse(body);
+        const parsed = await parseJsonBody(request, createProjectSchema);
+
+        if (!parsed.ok) {
+          return parsed.error;
+        }
+
         const created = await createProjectRecord({
-          ...project,
+          ...parsed.data,
           id: crypto.randomUUID(),
         });
+
+        if (!created) {
+          return internalServerError(
+            "Project was created but could not be reloaded."
+          );
+        }
+
         return Response.json(created, { status: 201 });
       },
     },
