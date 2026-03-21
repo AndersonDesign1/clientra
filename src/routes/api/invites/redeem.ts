@@ -3,6 +3,7 @@ import {
   forbiddenError,
   notFoundError,
   parseJsonBody,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { inviteRedeemSchema } from "@/api/validation";
@@ -53,6 +54,12 @@ export const Route = createFileRoute("/api/invites/redeem")({
         });
       },
       POST: async ({ request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const parsed = await parseJsonBody(request, inviteRedeemSchema);
 
         if (!parsed.ok) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useReducer } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,66 +25,70 @@ interface InvitePreview {
   expiresAt: string;
 }
 
-export function InviteRedeemForm({ token }: { token: string }) {
+interface InviteRedeemState {
+  email: string;
+  error: string | null;
+  isSubmitting: boolean;
+  name: string;
+  password: string;
+}
+
+type InviteRedeemAction =
+  | { type: "set-email"; value: string }
+  | { type: "set-name"; value: string }
+  | { type: "set-password"; value: string }
+  | { type: "set-error"; value: string | null }
+  | { type: "set-submitting"; value: boolean };
+
+function inviteRedeemReducer(
+  state: InviteRedeemState,
+  action: InviteRedeemAction
+) {
+  switch (action.type) {
+    case "set-email":
+      return { ...state, email: action.value };
+    case "set-error":
+      return { ...state, error: action.value };
+    case "set-name":
+      return { ...state, name: action.value };
+    case "set-password":
+      return { ...state, password: action.value };
+    case "set-submitting":
+      return { ...state, isSubmitting: action.value };
+    default:
+      return state;
+  }
+}
+
+export function InviteRedeemForm({
+  initialInvite,
+  token,
+}: {
+  initialInvite: InvitePreview | null;
+  token: string;
+}) {
   const router = useRouter();
-  const [invite, setInvite] = useState<InvitePreview | null>(null);
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoadingInvite, setIsLoadingInvite] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadInvite() {
-      setIsLoadingInvite(true);
-      setError(null);
-
-      const response = await fetch(
-        `/api/invites/redeem?token=${encodeURIComponent(token)}`
-      );
-      const data = (await response.json().catch(() => null)) as {
-        email?: string;
-        error?: string;
-        expiresAt?: string;
-      } | null;
-
-      if (isCancelled) {
-        return;
-      }
-
-      if (!(response.ok && data?.email && data?.expiresAt)) {
-        setError(data?.error ?? "This invite is invalid or has expired.");
-        setIsLoadingInvite(false);
-        return;
-      }
-
-      setInvite({ email: data.email, expiresAt: data.expiresAt });
-      setEmail(data.email);
-      setIsLoadingInvite(false);
-    }
-
-    loadInvite().catch(() => {
-      if (!isCancelled) {
-        setError("We could not load this invite.");
-        setIsLoadingInvite(false);
-      }
-    });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [token]);
+  const invite = initialInvite;
+  const [state, dispatch] = useReducer(inviteRedeemReducer, {
+    email: initialInvite?.email ?? "",
+    error: initialInvite ? null : "This invite is invalid or has expired.",
+    isSubmitting: false,
+    name: "",
+    password: "",
+  });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+    dispatch({ type: "set-submitting", value: true });
+    dispatch({ type: "set-error", value: null });
     try {
       const response = await fetch("/api/invites/redeem", {
-        body: JSON.stringify({ email, name, password, token }),
+        body: JSON.stringify({
+          email: state.email,
+          name: state.name,
+          password: state.password,
+          token,
+        }),
         headers: {
           "content-type": "application/json",
         },
@@ -96,19 +100,24 @@ export function InviteRedeemForm({ token }: { token: string }) {
       } | null;
 
       if (!response.ok) {
-        setError(data?.error ?? "Unable to accept this invite.");
+        dispatch({
+          type: "set-error",
+          value: data?.error ?? "Unable to accept this invite.",
+        });
         return;
       }
 
       await router.navigate({ to: "/portal" });
     } catch (error) {
-      setError(
-        error instanceof Error && error.message
-          ? error.message
-          : "Network error accepting invite."
-      );
+      dispatch({
+        type: "set-error",
+        value:
+          error instanceof Error && error.message
+            ? error.message
+            : "Network error accepting invite.",
+      });
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: "set-submitting", value: false });
     }
   }
 
@@ -127,28 +136,25 @@ export function InviteRedeemForm({ token }: { token: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoadingInvite ? (
-            <div className="rounded-2xl border border-slate-200 border-dashed bg-slate-50 px-4 py-10 text-center text-slate-500 text-sm">
-              Validating your invite...
-            </div>
-          ) : null}
-          {!isLoadingInvite && error && !invite ? (
+          {state.error && !invite ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-rose-700 text-sm">
-              {error}
+              {state.error}
             </div>
           ) : null}
-          {!isLoadingInvite && invite ? (
+          {invite ? (
             <form onSubmit={handleSubmit}>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="invite-email">Invited email</FieldLabel>
                   <Input
                     id="invite-email"
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(event) =>
+                      dispatch({ type: "set-email", value: event.target.value })
+                    }
                     readOnly={Boolean(invite.email)}
                     required
                     type="email"
-                    value={email}
+                    value={state.email}
                   />
                   <FieldDescription>
                     This invite expires on{" "}
@@ -160,10 +166,12 @@ export function InviteRedeemForm({ token }: { token: string }) {
                   <Input
                     autoComplete="name"
                     id="invite-name"
-                    onChange={(event) => setName(event.target.value)}
+                    onChange={(event) =>
+                      dispatch({ type: "set-name", value: event.target.value })
+                    }
                     placeholder="Your name"
                     required
-                    value={name}
+                    value={state.name}
                   />
                 </Field>
                 <Field>
@@ -173,18 +181,25 @@ export function InviteRedeemForm({ token }: { token: string }) {
                   <Input
                     autoComplete="new-password"
                     id="invite-password"
-                    minLength={8}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Minimum 8 characters"
+                    minLength={12}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "set-password",
+                        value: event.target.value,
+                      })
+                    }
+                    placeholder="Minimum 12 characters"
                     required
                     type="password"
-                    value={password}
+                    value={state.password}
                   />
                 </Field>
-                <FieldError>{error}</FieldError>
+                <FieldError>{state.error}</FieldError>
                 <Field>
-                  <Button disabled={isSubmitting} type="submit">
-                    {isSubmitting ? "Activating portal..." : "Accept invite"}
+                  <Button disabled={state.isSubmitting} type="submit">
+                    {state.isSubmitting
+                      ? "Activating portal..."
+                      : "Accept invite"}
                   </Button>
                 </Field>
               </FieldGroup>

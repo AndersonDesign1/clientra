@@ -6,7 +6,11 @@ import {
 import { z } from "zod";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { loadEnvFiles } from "@/db/load-env";
-import { canAccessProject, createProjectFileRecord } from "@/db/records";
+import {
+  canAccessProject,
+  createProjectFileRecord,
+  serializeProjectFile,
+} from "@/db/records";
 
 loadEnvFiles();
 
@@ -15,6 +19,7 @@ if (!process.env.UPLOADTHING_TOKEN) {
 }
 
 const f = createUploadthing();
+const maxFilesPerUpload = 6;
 
 export const uploadRouter = {
   projectFiles: f(
@@ -41,7 +46,7 @@ export const uploadRouter = {
         projectId: z.string().min(1),
       })
     )
-    .middleware(async ({ input, req }) => {
+    .middleware(async ({ files, input, req }) => {
       const user = await getSessionUserFromHeaders(req.headers);
 
       if (!user) {
@@ -52,6 +57,12 @@ export const uploadRouter = {
 
       if (!hasAccess) {
         throw new UploadThingError("You do not have access to this project.");
+      }
+
+      if (files.length > maxFilesPerUpload) {
+        throw new UploadThingError(
+          `You can upload up to ${maxFilesPerUpload} files at a time.`
+        );
       }
 
       return {
@@ -75,18 +86,7 @@ export const uploadRouter = {
         throw new UploadThingError("The uploaded file could not be saved.");
       }
 
-      return {
-        createdAt: created.createdAt.toISOString(),
-        fileName: created.fileName,
-        fileSize: created.fileSize,
-        fileUrl: created.fileUrl,
-        id: created.id,
-        mimeType: created.mimeType,
-        projectId: created.projectId,
-        storageKey: created.storageKey,
-        uploadedBy: created.uploadedBy,
-        uploaderName: created.uploaderName,
-      };
+      return serializeProjectFile(created);
     }),
 };
 

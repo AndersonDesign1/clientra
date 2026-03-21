@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useReducer } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,45 +50,81 @@ function getErrorMessage(result: {
   return result.error?.message ?? "Something went wrong. Please try again.";
 }
 
+interface LoginState {
+  activeProvider: "github" | "google" | null;
+  email: string;
+  error: string | null;
+  isSubmitting: boolean;
+  password: string;
+}
+
+type LoginAction =
+  | { type: "set-active-provider"; value: LoginState["activeProvider"] }
+  | { type: "set-email"; value: string }
+  | { type: "set-error"; value: string | null }
+  | { type: "set-password"; value: string }
+  | { type: "set-submitting"; value: boolean };
+
+function loginReducer(state: LoginState, action: LoginAction): LoginState {
+  switch (action.type) {
+    case "set-active-provider":
+      return { ...state, activeProvider: action.value };
+    case "set-email":
+      return { ...state, email: action.value };
+    case "set-error":
+      return { ...state, error: action.value };
+    case "set-password":
+      return { ...state, password: action.value };
+    case "set-submitting":
+      return { ...state, isSubmitting: action.value };
+    default:
+      return state;
+  }
+}
+
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(loginReducer, {
+    activeProvider: null,
+    email: "",
+    error: null,
+    isSubmitting: false,
+    password: "",
+  });
 
   async function handleEmailSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
+    dispatch({ type: "set-error", value: null });
+    dispatch({ type: "set-submitting", value: true });
     try {
       const result = await authClient.signIn.email({
         callbackURL: "/",
-        email,
-        password,
+        email: state.email,
+        password: state.password,
       });
 
       if (result.error) {
-        setError(getErrorMessage(result));
+        dispatch({ type: "set-error", value: getErrorMessage(result) });
         return;
       }
 
       await router.navigate({ to: "/" });
     } catch (error) {
-      setError(
-        error instanceof Error && error.message
-          ? error.message
-          : "Something went wrong. Please try again."
-      );
+      dispatch({
+        type: "set-error",
+        value:
+          error instanceof Error && error.message
+            ? error.message
+            : "Something went wrong. Please try again.",
+      });
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: "set-submitting", value: false });
     }
   }
 
   async function handleSocialSignIn(provider: "github" | "google") {
-    setError(null);
-    setActiveProvider(provider);
+    dispatch({ type: "set-error", value: null });
+    dispatch({ type: "set-active-provider", value: provider });
     try {
       const result = await authClient.signIn.social({
         callbackURL: "/",
@@ -96,16 +132,18 @@ export function LoginForm() {
       });
 
       if (result.error) {
-        setActiveProvider(null);
-        setError(getErrorMessage(result));
+        dispatch({ type: "set-active-provider", value: null });
+        dispatch({ type: "set-error", value: getErrorMessage(result) });
       }
     } catch (error) {
-      setActiveProvider(null);
-      setError(
-        error instanceof Error && error.message
-          ? error.message
-          : "Unable to start social sign-in."
-      );
+      dispatch({ type: "set-active-provider", value: null });
+      dispatch({
+        type: "set-error",
+        value:
+          error instanceof Error && error.message
+            ? error.message
+            : "Unable to start social sign-in.",
+      });
     }
   }
 
@@ -129,7 +167,7 @@ export function LoginForm() {
               <FieldGroup>
                 <Field>
                   <Button
-                    disabled={activeProvider !== null}
+                    disabled={state.activeProvider !== null}
                     onClick={() => {
                       handleSocialSignIn("google");
                     }}
@@ -137,12 +175,12 @@ export function LoginForm() {
                     variant="outline"
                   >
                     <GoogleIcon />
-                    {activeProvider === "google"
+                    {state.activeProvider === "google"
                       ? "Connecting to Google..."
                       : "Continue with Google"}
                   </Button>
                   <Button
-                    disabled={activeProvider !== null}
+                    disabled={state.activeProvider !== null}
                     onClick={() => {
                       handleSocialSignIn("github");
                     }}
@@ -150,7 +188,7 @@ export function LoginForm() {
                     variant="outline"
                   >
                     <GitHubIcon />
-                    {activeProvider === "github"
+                    {state.activeProvider === "github"
                       ? "Connecting to GitHub..."
                       : "Continue with GitHub"}
                   </Button>
@@ -163,11 +201,13 @@ export function LoginForm() {
                   <Input
                     autoComplete="email"
                     id="email"
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(event) =>
+                      dispatch({ type: "set-email", value: event.target.value })
+                    }
                     placeholder="hello@clientra.app"
                     required
                     type="email"
-                    value={email}
+                    value={state.email}
                   />
                 </Field>
                 <Field>
@@ -175,20 +215,27 @@ export function LoginForm() {
                   <Input
                     autoComplete="current-password"
                     id="password"
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(event) =>
+                      dispatch({
+                        type: "set-password",
+                        value: event.target.value,
+                      })
+                    }
                     placeholder="Enter your password"
                     required
                     type="password"
-                    value={password}
+                    value={state.password}
                   />
                 </Field>
-                <FieldError>{error}</FieldError>
+                <FieldError>{state.error}</FieldError>
                 <Field>
                   <Button
-                    disabled={isSubmitting || activeProvider !== null}
+                    disabled={
+                      state.isSubmitting || state.activeProvider !== null
+                    }
                     type="submit"
                   >
-                    {isSubmitting ? "Signing in..." : "Sign in"}
+                    {state.isSubmitting ? "Signing in..." : "Sign in"}
                   </Button>
                   <FieldDescription className="text-center text-slate-500">
                     Need admin access?{" "}

@@ -3,6 +3,7 @@ import {
   forbiddenError,
   internalServerError,
   parseJsonBody,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { createNoteSchema } from "@/api/validation";
@@ -13,6 +14,12 @@ export const Route = createFileRoute("/api/notes")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const sessionUser = await getSessionUserFromHeaders(request.headers);
 
         if (!sessionUser) {

@@ -4,6 +4,7 @@ import {
   forbiddenError,
   internalServerError,
   notFoundError,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { ROLES } from "@/auth/roles";
@@ -16,6 +17,12 @@ export const Route = createFileRoute("/api/files/$id")({
   server: {
     handlers: {
       DELETE: async ({ params, request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const user = await getSessionUserFromHeaders(request.headers);
 
         if (!user) {
@@ -32,12 +39,6 @@ export const Route = createFileRoute("/api/files/$id")({
           return notFoundError("That file could not be found.");
         }
 
-        const deletedRecord = await deleteProjectFileRecord(existing.id);
-
-        if (!deletedRecord) {
-          return internalServerError("The file metadata could not be deleted.");
-        }
-
         try {
           const deletedAsset = await utapi.deleteFiles(existing.storageKey);
 
@@ -49,11 +50,9 @@ export const Route = createFileRoute("/api/files/$id")({
             });
 
             return internalServerError(
-              "The file metadata was removed, but storage cleanup failed."
+              "The uploaded file could not be removed from storage."
             );
           }
-
-          return Response.json({ success: true });
         } catch (error) {
           console.error("UploadThing storage deletion threw", {
             error,
@@ -62,9 +61,19 @@ export const Route = createFileRoute("/api/files/$id")({
           });
 
           return internalServerError(
-            "The file metadata was removed, but storage cleanup failed."
+            "The uploaded file could not be removed from storage."
           );
         }
+
+        const deletedRecord = await deleteProjectFileRecord(existing.id);
+
+        if (!deletedRecord) {
+          return internalServerError(
+            "Storage cleanup succeeded, but the file metadata could not be deleted."
+          );
+        }
+
+        return Response.json({ success: true });
       },
     },
   },

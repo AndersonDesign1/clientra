@@ -65,6 +65,28 @@ export function forbiddenError(
   return jsonError(403, { error: message });
 }
 
+export function requireSameOrigin(request: Request) {
+  const requestOrigin = new URL(request.url).origin;
+  const originHeader = request.headers.get("origin");
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (originHeader && originHeader !== requestOrigin) {
+    return {
+      error: forbiddenError("Cross-site requests are not allowed."),
+      ok: false as const,
+    };
+  }
+
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return {
+      error: forbiddenError("Cross-site requests are not allowed."),
+      ok: false as const,
+    };
+  }
+
+  return { ok: true as const };
+}
+
 export function notFoundError(
   message = "The requested resource was not found."
 ) {

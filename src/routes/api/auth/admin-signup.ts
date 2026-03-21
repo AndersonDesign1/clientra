@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  forbiddenError,
   internalServerError,
   parseJsonBody,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { adminSignupSchema } from "@/api/validation";
 import { auth } from "@/auth/better-auth";
 import { ROLES } from "@/auth/roles";
 import { getUserByEmail } from "@/auth/session.server";
-import { updateUserRole } from "@/db/records";
+import { hasWorkspaceAdmin, updateUserRole } from "@/db/records";
 
 interface AuthApiResult {
   headers: Headers;
@@ -27,6 +29,16 @@ export const Route = createFileRoute("/api/auth/admin-signup")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
+        if (await hasWorkspaceAdmin()) {
+          return forbiddenError("Admin signup is closed for this workspace.");
+        }
+
         const parsed = await parseJsonBody(request, adminSignupSchema);
 
         if (!parsed.ok) {

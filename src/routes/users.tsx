@@ -1,7 +1,7 @@
 "use client";
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useReducer } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
@@ -23,71 +23,110 @@ export const Route = createFileRoute("/users")({
   component: UsersPage,
 });
 
+interface UsersPageState {
+  deleteCandidate: ManagedUser | null;
+  mutationError: string | null;
+  pendingDeleteUserId: string | null;
+  pendingRoleUserId: string | null;
+  users: ManagedUser[] | null;
+}
+
+type UsersPageAction =
+  | { type: "set-delete-candidate"; value: ManagedUser | null }
+  | { type: "set-mutation-error"; value: string | null }
+  | { type: "set-pending-delete-user-id"; value: string | null }
+  | { type: "set-pending-role-user-id"; value: string | null }
+  | { type: "set-users"; value: ManagedUser[] | null };
+
+function usersPageReducer(state: UsersPageState, action: UsersPageAction) {
+  switch (action.type) {
+    case "set-delete-candidate":
+      return { ...state, deleteCandidate: action.value };
+    case "set-mutation-error":
+      return { ...state, mutationError: action.value };
+    case "set-pending-delete-user-id":
+      return { ...state, pendingDeleteUserId: action.value };
+    case "set-pending-role-user-id":
+      return { ...state, pendingRoleUserId: action.value };
+    case "set-users":
+      return { ...state, users: action.value };
+    default:
+      return state;
+  }
+}
+
 function UsersPage() {
   const session = authClient.useSession();
   const currentUserId = session.data?.user?.id;
   const usersQuery = useUsersData();
-  const [users, setUsers] = useState<ManagedUser[] | null>(null);
-  const [mutationError, setMutationError] = useState<string | null>(null);
-  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(
-    null
-  );
-  const [pendingDeleteUserId, setPendingDeleteUserId] = useState<string | null>(
-    null
-  );
-  const [deleteCandidate, setDeleteCandidate] = useState<ManagedUser | null>(
-    null
-  );
+  const [state, dispatch] = useReducer(usersPageReducer, {
+    deleteCandidate: null,
+    mutationError: null,
+    pendingDeleteUserId: null,
+    pendingRoleUserId: null,
+    users: null,
+  });
 
   const visibleUsers = useMemo(
-    () => users ?? usersQuery.data ?? [],
-    [users, usersQuery.data]
+    () => state.users ?? usersQuery.data ?? [],
+    [state.users, usersQuery.data]
   );
 
   async function handleRoleChange(userId: string, role: ManagedUser["role"]) {
-    setMutationError(null);
-    setPendingRoleUserId(userId);
+    dispatch({ type: "set-mutation-error", value: null });
+    dispatch({ type: "set-pending-role-user-id", value: userId });
 
     try {
       const updatedUser = await updateUserRole(userId, role);
 
-      setUsers((current) =>
-        (current ?? usersQuery.data ?? []).map((user) =>
+      dispatch({
+        type: "set-users",
+        value: (state.users ?? usersQuery.data ?? []).map((user) =>
           user.id === updatedUser.id ? updatedUser : user
-        )
-      );
+        ),
+      });
     } catch (error) {
-      setMutationError(
-        error instanceof Error ? error.message : "Unable to update user role."
-      );
+      dispatch({
+        type: "set-mutation-error",
+        value:
+          error instanceof Error
+            ? error.message
+            : "Unable to update user role.",
+      });
     } finally {
-      setPendingRoleUserId(null);
+      dispatch({ type: "set-pending-role-user-id", value: null });
     }
   }
 
   async function handleDelete(user: ManagedUser) {
-    setMutationError(null);
-    setPendingDeleteUserId(user.id);
+    dispatch({ type: "set-mutation-error", value: null });
+    dispatch({ type: "set-pending-delete-user-id", value: user.id });
 
     try {
       await deleteUser(user.id);
-      setUsers((current) =>
-        (current ?? usersQuery.data ?? []).filter(
+      dispatch({
+        type: "set-users",
+        value: (state.users ?? usersQuery.data ?? []).filter(
           (managedUser) => managedUser.id !== user.id
-        )
-      );
+        ),
+      });
     } catch (error) {
-      setMutationError(
-        error instanceof Error ? error.message : "Unable to delete that user."
-      );
+      dispatch({
+        type: "set-mutation-error",
+        value:
+          error instanceof Error
+            ? error.message
+            : "Unable to delete that user.",
+      });
     } finally {
-      setDeleteCandidate(null);
-      setPendingDeleteUserId(null);
+      dispatch({ type: "set-delete-candidate", value: null });
+      dispatch({ type: "set-pending-delete-user-id", value: null });
     }
   }
 
   const hasBlockingState =
-    (usersQuery.isLoading && !users) || Boolean(usersQuery.error && !users);
+    (usersQuery.isLoading && !state.users) ||
+    Boolean(usersQuery.error && !state.users);
 
   return (
     <AppShell>
@@ -98,36 +137,38 @@ function UsersPage() {
         </p>
       </div>
 
-      {mutationError ? (
+      {state.mutationError ? (
         <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 text-sm">
-          {mutationError}
+          {state.mutationError}
         </div>
       ) : null}
 
-      {deleteCandidate ? (
+      {state.deleteCandidate ? (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-sm">
           <p className="font-medium">Confirm user deletion</p>
           <p className="mt-1">
-            Delete {deleteCandidate.name} ({deleteCandidate.email})? This will
-            remove their sessions and linked account access.
+            Delete {state.deleteCandidate.name} ({state.deleteCandidate.email})
+            ? This will remove their sessions and linked account access.
           </p>
           <div className="mt-3 flex gap-2">
             <Button
-              disabled={pendingDeleteUserId === deleteCandidate.id}
+              disabled={state.pendingDeleteUserId === state.deleteCandidate.id}
               onClick={() => {
-                handleDelete(deleteCandidate);
+                if (state.deleteCandidate) {
+                  handleDelete(state.deleteCandidate);
+                }
               }}
               type="button"
               variant="destructive"
             >
-              {pendingDeleteUserId === deleteCandidate.id
+              {state.pendingDeleteUserId === state.deleteCandidate.id
                 ? "Deleting..."
                 : "Confirm delete"}
             </Button>
             <Button
-              disabled={pendingDeleteUserId === deleteCandidate.id}
+              disabled={state.pendingDeleteUserId === state.deleteCandidate.id}
               onClick={() => {
-                setDeleteCandidate(null);
+                dispatch({ type: "set-delete-candidate", value: null });
               }}
               type="button"
               variant="outline"
@@ -138,8 +179,8 @@ function UsersPage() {
         </div>
       ) : null}
 
-      {usersQuery.isLoading && !users ? <LoadingPanel /> : null}
-      {!usersQuery.isLoading && usersQuery.error && !users ? (
+      {usersQuery.isLoading && !state.users ? <LoadingPanel /> : null}
+      {!usersQuery.isLoading && usersQuery.error && !state.users ? (
         <ErrorPanel description={usersQuery.error} />
       ) : null}
       {!hasBlockingState && visibleUsers.length === 0 ? (
@@ -165,8 +206,8 @@ function UsersPage() {
             <tbody>
               {visibleUsers.map((user) => {
                 const isCurrentUser = user.id === currentUserId;
-                const isRolePending = pendingRoleUserId === user.id;
-                const isDeletePending = pendingDeleteUserId === user.id;
+                const isRolePending = state.pendingRoleUserId === user.id;
+                const isDeletePending = state.pendingDeleteUserId === user.id;
                 const isBusy = isRolePending || isDeletePending;
 
                 return (
@@ -209,7 +250,10 @@ function UsersPage() {
                         <Button
                           disabled={isBusy || isCurrentUser}
                           onClick={() => {
-                            setDeleteCandidate(user);
+                            dispatch({
+                              type: "set-delete-candidate",
+                              value: user,
+                            });
                           }}
                           type="button"
                           variant="destructive"

@@ -3,6 +3,7 @@ import {
   forbiddenError,
   internalServerError,
   parseJsonBody,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { createProjectSchema } from "@/api/validation";
@@ -28,6 +29,12 @@ export const Route = createFileRoute("/api/projects")({
         return Response.json(await listProjectsForUser(user));
       },
       POST: async ({ request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const user = await getSessionUserFromHeaders(request.headers);
 
         if (!user) {

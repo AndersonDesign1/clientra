@@ -89,6 +89,18 @@ interface ProjectFileRecord extends Record<string, unknown> {
   uploaderName: string;
 }
 
+export type PublicProjectFile = {
+  createdAt: string;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  id: string;
+  mimeType: string;
+  projectId: string;
+  uploadedBy: string;
+  uploaderName: string;
+} & Record<string, string | number>;
+
 let hasSeededRecords = false;
 
 function serializeTags(tags: string[]) {
@@ -186,6 +198,22 @@ function mapProjectFile(
     storageKey: row.storageKey,
     uploadedBy: row.uploadedBy,
     uploaderName: uploaderName ?? "",
+  };
+}
+
+export function serializeProjectFile(
+  file: ProjectFileRecord
+): PublicProjectFile {
+  return {
+    createdAt: file.createdAt.toISOString(),
+    fileName: file.fileName,
+    fileSize: file.fileSize,
+    fileUrl: file.fileUrl,
+    id: file.id,
+    mimeType: file.mimeType,
+    projectId: file.projectId,
+    uploadedBy: file.uploadedBy,
+    uploaderName: file.uploaderName,
   };
 }
 
@@ -486,10 +514,7 @@ export async function getActiveInviteByToken(token: string) {
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
-        or(
-          isNull(invitesTable.expiresAt),
-          gt(invitesTable.expiresAt, new Date())
-        )
+        gt(invitesTable.expiresAt, new Date())
       )
     )
     .limit(1);
@@ -512,10 +537,7 @@ export async function consumeInvite(
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
-        or(
-          isNull(invitesTable.expiresAt),
-          gt(invitesTable.expiresAt, new Date())
-        )
+        gt(invitesTable.expiresAt, new Date())
       )
     )
     .returning({ token: invitesTable.token });
@@ -574,6 +596,16 @@ export async function listUsersForAdmin() {
   return userRows.map((row) =>
     mapManagedUser(row, providersByUserId.get(row.id) ?? [])
   );
+}
+
+export async function hasWorkspaceAdmin() {
+  const [admin] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.role, ROLES.ADMIN))
+    .limit(1);
+
+  return Boolean(admin);
 }
 
 export async function setUserRole(userId: string, role: "admin" | "client") {

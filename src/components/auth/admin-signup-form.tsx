@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useReducer } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,28 +28,86 @@ function getThrownErrorMessage(error: unknown) {
   return "Unable to create your account right now.";
 }
 
-export function AdminSignupForm() {
+interface AdminSignupState {
+  confirmPassword: string;
+  email: string;
+  error: string | null;
+  isSubmitting: boolean;
+  name: string;
+  password: string;
+}
+
+type AdminSignupAction =
+  | { type: "set-confirm-password"; value: string }
+  | { type: "set-email"; value: string }
+  | { type: "set-error"; value: string | null }
+  | { type: "set-name"; value: string }
+  | { type: "set-password"; value: string }
+  | { type: "set-submitting"; value: boolean };
+
+function adminSignupReducer(
+  state: AdminSignupState,
+  action: AdminSignupAction
+) {
+  switch (action.type) {
+    case "set-confirm-password":
+      return { ...state, confirmPassword: action.value };
+    case "set-email":
+      return { ...state, email: action.value };
+    case "set-error":
+      return { ...state, error: action.value };
+    case "set-name":
+      return { ...state, name: action.value };
+    case "set-password":
+      return { ...state, password: action.value };
+    case "set-submitting":
+      return { ...state, isSubmitting: action.value };
+    default:
+      return state;
+  }
+}
+
+export function AdminSignupForm({
+  isBootstrapOpen,
+}: {
+  isBootstrapOpen: boolean;
+}) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, dispatch] = useReducer(adminSignupReducer, {
+    confirmPassword: "",
+    email: "",
+    error: null,
+    isSubmitting: false,
+    name: "",
+    password: "",
+  });
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    dispatch({ type: "set-error", value: null });
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    if (!isBootstrapOpen) {
+      dispatch({
+        type: "set-error",
+        value:
+          "Admin signup is closed for this workspace. Sign in with an existing admin account.",
+      });
       return;
     }
 
-    setIsSubmitting(true);
+    if (state.password !== state.confirmPassword) {
+      dispatch({ type: "set-error", value: "Passwords do not match." });
+      return;
+    }
+
+    dispatch({ type: "set-submitting", value: true });
     try {
       const response = await fetch("/api/auth/admin-signup", {
-        body: JSON.stringify({ email, name, password }),
+        body: JSON.stringify({
+          email: state.email,
+          name: state.name,
+          password: state.password,
+        }),
         headers: {
           "content-type": "application/json",
         },
@@ -60,15 +118,18 @@ export function AdminSignupForm() {
       } | null;
 
       if (!response.ok) {
-        setError(data?.error ?? "Unable to create your account right now.");
+        dispatch({
+          type: "set-error",
+          value: data?.error ?? "Unable to create your account right now.",
+        });
         return;
       }
 
       await router.navigate({ to: "/dashboard" });
     } catch (error) {
-      setError(getThrownErrorMessage(error));
+      dispatch({ type: "set-error", value: getThrownErrorMessage(error) });
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: "set-submitting", value: false });
     }
   }
 
@@ -87,6 +148,12 @@ export function AdminSignupForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {isBootstrapOpen ? null : (
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900 text-sm">
+              This workspace already has an admin account. Use the sign-in page
+              instead of creating another public admin.
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
@@ -94,10 +161,12 @@ export function AdminSignupForm() {
                 <Input
                   autoComplete="name"
                   id="name"
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) =>
+                    dispatch({ type: "set-name", value: event.target.value })
+                  }
                   placeholder="Jordan Lee"
                   required
-                  value={name}
+                  value={state.name}
                 />
               </Field>
               <Field>
@@ -105,11 +174,13 @@ export function AdminSignupForm() {
                 <Input
                   autoComplete="email"
                   id="email"
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    dispatch({ type: "set-email", value: event.target.value })
+                  }
                   placeholder="you@studio.com"
                   required
                   type="email"
-                  value={email}
+                  value={state.email}
                 />
               </Field>
               <Field>
@@ -117,12 +188,17 @@ export function AdminSignupForm() {
                 <Input
                   autoComplete="new-password"
                   id="password"
-                  minLength={8}
-                  onChange={(event) => setPassword(event.target.value)}
+                  minLength={12}
+                  onChange={(event) =>
+                    dispatch({
+                      type: "set-password",
+                      value: event.target.value,
+                    })
+                  }
                   placeholder="Create a secure password"
                   required
                   type="password"
-                  value={password}
+                  value={state.password}
                 />
               </Field>
               <Field>
@@ -132,18 +208,26 @@ export function AdminSignupForm() {
                 <Input
                   autoComplete="new-password"
                   id="confirm-password"
-                  minLength={8}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  minLength={12}
+                  onChange={(event) =>
+                    dispatch({
+                      type: "set-confirm-password",
+                      value: event.target.value,
+                    })
+                  }
                   placeholder="Repeat your password"
                   required
                   type="password"
-                  value={confirmPassword}
+                  value={state.confirmPassword}
                 />
               </Field>
-              <FieldError>{error}</FieldError>
+              <FieldError>{state.error}</FieldError>
               <Field>
-                <Button disabled={isSubmitting} type="submit">
-                  {isSubmitting
+                <Button
+                  disabled={!isBootstrapOpen || state.isSubmitting}
+                  type="submit"
+                >
+                  {state.isSubmitting
                     ? "Creating account..."
                     : "Create admin account"}
                 </Button>

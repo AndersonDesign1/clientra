@@ -15,6 +15,7 @@ import {
 import { useUploadThing } from "@/uploadthing/client";
 
 const fileInputAccept = "image/*,.pdf,.txt,.csv";
+const maxFilesPerUpload = 6;
 const maxUploadBytes = 32 * 1024 * 1024;
 
 function formatFileSize(bytes: number) {
@@ -27,6 +28,46 @@ function formatFileSize(bytes: number) {
   }
 
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isProjectFile(value: unknown): value is ProjectFile {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.projectId === "string" &&
+    typeof candidate.fileName === "string" &&
+    typeof candidate.fileUrl === "string" &&
+    typeof candidate.mimeType === "string" &&
+    typeof candidate.uploadedBy === "string" &&
+    typeof candidate.uploaderName === "string" &&
+    typeof candidate.createdAt === "string" &&
+    typeof candidate.fileSize === "number"
+  );
+}
+
+function resetFileInput(input: HTMLInputElement | null) {
+  if (input) {
+    input.value = "";
+  }
+}
+
+function getUploadValidationError(files: File[]) {
+  if (files.length > maxFilesPerUpload) {
+    return `You can upload up to ${maxFilesPerUpload} files at a time.`;
+  }
+
+  const oversizedFile = files.find((file) => file.size > maxUploadBytes);
+
+  if (oversizedFile) {
+    return `${oversizedFile.name} is larger than the 32MB upload limit.`;
+  }
+
+  return null;
 }
 
 interface ProjectFilesPanelProps {
@@ -47,9 +88,13 @@ export function ProjectFilesPanel({
   const { isUploading, startUpload } = useUploadThing("projectFiles", {
     onClientUploadComplete: (uploadedFiles) => {
       setMutationError(null);
-      const uploadedRecords = uploadedFiles.map(
-        (entry) => entry.serverData as ProjectFile
-      );
+      const uploadedRecords: ProjectFile[] = [];
+
+      for (const entry of uploadedFiles) {
+        if (isProjectFile(entry.serverData)) {
+          uploadedRecords.push(entry.serverData);
+        }
+      }
 
       setFiles((current) => [
         ...uploadedRecords,
@@ -74,17 +119,11 @@ export function ProjectFilesPanel({
       return;
     }
 
-    const oversizedFile = nextFiles.find((file) => file.size > maxUploadBytes);
+    const validationError = getUploadValidationError(nextFiles);
 
-    if (oversizedFile) {
-      setMutationError(
-        `${oversizedFile.name} is larger than the 32MB upload limit.`
-      );
-
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
-
+    if (validationError) {
+      setMutationError(validationError);
+      resetFileInput(inputRef.current);
       return;
     }
 
@@ -97,9 +136,7 @@ export function ProjectFilesPanel({
         error instanceof Error ? error.message : "Unable to upload those files."
       );
     } finally {
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
+      resetFileInput(inputRef.current);
     }
   }
 
@@ -133,7 +170,8 @@ export function ProjectFilesPanel({
         <div>
           <h2 className="font-medium text-slate-900">Project files</h2>
           <p className="mt-1 text-slate-600 text-sm">
-            Upload project documents, PDFs, text notes, and images up to 32MB.
+            Upload project documents, PDFs, text notes, and images up to 32MB,
+            with up to 6 files per upload.
           </p>
         </div>
         <div className="flex items-center gap-2">

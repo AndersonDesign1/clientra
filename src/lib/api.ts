@@ -26,7 +26,6 @@ export interface ProjectFile {
   id: string;
   mimeType: string;
   projectId: string;
-  storageKey: string;
   uploadedBy: string;
   uploaderName: string;
 }

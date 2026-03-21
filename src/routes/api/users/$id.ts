@@ -3,6 +3,7 @@ import {
   forbiddenError,
   notFoundError,
   parseJsonBody,
+  requireSameOrigin,
   unauthorizedError,
 } from "@/api/route-utils";
 import { updateUserRoleSchema } from "@/api/validation";
@@ -14,6 +15,12 @@ export const Route = createFileRoute("/api/users/$id")({
   server: {
     handlers: {
       PATCH: async ({ params, request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const user = await getSessionUserFromHeaders(request.headers);
 
         if (!user) {
@@ -43,6 +50,12 @@ export const Route = createFileRoute("/api/users/$id")({
         return Response.json(updated);
       },
       DELETE: async ({ params, request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
         const user = await getSessionUserFromHeaders(request.headers);
 
         if (!user) {
