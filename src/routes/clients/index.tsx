@@ -8,10 +8,11 @@ import {
 } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
-import { useClientsData, useSearchData } from "@/lib/api";
+import { ensureClientsData, useClientsData, useSearchData } from "@/lib/api";
 
 export const Route = createFileRoute("/clients/")({
   beforeLoad: requireAdminSession,
+  loader: ({ context }) => ensureClientsData(context.queryClient),
   component: ClientsPage,
 });
 

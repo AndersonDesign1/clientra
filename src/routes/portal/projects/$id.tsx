@@ -4,10 +4,19 @@ import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import { projectTimeline } from "@/features/projects/mock-data";
-import { useProjectsData } from "@/lib/api";
+import {
+  ensureProjectFilesData,
+  ensureProjectsData,
+  useProjectsData,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/portal/projects/$id")({
   beforeLoad: requireClientSession,
+  loader: ({ context, params }) =>
+    Promise.all([
+      ensureProjectsData(context.queryClient),
+      ensureProjectFilesData(context.queryClient, params.id),
+    ]),
   component: PortalProjectDetailPage,
 });
 

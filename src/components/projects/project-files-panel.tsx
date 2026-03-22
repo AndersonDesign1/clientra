@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -8,8 +9,9 @@ import {
 } from "@/components/common/state-panel";
 import { Button } from "@/components/ui/button";
 import {
-  deleteProjectFile,
   type ProjectFile,
+  projectFilesQueryOptions,
+  useDeleteProjectFileMutation,
   useProjectFilesData,
 } from "@/lib/api";
 import { useUploadThing } from "@/uploadthing/client";
@@ -80,10 +82,11 @@ export function ProjectFilesPanel({
   projectId,
 }: ProjectFilesPanelProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const queryClient = useQueryClient();
   const filesQuery = useProjectFilesData(projectId);
-  const [files, setFiles] = useState<ProjectFile[] | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const deleteProjectFileMutation = useDeleteProjectFileMutation();
 
   const { isUploading, startUpload } = useUploadThing("projectFiles", {
     onClientUploadComplete: (uploadedFiles) => {
@@ -96,21 +99,15 @@ export function ProjectFilesPanel({
         }
       }
 
-      setFiles((current) => [
-        ...uploadedRecords,
-        ...(current ?? filesQuery.data ?? []),
-      ]);
+      queryClient.setQueryData<ProjectFile[]>(
+        projectFilesQueryOptions(projectId).queryKey,
+        (current) => [...uploadedRecords, ...(current ?? [])]
+      );
     },
     onUploadError: (error) => {
       setMutationError(error.message);
     },
   });
-
-  useEffect(() => {
-    if (filesQuery.data) {
-      setFiles(filesQuery.data);
-    }
-  }, [filesQuery.data]);
 
   async function handleFileSelection(fileList: FileList | null) {
     const nextFiles = fileList ? Array.from(fileList) : [];
@@ -145,12 +142,10 @@ export function ProjectFilesPanel({
     setPendingDeleteId(file.id);
 
     try {
-      await deleteProjectFile(file.id);
-      setFiles((current) =>
-        (current ?? filesQuery.data ?? []).filter(
-          (entry) => entry.id !== file.id
-        )
-      );
+      await deleteProjectFileMutation.mutateAsync({
+        fileId: file.id,
+        projectId,
+      });
     } catch (error) {
       setMutationError(
         error instanceof Error ? error.message : "Unable to delete that file."
@@ -160,9 +155,10 @@ export function ProjectFilesPanel({
     }
   }
 
-  const visibleFiles = files ?? filesQuery.data ?? [];
+  const visibleFiles = filesQuery.data ?? [];
   const hasBlockingState =
-    (filesQuery.isLoading && !files) || Boolean(filesQuery.error && !files);
+    (filesQuery.isLoading && visibleFiles.length === 0) ||
+    Boolean(filesQuery.error && visibleFiles.length === 0);
 
   return (
     <section className="rounded-xl border bg-white p-4">
@@ -203,8 +199,12 @@ export function ProjectFilesPanel({
         </div>
       ) : null}
 
-      {filesQuery.isLoading && !files ? <LoadingPanel /> : null}
-      {!filesQuery.isLoading && filesQuery.error && !files ? (
+      {filesQuery.isLoading && visibleFiles.length === 0 ? (
+        <LoadingPanel />
+      ) : null}
+      {!filesQuery.isLoading &&
+      filesQuery.error &&
+      visibleFiles.length === 0 ? (
         <ErrorPanel description={filesQuery.error} />
       ) : null}
       {!hasBlockingState && visibleFiles.length === 0 ? (

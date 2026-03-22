@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function SignOutButton({
     | "link";
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isPending, setIsPending] = useState(false);
 
   return (
@@ -31,6 +33,7 @@ export function SignOutButton({
 
         try {
           await authClient.signOut();
+          queryClient.clear();
           didSignOut = true;
         } catch (error) {
           console.error("sign out failed", error);

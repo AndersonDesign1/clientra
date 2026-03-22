@@ -3,10 +3,11 @@ import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { useClientsData } from "@/lib/api";
+import { ensureClientsData, useClientsData } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
   beforeLoad: requireAdminSession,
+  loader: ({ context }) => ensureClientsData(context.queryClient),
   component: SettingsPage,
 });
 

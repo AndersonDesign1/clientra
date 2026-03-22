@@ -7,10 +7,11 @@ import {
 } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
-import { useProjectsData } from "@/lib/api";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
 export const Route = createFileRoute("/projects/")({
   beforeLoad: requireAdminSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
   component: ProjectsPage,
 });
 

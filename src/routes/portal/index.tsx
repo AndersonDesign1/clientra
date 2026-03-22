@@ -2,10 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
-import { useProjectsData } from "@/lib/api";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
 export const Route = createFileRoute("/portal/")({
   beforeLoad: requireClientSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
   component: PortalHomePage,
 });
 

@@ -7,10 +7,11 @@ import {
 } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { PortalShell } from "@/components/layout/portal-shell";
-import { useProjectsData } from "@/lib/api";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
 export const Route = createFileRoute("/portal/projects/")({
   beforeLoad: requireClientSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
   component: PortalProjectsPage,
 });
 

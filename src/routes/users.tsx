@@ -1,7 +1,7 @@
 "use client";
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useReducer } from "react";
+import { useReducer } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
@@ -11,15 +11,17 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import {
-  deleteUser,
+  ensureUsersData,
   type ManagedUser,
-  updateUserRole,
+  useDeleteUserMutation,
+  useUpdateUserRoleMutation,
   useUsersData,
 } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/users")({
   beforeLoad: requireAdminSession,
+  loader: ({ context }) => ensureUsersData(context.queryClient),
   component: UsersPage,
 });
 
@@ -28,15 +30,13 @@ interface UsersPageState {
   mutationError: string | null;
   pendingDeleteUserId: string | null;
   pendingRoleUserId: string | null;
-  users: ManagedUser[] | null;
 }
 
 type UsersPageAction =
   | { type: "set-delete-candidate"; value: ManagedUser | null }
   | { type: "set-mutation-error"; value: string | null }
   | { type: "set-pending-delete-user-id"; value: string | null }
-  | { type: "set-pending-role-user-id"; value: string | null }
-  | { type: "set-users"; value: ManagedUser[] | null };
+  | { type: "set-pending-role-user-id"; value: string | null };
 
 function usersPageReducer(state: UsersPageState, action: UsersPageAction) {
   switch (action.type) {
@@ -48,8 +48,6 @@ function usersPageReducer(state: UsersPageState, action: UsersPageAction) {
       return { ...state, pendingDeleteUserId: action.value };
     case "set-pending-role-user-id":
       return { ...state, pendingRoleUserId: action.value };
-    case "set-users":
-      return { ...state, users: action.value };
     default:
       return state;
   }
@@ -64,26 +62,19 @@ function UsersPage() {
     mutationError: null,
     pendingDeleteUserId: null,
     pendingRoleUserId: null,
-    users: null,
   });
-
-  const visibleUsers = useMemo(
-    () => state.users ?? usersQuery.data ?? [],
-    [state.users, usersQuery.data]
-  );
+  const updateUserRoleMutation = useUpdateUserRoleMutation();
+  const deleteUserMutation = useDeleteUserMutation();
+  const visibleUsers = usersQuery.data ?? [];
 
   async function handleRoleChange(userId: string, role: ManagedUser["role"]) {
     dispatch({ type: "set-mutation-error", value: null });
     dispatch({ type: "set-pending-role-user-id", value: userId });
 
     try {
-      const updatedUser = await updateUserRole(userId, role);
-
-      dispatch({
-        type: "set-users",
-        value: (state.users ?? usersQuery.data ?? []).map((user) =>
-          user.id === updatedUser.id ? updatedUser : user
-        ),
+      await updateUserRoleMutation.mutateAsync({
+        id: userId,
+        role,
       });
     } catch (error) {
       dispatch({
@@ -103,12 +94,8 @@ function UsersPage() {
     dispatch({ type: "set-pending-delete-user-id", value: user.id });
 
     try {
-      await deleteUser(user.id);
-      dispatch({
-        type: "set-users",
-        value: (state.users ?? usersQuery.data ?? []).filter(
-          (managedUser) => managedUser.id !== user.id
-        ),
+      await deleteUserMutation.mutateAsync({
+        id: user.id,
       });
     } catch (error) {
       dispatch({
@@ -125,8 +112,8 @@ function UsersPage() {
   }
 
   const hasBlockingState =
-    (usersQuery.isLoading && !state.users) ||
-    Boolean(usersQuery.error && !state.users);
+    (usersQuery.isLoading && visibleUsers.length === 0) ||
+    Boolean(usersQuery.error && visibleUsers.length === 0);
 
   return (
     <AppShell>
@@ -179,8 +166,12 @@ function UsersPage() {
         </div>
       ) : null}
 
-      {usersQuery.isLoading && !state.users ? <LoadingPanel /> : null}
-      {!usersQuery.isLoading && usersQuery.error && !state.users ? (
+      {usersQuery.isLoading && visibleUsers.length === 0 ? (
+        <LoadingPanel />
+      ) : null}
+      {!usersQuery.isLoading &&
+      usersQuery.error &&
+      visibleUsers.length === 0 ? (
         <ErrorPanel description={usersQuery.error} />
       ) : null}
       {!hasBlockingState && visibleUsers.length === 0 ? (
