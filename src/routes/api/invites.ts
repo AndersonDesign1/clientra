@@ -11,14 +11,6 @@ import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { createInviteRecord, getInviteRecordById } from "@/db/records";
 
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  return "Unknown error";
-}
-
 export const Route = createFileRoute("/api/invites")({
   server: {
     handlers: {
@@ -57,9 +49,8 @@ export const Route = createFileRoute("/api/invites")({
             token,
           });
         } catch (error) {
-          return internalServerError(
-            `Invite could not be created. ${getErrorMessage(error)}`
-          );
+          console.error("invite creation failed", error);
+          return internalServerError("Invite could not be created.");
         }
 
         const invite = await getInviteRecordById(inviteId);

@@ -19,12 +19,13 @@ export const Route = createFileRoute("/api/projects")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        await seedIfEmpty();
         const user = await getSessionUserFromHeaders(request.headers);
 
         if (!user) {
           return unauthorizedError();
         }
+
+        await seedIfEmpty();
 
         return Response.json(await listProjectsForUser(user));
       },

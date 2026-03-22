@@ -70,6 +70,13 @@ export function requireSameOrigin(request: Request) {
   const originHeader = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
 
+  if (!(originHeader || fetchSite)) {
+    return {
+      error: forbiddenError("Missing origin information."),
+      ok: false as const,
+    };
+  }
+
   if (originHeader && originHeader !== requestOrigin) {
     return {
       error: forbiddenError("Cross-site requests are not allowed."),

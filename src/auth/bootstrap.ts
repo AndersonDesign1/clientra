@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getActiveInviteByToken, hasWorkspaceAdmin } from "@/db/records";
+import { maskEmailAddress } from "@/lib/email";
 
 const inviteTokenSchema = z.object({
   token: z.string().trim().min(1).max(255),
@@ -26,7 +27,7 @@ export const getInvitePreview = createServerFn({
     }
 
     return {
-      email: invite.email,
       expiresAt: invite.expiresAt.toISOString(),
+      maskedEmail: maskEmailAddress(invite.email),
     };
   });

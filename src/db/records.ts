@@ -101,8 +101,6 @@ export type PublicProjectFile = {
   uploaderName: string;
 } & Record<string, string | number>;
 
-let hasSeededRecords = false;
-
 function serializeTags(tags: string[]) {
   return JSON.stringify(tags);
 }
@@ -571,6 +569,27 @@ export async function updateUserRole(
     .where(eq(usersTable.id, userId));
 }
 
+export async function promoteUserToInitialAdmin(userId: string) {
+  const promotedUsers = await db
+    .update(usersTable)
+    .set({ role: ROLES.ADMIN, updatedAt: new Date() })
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        eq(usersTable.role, ROLES.CLIENT),
+        sql`not exists (
+          select 1
+          from ${usersTable}
+          where ${usersTable.role} = ${ROLES.ADMIN}
+            and ${usersTable.id} <> ${userId}
+        )`
+      )
+    )
+    .returning({ id: usersTable.id });
+
+  return promotedUsers.length > 0;
+}
+
 export async function listUsersForAdmin() {
   const [userRows, accountRows] = await Promise.all([
     db.select().from(usersTable).orderBy(desc(usersTable.createdAt)),
@@ -648,7 +667,11 @@ export async function listPendingInvitesForClient(clientId: string) {
     .select()
     .from(invitesTable)
     .where(
-      and(eq(invitesTable.clientId, clientId), isNull(invitesTable.consumedAt))
+      and(
+        eq(invitesTable.clientId, clientId),
+        isNull(invitesTable.consumedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
     )
     .orderBy(desc(invitesTable.createdAt));
 
@@ -656,10 +679,6 @@ export async function listPendingInvitesForClient(clientId: string) {
 }
 
 export async function seedIfEmpty() {
-  if (hasSeededRecords) {
-    return;
-  }
-
   const now = new Date();
 
   await db
@@ -693,7 +712,6 @@ export async function seedIfEmpty() {
     .from(clientsTable);
 
   if (count > 0) {
-    hasSeededRecords = true;
     return;
   }
 
@@ -746,6 +764,4 @@ export async function seedIfEmpty() {
       title: "iOS Client Portal",
     },
   ]);
-
-  hasSeededRecords = true;
 }

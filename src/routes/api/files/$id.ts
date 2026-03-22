@@ -9,7 +9,11 @@ import {
 } from "@/api/route-utils";
 import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { deleteProjectFileRecord, getProjectFileById } from "@/db/records";
+import {
+  canAccessProject,
+  deleteProjectFileRecord,
+  getProjectFileById,
+} from "@/db/records";
 
 const utapi = new UTApi();
 
@@ -37,6 +41,15 @@ export const Route = createFileRoute("/api/files/$id")({
 
         if (!existing) {
           return notFoundError("That file could not be found.");
+        }
+
+        const hasProjectAccess = await canAccessProject(
+          user,
+          existing.projectId
+        );
+
+        if (!hasProjectAccess) {
+          return forbiddenError("You do not have access to that file.");
         }
 
         try {

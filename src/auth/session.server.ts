@@ -3,9 +3,11 @@ import "@tanstack/react-start/server-only";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { invites, users } from "@/db/schema";
+import { users } from "@/db/schema";
 import { auth } from "./better-auth";
-import type { SessionUser } from "./roles";
+import { ROLES, type Role, type SessionUser } from "./roles";
+
+const VALID_ROLES = new Set<Role>(Object.values(ROLES));
 
 function normalizeSessionUser(
   session: {
@@ -17,7 +19,7 @@ function normalizeSessionUser(
     };
   } | null
 ) {
-  if (!session?.user?.role) {
+  if (!(session?.user?.role && VALID_ROLES.has(session.user.role as Role))) {
     return null;
   }
 
@@ -25,8 +27,8 @@ function normalizeSessionUser(
     email: session.user.email,
     id: session.user.id,
     name: session.user.name,
-    role: session.user.role,
-  } as SessionUser;
+    role: session.user.role as Role,
+  } satisfies SessionUser;
 }
 
 export async function getSessionUserFromHeaders(headers?: HeadersInit) {
@@ -35,16 +37,6 @@ export async function getSessionUserFromHeaders(headers?: HeadersInit) {
   });
 
   return normalizeSessionUser(session);
-}
-
-export async function getInviteByToken(token: string) {
-  const [invite] = await db
-    .select()
-    .from(invites)
-    .where(eq(invites.token, token))
-    .limit(1);
-
-  return invite ?? null;
 }
 
 export async function getUserByEmail(email: string) {

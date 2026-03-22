@@ -17,6 +17,7 @@ import {
   linkUserToClient,
   updateUserRole,
 } from "@/db/records";
+import { maskEmailAddress } from "@/lib/email";
 
 interface AuthApiResult {
   headers: Headers;
@@ -49,8 +50,8 @@ export const Route = createFileRoute("/api/invites/redeem")({
         }
 
         return Response.json({
-          email: invite.email,
           expiresAt: invite.expiresAt.toISOString(),
+          maskedEmail: maskEmailAddress(invite.email),
         });
       },
       POST: async ({ request }) => {

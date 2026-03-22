@@ -10,7 +10,11 @@ import { adminSignupSchema } from "@/api/validation";
 import { auth } from "@/auth/better-auth";
 import { ROLES } from "@/auth/roles";
 import { getUserByEmail } from "@/auth/session.server";
-import { hasWorkspaceAdmin, updateUserRole } from "@/db/records";
+import {
+  deleteUserById,
+  hasWorkspaceAdmin,
+  promoteUserToInitialAdmin,
+} from "@/db/records";
 
 interface AuthApiResult {
   headers: Headers;
@@ -76,7 +80,39 @@ export const Route = createFileRoute("/api/auth/admin-signup")({
           );
         }
 
-        await updateUserRole(user.id, ROLES.ADMIN);
+        try {
+          const promoted = await promoteUserToInitialAdmin(user.id);
+
+          if (!promoted) {
+            const deleted = await deleteUserById(user.id);
+
+            if (!deleted) {
+              console.error("admin signup bootstrap cleanup failed", {
+                email: parsed.data.email,
+                userId: user.id,
+              });
+
+              return internalServerError(
+                "Admin signup could not be completed safely."
+              );
+            }
+
+            return forbiddenError("Admin signup is closed for this workspace.");
+          }
+        } catch (error) {
+          console.error("admin signup promotion failed", error);
+
+          const deleted = await deleteUserById(user.id);
+
+          if (!deleted) {
+            console.error("admin signup rollback failed", {
+              email: parsed.data.email,
+              userId: user.id,
+            });
+          }
+
+          return internalServerError("We could not complete admin signup.");
+        }
 
         return jsonWithHeaders(
           {

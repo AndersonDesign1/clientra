@@ -21,8 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface InvitePreview {
-  email: string;
   expiresAt: string;
+  maskedEmail: string;
 }
 
 interface InviteRedeemState {
@@ -70,7 +70,7 @@ export function InviteRedeemForm({
   const router = useRouter();
   const invite = initialInvite;
   const [state, dispatch] = useReducer(inviteRedeemReducer, {
-    email: initialInvite?.email ?? "",
+    email: "",
     error: initialInvite ? null : "This invite is invalid or has expired.",
     isSubmitting: false,
     name: "",
@@ -147,17 +147,21 @@ export function InviteRedeemForm({
                 <Field>
                   <FieldLabel htmlFor="invite-email">Invited email</FieldLabel>
                   <Input
+                    autoComplete="email"
                     id="invite-email"
                     onChange={(event) =>
                       dispatch({ type: "set-email", value: event.target.value })
                     }
-                    readOnly={Boolean(invite.email)}
                     required
                     type="email"
                     value={state.email}
                   />
                   <FieldDescription>
-                    This invite expires on{" "}
+                    Use the invited email address matching{" "}
+                    <span className="font-medium text-slate-700">
+                      {invite.maskedEmail}
+                    </span>
+                    . This invite expires on{" "}
                     {new Date(invite.expiresAt).toLocaleString()}.
                   </FieldDescription>
                 </Field>
