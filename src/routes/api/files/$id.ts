@@ -13,6 +13,7 @@ import {
   canAccessProject,
   deleteProjectFileRecord,
   getProjectFileById,
+  restoreProjectFileRecord,
 } from "@/db/records";
 
 const utapi = new UTApi();
@@ -52,10 +53,18 @@ export const Route = createFileRoute("/api/files/$id")({
           return forbiddenError("You do not have access to that file.");
         }
 
+        const deletedRecord = await deleteProjectFileRecord(existing.id);
+
+        if (!deletedRecord) {
+          return internalServerError("The file metadata could not be deleted.");
+        }
+
         try {
           const deletedAsset = await utapi.deleteFiles(existing.storageKey);
 
           if (!deletedAsset.success) {
+            await restoreProjectFileRecord(deletedRecord);
+
             console.error("UploadThing storage deletion failed", {
               error: deletedAsset,
               fileId: existing.id,
@@ -67,6 +76,16 @@ export const Route = createFileRoute("/api/files/$id")({
             );
           }
         } catch (error) {
+          try {
+            await restoreProjectFileRecord(deletedRecord);
+          } catch (restoreError) {
+            console.error("file delete rollback failed", {
+              fileId: existing.id,
+              restoreError,
+              storageKey: existing.storageKey,
+            });
+          }
+
           console.error("UploadThing storage deletion threw", {
             error,
             fileId: existing.id,
@@ -75,14 +94,6 @@ export const Route = createFileRoute("/api/files/$id")({
 
           return internalServerError(
             "The uploaded file could not be removed from storage."
-          );
-        }
-
-        const deletedRecord = await deleteProjectFileRecord(existing.id);
-
-        if (!deletedRecord) {
-          return internalServerError(
-            "Storage cleanup succeeded, but the file metadata could not be deleted."
           );
         }
 

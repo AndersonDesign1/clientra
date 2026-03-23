@@ -47,6 +47,7 @@ interface NoteInsert {
 }
 
 interface ProjectFileInsert {
+  createdAt?: Date;
   fileName: string;
   fileSize: number;
   fileUrl: string;
@@ -334,7 +335,7 @@ export async function createProjectNoteRecord(input: NoteInsert) {
 
 export async function createProjectFileRecord(input: ProjectFileInsert) {
   await db.insert(filesTable).values({
-    createdAt: new Date(),
+    createdAt: input.createdAt ?? new Date(),
     fileName: input.fileName,
     fileSize: input.fileSize,
     fileUrl: input.fileUrl,
@@ -424,6 +425,30 @@ export async function deleteProjectFileRecord(fileId: string) {
     .returning();
 
   return deletedFiles[0] ?? null;
+}
+
+export async function restoreProjectFileRecord(file: {
+  createdAt: Date;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  id: string;
+  mimeType: string;
+  projectId: string;
+  storageKey: string;
+  uploadedBy: string;
+}) {
+  await db.insert(filesTable).values({
+    createdAt: file.createdAt,
+    fileName: file.fileName,
+    fileSize: file.fileSize,
+    fileUrl: file.fileUrl,
+    id: file.id,
+    mimeType: file.mimeType,
+    projectId: file.projectId,
+    storageKey: file.storageKey,
+    uploadedBy: file.uploadedBy,
+  });
 }
 
 export async function searchRecords(query: string, user: SessionUser) {
