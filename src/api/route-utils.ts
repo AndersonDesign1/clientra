@@ -65,6 +65,28 @@ export function forbiddenError(
   return jsonError(403, { error: message });
 }
 
+export function tooManyRequestsError(
+  message = "Too many requests. Please try again later.",
+  retryAfterSeconds?: number
+) {
+  const headers =
+    retryAfterSeconds === undefined
+      ? undefined
+      : {
+          "retry-after": String(retryAfterSeconds),
+        };
+
+  return Response.json(
+    {
+      error: message,
+    },
+    {
+      headers,
+      status: 429,
+    }
+  );
+}
+
 export function requireSameOrigin(request: Request) {
   const requestOrigin = new URL(request.url).origin;
   const originHeader = request.headers.get("origin");

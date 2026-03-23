@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createRateLimiter } from "@/api/rate-limit";
 import {
   forbiddenError,
   notFoundError,
   parseJsonBody,
   requireSameOrigin,
+  tooManyRequestsError,
   unauthorizedError,
 } from "@/api/route-utils";
 import { inviteRedeemSchema } from "@/api/validation";
@@ -19,6 +21,11 @@ import {
 } from "@/db/records";
 import { maskEmailAddress } from "@/lib/email";
 
+const inviteSignInRateLimiter = createRateLimiter({
+  maxAttempts: 5,
+  windowMs: 10 * 60 * 1000,
+});
+
 interface AuthApiResult {
   headers: Headers;
   response: unknown;
@@ -30,6 +37,20 @@ function jsonWithHeaders(body: unknown, status: number, headers: Headers) {
     headers,
     status,
   });
+}
+
+function getClientAddress(request: Request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || "unknown";
+  }
+
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
 }
 
 export const Route = createFileRoute("/api/invites/redeem")({
@@ -45,7 +66,7 @@ export const Route = createFileRoute("/api/invites/redeem")({
 
         const invite = await getActiveInviteByToken(token);
 
-        if (!invite || invite.expiresAt.getTime() < Date.now()) {
+        if (!invite) {
           return notFoundError("This invite is invalid or has expired.");
         }
 
@@ -69,7 +90,7 @@ export const Route = createFileRoute("/api/invites/redeem")({
 
         const invite = await getActiveInviteByToken(parsed.data.token);
 
-        if (!invite || invite.expiresAt.getTime() < Date.now()) {
+        if (!invite) {
           return forbiddenError("This invite is invalid or has expired.");
         }
 
@@ -91,6 +112,21 @@ export const Route = createFileRoute("/api/invites/redeem")({
 
         try {
           if (existingUser) {
+            const rateLimitKey = [
+              "invite-redeem",
+              getClientAddress(request),
+              parsed.data.email.toLowerCase(),
+              invite.token,
+            ].join(":");
+            const rateLimit = inviteSignInRateLimiter.check(rateLimitKey);
+
+            if (!rateLimit.ok) {
+              return tooManyRequestsError(
+                "Too many invite sign-in attempts. Please try again later.",
+                rateLimit.retryAfterSeconds
+              );
+            }
+
             authResult = (await auth.api.signInEmail({
               body: {
                 callbackURL: "/portal",
@@ -101,6 +137,10 @@ export const Route = createFileRoute("/api/invites/redeem")({
               returnHeaders: true,
               returnStatus: true,
             })) as AuthApiResult;
+
+            if (authResult.status >= 200 && authResult.status < 300) {
+              inviteSignInRateLimiter.reset(rateLimitKey);
+            }
           } else {
             authResult = (await auth.api.signUpEmail({
               body: {

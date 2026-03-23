@@ -22,7 +22,7 @@ export const getInvitePreview = createServerFn({
   .handler(async ({ data }) => {
     const invite = await getActiveInviteByToken(data.token);
 
-    if (!invite || invite.expiresAt.getTime() < Date.now()) {
+    if (!invite) {
       return null;
     }
 

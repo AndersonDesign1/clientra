@@ -7,6 +7,11 @@ import { accounts, sessions, users, verifications } from "@/db/schema";
 
 loadEnvFiles();
 
+function normalizeCredential(value: string | undefined) {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
+
 function getSocialProviderConfig({
   clientId,
   clientSecret,
@@ -16,19 +21,25 @@ function getSocialProviderConfig({
   clientSecret: string | undefined;
   provider: "github" | "google";
 }) {
-  if (!(clientId || clientSecret)) {
+  const normalizedClientId = normalizeCredential(clientId);
+  const normalizedClientSecret = normalizeCredential(clientSecret);
+
+  if (
+    normalizedClientId === undefined &&
+    normalizedClientSecret === undefined
+  ) {
     return undefined;
   }
 
-  if (!(clientId && clientSecret)) {
+  if (!(normalizedClientId && normalizedClientSecret)) {
     throw new Error(
       `Missing ${provider} OAuth credentials. Set both ${provider.toUpperCase()}_CLIENT_ID and ${provider.toUpperCase()}_CLIENT_SECRET or remove the provider configuration.`
     );
   }
 
   return {
-    clientId,
-    clientSecret,
+    clientId: normalizedClientId,
+    clientSecret: normalizedClientSecret,
   };
 }
 
