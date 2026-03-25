@@ -233,7 +233,7 @@ describe("route pending states", () => {
   it("sets fast default router pending timing", () => {
     const router = getRouter();
 
-    expect(router.options.defaultPendingMs).toBe(0);
+    expect(router.options.defaultPendingMs).toBe(50);
     expect(router.options.defaultPendingMinMs).toBe(250);
   });
 });
