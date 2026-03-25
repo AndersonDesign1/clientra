@@ -1,5 +1,5 @@
 import { and, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
-import { ROLES, type SessionUser } from "@/auth/roles";
+import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { db } from "./client";
 import {
   accounts as accountsTable,
@@ -90,6 +90,16 @@ interface ProjectFileRecord extends Record<string, unknown> {
   uploaderName: string;
 }
 
+interface ProjectCommentRecord extends Record<string, unknown> {
+  authorId: string;
+  authorName: string;
+  authorRole: Role;
+  content: string;
+  createdAt: Date;
+  id: string;
+  projectId: string;
+}
+
 export type PublicProjectFile = {
   createdAt: string;
   fileName: string;
@@ -101,6 +111,46 @@ export type PublicProjectFile = {
   uploadedBy: string;
   uploaderName: string;
 } & Record<string, string | number>;
+
+export type PublicProjectComment = {
+  authorId: string;
+  authorName: string;
+  authorRole: Role;
+  content: string;
+  createdAt: string;
+  id: string;
+  projectId: string;
+};
+
+export type PublicProjectActivityEvent =
+  | {
+      createdAt: string;
+      id: string;
+      type: "project_created";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      authorRole: Role;
+      contentPreview: string;
+      createdAt: string;
+      id: string;
+      type: "note_added";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      fileId: string;
+      fileName: string;
+      id: string;
+      type: "file_uploaded";
+    };
+
+export interface PublicProjectCollaboration {
+  activity: PublicProjectActivityEvent[];
+  comments: PublicProjectComment[];
+}
 
 function serializeTags(tags: string[]) {
   return JSON.stringify(tags);
@@ -200,6 +250,22 @@ function mapProjectFile(
   };
 }
 
+function mapProjectComment(
+  row: typeof projectNotesTable.$inferSelect,
+  authorName: string | null,
+  authorRole: Role | null
+): ProjectCommentRecord {
+  return {
+    authorId: row.userId,
+    authorName: authorName ?? "Unknown user",
+    authorRole: authorRole ?? ROLES.CLIENT,
+    content: row.content,
+    createdAt: row.createdAt,
+    id: row.id,
+    projectId: row.projectId,
+  };
+}
+
 export function serializeProjectFile(
   file: ProjectFileRecord
 ): PublicProjectFile {
@@ -214,6 +280,106 @@ export function serializeProjectFile(
     uploadedBy: file.uploadedBy,
     uploaderName: file.uploaderName,
   };
+}
+
+export function serializeProjectComment(
+  comment: ProjectCommentRecord
+): PublicProjectComment {
+  return {
+    authorId: comment.authorId,
+    authorName: comment.authorName,
+    authorRole: comment.authorRole,
+    content: comment.content,
+    createdAt: comment.createdAt.toISOString(),
+    id: comment.id,
+    projectId: comment.projectId,
+  };
+}
+
+function truncateActivityContent(content: string) {
+  const normalized = content.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 140) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 137)}...`;
+}
+
+function createProjectCreatedActivity(
+  project: typeof projectsTable.$inferSelect
+): PublicProjectActivityEvent {
+  return {
+    createdAt: project.createdAt.toISOString(),
+    id: `project:${project.id}:created`,
+    type: "project_created",
+  };
+}
+
+function createNoteActivity(
+  comment: ProjectCommentRecord
+): PublicProjectActivityEvent {
+  return {
+    authorId: comment.authorId,
+    authorName: comment.authorName,
+    authorRole: comment.authorRole,
+    contentPreview: truncateActivityContent(comment.content),
+    createdAt: comment.createdAt.toISOString(),
+    id: `note:${comment.id}`,
+    type: "note_added",
+  };
+}
+
+function createFileUploadedActivity(
+  file: ProjectFileRecord
+): PublicProjectActivityEvent {
+  return {
+    authorId: file.uploadedBy,
+    authorName: file.uploaderName || "Unknown user",
+    createdAt: file.createdAt.toISOString(),
+    fileId: file.id,
+    fileName: file.fileName,
+    id: `file:${file.id}`,
+    type: "file_uploaded",
+  };
+}
+
+export function buildProjectActivityFeed({
+  comments,
+  files,
+  project,
+}: {
+  comments: ProjectCommentRecord[];
+  files: ProjectFileRecord[];
+  project: typeof projectsTable.$inferSelect;
+}): PublicProjectActivityEvent[] {
+  return [
+    createProjectCreatedActivity(project),
+    ...comments.map(createNoteActivity),
+    ...files.map(createFileUploadedActivity),
+  ].sort((left, right) => {
+    const leftTime = Date.parse(left.createdAt);
+    const rightTime = Date.parse(right.createdAt);
+
+    return rightTime - leftTime;
+  });
+}
+
+async function listProjectComments(projectId: string) {
+  const rows = await db
+    .select({
+      authorName: usersTable.name,
+      authorRole: usersTable.role,
+      note: projectNotesTable,
+    })
+    .from(projectNotesTable)
+    .leftJoin(usersTable, eq(projectNotesTable.userId, usersTable.id))
+    .where(eq(projectNotesTable.projectId, projectId))
+    .orderBy(desc(projectNotesTable.createdAt));
+
+  return rows.map(({ authorName, authorRole, note }) =>
+    mapProjectComment(note, authorName, authorRole)
+  );
 }
 
 export async function checkDatabaseHealth() {
@@ -325,12 +491,19 @@ export async function createProjectNoteRecord(input: NoteInsert) {
   });
 
   const [created] = await db
-    .select()
+    .select({
+      authorName: usersTable.name,
+      authorRole: usersTable.role,
+      note: projectNotesTable,
+    })
     .from(projectNotesTable)
+    .leftJoin(usersTable, eq(projectNotesTable.userId, usersTable.id))
     .where(eq(projectNotesTable.id, input.id))
     .limit(1);
 
-  return created ?? null;
+  return created
+    ? mapProjectComment(created.note, created.authorName, created.authorRole)
+    : null;
 }
 
 export async function createProjectFileRecord(input: ProjectFileInsert) {
@@ -379,6 +552,29 @@ export async function canAccessProject(user: SessionUser, projectId: string) {
   return Boolean(match);
 }
 
+export async function getProjectById(projectId: string) {
+  const [project] = await db
+    .select()
+    .from(projectsTable)
+    .where(eq(projectsTable.id, projectId))
+    .limit(1);
+
+  return project ?? null;
+}
+
+export async function listProjectCommentsForUser(
+  projectId: string,
+  user: SessionUser
+) {
+  const hasAccess = await canAccessProject(user, projectId);
+
+  if (!hasAccess) {
+    return null;
+  }
+
+  return listProjectComments(projectId);
+}
+
 export async function listProjectFilesForUser(
   projectId: string,
   user: SessionUser
@@ -402,6 +598,39 @@ export async function listProjectFilesForUser(
   return rows.map(({ file, uploaderName }) =>
     mapProjectFile(file, uploaderName)
   );
+}
+
+export async function getProjectCollaboration(projectId: string) {
+  const [project, comments, files] = await Promise.all([
+    getProjectById(projectId),
+    listProjectComments(projectId),
+    db
+      .select({
+        file: filesTable,
+        uploaderName: usersTable.name,
+      })
+      .from(filesTable)
+      .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+      .where(eq(filesTable.projectId, projectId))
+      .orderBy(desc(filesTable.createdAt)),
+  ]);
+
+  if (!project) {
+    return null;
+  }
+
+  const mappedFiles = files.map(({ file, uploaderName }) =>
+    mapProjectFile(file, uploaderName)
+  );
+
+  return {
+    activity: buildProjectActivityFeed({
+      comments,
+      files: mappedFiles,
+      project,
+    }),
+    comments: comments.map(serializeProjectComment),
+  } satisfies PublicProjectCollaboration;
 }
 
 export async function getProjectFileById(fileId: string) {
