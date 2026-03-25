@@ -54,3 +54,80 @@ export function validationError(error: ZodError) {
 export function internalServerError(message = "Unable to complete request.") {
   return jsonError(500, { error: message });
 }
+
+export function unauthorizedError(message = "You must be signed in.") {
+  return jsonError(401, { error: message });
+}
+
+export function forbiddenError(
+  message = "You do not have access to this resource."
+) {
+  return jsonError(403, { error: message });
+}
+
+export function tooManyRequestsError(
+  message = "Too many requests. Please try again later.",
+  retryAfterSeconds?: number
+) {
+  const headers =
+    retryAfterSeconds === undefined
+      ? undefined
+      : {
+          "retry-after": String(retryAfterSeconds),
+        };
+
+  return Response.json(
+    {
+      error: message,
+    },
+    {
+      headers,
+      status: 429,
+    }
+  );
+}
+
+export function requireSameOrigin(request: Request) {
+  const requestOrigin = new URL(request.url).origin;
+  const originHeader = request.headers.get("origin");
+  const fetchSite = request.headers.get("sec-fetch-site");
+
+  if (!(originHeader || fetchSite)) {
+    return {
+      error: forbiddenError("Missing origin information."),
+      ok: false as const,
+    };
+  }
+
+  if (originHeader && originHeader !== requestOrigin) {
+    return {
+      error: forbiddenError("Cross-site requests are not allowed."),
+      ok: false as const,
+    };
+  }
+
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return {
+      error: forbiddenError("Cross-site requests are not allowed."),
+      ok: false as const,
+    };
+  }
+
+  return { ok: true as const };
+}
+
+export function notFoundError(
+  message = "The requested resource was not found."
+) {
+  return jsonError(404, { error: message });
+}
+
+export function getClientAddress(request: Request) {
+  // Only trust proxy-populated client IP headers here. Raw x-forwarded-for
+  // can be spoofed by callers unless an edge layer normalizes it first.
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}

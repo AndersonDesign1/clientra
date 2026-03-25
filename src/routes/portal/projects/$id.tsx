@@ -1,9 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireClientSession } from "@/auth/guards";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
+import { PortalShell } from "@/components/layout/portal-shell";
+import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import { projectTimeline } from "@/features/projects/mock-data";
-import { useProjectsData } from "@/lib/api";
+import {
+  ensureProjectFilesData,
+  ensureProjectsData,
+  useProjectsData,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/portal/projects/$id")({
+  beforeLoad: requireClientSession,
+  loader: ({ context, params }) =>
+    Promise.all([
+      ensureProjectsData(context.queryClient),
+      ensureProjectFilesData(context.queryClient, params.id),
+    ]),
   component: PortalProjectDetailPage,
 });
 
@@ -13,17 +26,17 @@ function PortalProjectDetailPage() {
 
   if (projectsQuery.isLoading) {
     return (
-      <div className="mx-auto min-h-screen max-w-4xl p-6">
+      <PortalShell>
         <LoadingPanel />
-      </div>
+      </PortalShell>
     );
   }
 
   if (projectsQuery.error) {
     return (
-      <div className="mx-auto min-h-screen max-w-4xl p-6">
+      <PortalShell>
         <ErrorPanel description={projectsQuery.error} />
-      </div>
+      </PortalShell>
     );
   }
 
@@ -31,17 +44,17 @@ function PortalProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="mx-auto min-h-screen max-w-4xl p-6">
+      <PortalShell>
         <ErrorPanel
           description="We could not find a project with that id."
           title="Project not found"
         />
-      </div>
+      </PortalShell>
     );
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl p-6">
+    <PortalShell>
       <h1 className="mb-2 font-semibold text-2xl">{project.title}</h1>
       <p className="mb-4 text-slate-600 text-sm">{project.description}</p>
       <section className="mb-4 rounded-xl border bg-white p-4">
@@ -52,10 +65,7 @@ function PortalProjectDetailPage() {
           ))}
         </ul>
       </section>
-      <section className="rounded-xl border bg-white p-4 text-slate-600 text-sm">
-        <p>Files: upload/download UI placeholder</p>
-        <p>Comments: client feedback thread placeholder</p>
-      </section>
-    </div>
+      <ProjectFilesPanel canDelete={false} projectId={project.id} />
+    </PortalShell>
   );
 }

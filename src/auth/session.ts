@@ -1,19 +1,13 @@
-import type { SessionUser } from "./roles";
-import { ROLES } from "./roles";
+import { createIsomorphicFn } from "@tanstack/react-start";
+import { authClient } from "@/lib/auth-client";
+import { normalizeSessionUser } from "./session-utils";
 
-export const MOCK_ADMIN_USER: SessionUser = {
-  id: "usr_admin_1",
-  email: "admin@clientra.app",
-  role: ROLES.ADMIN,
-  name: "Clientra Admin",
-};
-
-export const MOCK_CLIENT_USER: SessionUser = {
-  id: "usr_client_1",
-  email: "client@acme.co",
-  role: ROLES.CLIENT,
-  name: "Acme Client",
-};
-
-export const getMockSessionUser = (asClient = false) =>
-  asClient ? MOCK_CLIENT_USER : MOCK_ADMIN_USER;
+export const getSessionUser = createIsomorphicFn()
+  .client(async () => {
+    const session = await authClient.getSession();
+    return normalizeSessionUser(session.data);
+  })
+  .server(async () => {
+    const { getSessionUserFromHeaders } = await import("./session.server");
+    return getSessionUserFromHeaders();
+  });

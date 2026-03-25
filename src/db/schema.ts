@@ -99,6 +99,18 @@ export const clientUsers = sqliteTable(
   })
 );
 
+export const invites = sqliteTable("invites", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  consumedAt: integer("consumed_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 export const projects = sqliteTable("projects", {
   id: text("id").primaryKey(),
   clientId: text("client_id")
@@ -134,6 +146,10 @@ export const files = sqliteTable("files", {
   uploadedBy: text("uploaded_by")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  storageKey: text("storage_key").notNull().unique(),
   fileUrl: text("file_url").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });

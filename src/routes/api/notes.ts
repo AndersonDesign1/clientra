@@ -1,20 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { internalServerError, parseJsonBody } from "@/api/route-utils";
+import {
+  forbiddenError,
+  internalServerError,
+  parseJsonBody,
+  requireSameOrigin,
+  unauthorizedError,
+} from "@/api/route-utils";
 import { createNoteSchema } from "@/api/validation";
-import { getMockSessionUser } from "@/auth/session";
-import { createProjectNoteRecord } from "@/db/records";
+import { getSessionUserFromHeaders } from "@/auth/session.server";
+import { canAccessProject, createProjectNoteRecord } from "@/db/records";
 
 export const Route = createFileRoute("/api/notes")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const sameOrigin = requireSameOrigin(request);
+
+        if (!sameOrigin.ok) {
+          return sameOrigin.error;
+        }
+
+        const sessionUser = await getSessionUserFromHeaders(request.headers);
+
+        if (!sessionUser) {
+          return unauthorizedError();
+        }
+
         const parsed = await parseJsonBody(request, createNoteSchema);
 
         if (!parsed.ok) {
           return parsed.error;
         }
 
-        const sessionUser = getMockSessionUser();
+        const canAccess = await canAccessProject(
+          sessionUser,
+          parsed.data.projectId
+        );
+
+        if (!canAccess) {
+          return forbiddenError("You do not have access to this project.");
+        }
+
         const created = await createProjectNoteRecord({
           ...parsed.data,
           id: crypto.randomUUID(),

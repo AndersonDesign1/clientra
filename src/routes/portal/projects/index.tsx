@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { requireClientSession } from "@/auth/guards";
 import {
   EmptyPanel,
   ErrorPanel,
   LoadingPanel,
 } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
-import { useProjectsData } from "@/lib/api";
+import { PortalShell } from "@/components/layout/portal-shell";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
 export const Route = createFileRoute("/portal/projects/")({
+  beforeLoad: requireClientSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
   component: PortalProjectsPage,
 });
 
@@ -15,7 +19,7 @@ function PortalProjectsPage() {
   const projectsQuery = useProjectsData();
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl p-6">
+    <PortalShell>
       <h1 className="mb-4 font-semibold text-2xl">Your Projects</h1>
       {projectsQuery.isLoading ? <LoadingPanel /> : null}
       {!projectsQuery.isLoading && projectsQuery.error ? (
@@ -50,6 +54,6 @@ function PortalProjectsPage() {
           ))}
         </div>
       ) : null}
-    </div>
+    </PortalShell>
   );
 }

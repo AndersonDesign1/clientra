@@ -15,6 +15,27 @@
       "when": 1774012860907,
       "tag": "0001_fixed_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774020369589,
+      "tag": "0002_smart_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774022100000,
+      "tag": "0003_least_privilege_role_and_invite_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1774038998380,
+      "tag": "0004_woozy_shape",
+      "breakpoints": true
     }
   ]
 }

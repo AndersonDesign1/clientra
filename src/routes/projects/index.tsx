@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { requireAdminSession } from "@/auth/guards";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -6,9 +7,13 @@ import {
 } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
-import { useProjectsData } from "@/lib/api";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
-export const Route = createFileRoute("/projects/")({ component: ProjectsPage });
+export const Route = createFileRoute("/projects/")({
+  beforeLoad: requireAdminSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
+  component: ProjectsPage,
+});
 
 function ProjectsPage() {
   const projectsQuery = useProjectsData();
@@ -33,7 +38,15 @@ function ProjectsPage() {
           {projectsQuery.data?.map((project) => (
             <div className="rounded-xl border bg-white p-4" key={project.id}>
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="font-medium">{project.title}</h2>
+                <h2 className="font-medium">
+                  <Link
+                    className="hover:underline"
+                    params={{ id: project.id }}
+                    to="/projects/$id"
+                  >
+                    {project.title}
+                  </Link>
+                </h2>
                 <StatusBadge value={project.status} />
               </div>
               <p className="text-slate-600 text-sm">{project.description}</p>

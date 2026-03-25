@@ -1,14 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { requireClientSession } from "@/auth/guards";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
-import { useProjectsData } from "@/lib/api";
+import { PortalShell } from "@/components/layout/portal-shell";
+import { ensureProjectsData, useProjectsData } from "@/lib/api";
 
-export const Route = createFileRoute("/portal/")({ component: PortalHomePage });
+export const Route = createFileRoute("/portal/")({
+  beforeLoad: requireClientSession,
+  loader: ({ context }) => ensureProjectsData(context.queryClient),
+  component: PortalHomePage,
+});
 
 function PortalHomePage() {
   const projectsQuery = useProjectsData();
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl p-6">
+    <PortalShell>
       <h1 className="mb-2 font-semibold text-2xl">Client Portal</h1>
       <p className="mb-4 text-slate-600 text-sm">
         Track your projects and recent updates.
@@ -32,6 +38,6 @@ function PortalHomePage() {
           </p>
         )}
       </div>
-    </div>
+    </PortalShell>
   );
 }
