@@ -40,6 +40,7 @@ function getSocialProviderConfig({
   return {
     clientId: normalizedClientId,
     clientSecret: normalizedClientSecret,
+    disableImplicitSignUp: true,
   };
 }
 

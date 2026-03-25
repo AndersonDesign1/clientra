@@ -8,11 +8,39 @@ interface RateLimitEntry {
   expiresAt: number;
 }
 
+/**
+ * Sweep expired entries from the map to prevent unbounded memory growth.
+ * Called automatically every `sweepIntervalMs` during `check()`.
+ */
+function sweepExpired(entries: Map<string, RateLimitEntry>) {
+  const now = Date.now();
+
+  for (const [key, entry] of entries) {
+    if (entry.expiresAt <= now) {
+      entries.delete(key);
+    }
+  }
+}
+
+const DEFAULT_SWEEP_INTERVAL_MS = 60_000;
+
 export function createRateLimiter({ maxAttempts, windowMs }: RateLimitOptions) {
   const entries = new Map<string, RateLimitEntry>();
+  let lastSweepAt = Date.now();
+
+  function maybeSweep() {
+    const now = Date.now();
+
+    if (now - lastSweepAt >= DEFAULT_SWEEP_INTERVAL_MS) {
+      lastSweepAt = now;
+      sweepExpired(entries);
+    }
+  }
 
   return {
     check(key: string) {
+      maybeSweep();
+
       const now = Date.now();
       const current = entries.get(key);
 

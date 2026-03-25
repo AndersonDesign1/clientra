@@ -395,7 +395,7 @@ export async function listProjectFilesForUser(
       uploaderName: usersTable.name,
     })
     .from(filesTable)
-    .innerJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
     .where(eq(filesTable.projectId, projectId))
     .orderBy(desc(filesTable.createdAt));
 
@@ -411,7 +411,7 @@ export async function getProjectFileById(fileId: string) {
       uploaderName: usersTable.name,
     })
     .from(filesTable)
-    .innerJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
     .where(eq(filesTable.id, fileId))
     .limit(1);
 
@@ -653,13 +653,13 @@ export async function hasWorkspaceAdmin() {
 }
 
 export async function setUserRole(userId: string, role: "admin" | "client") {
-  await updateUserRole(userId, role);
-
-  const [updated] = await db
-    .select()
-    .from(usersTable)
+  const updatedRows = await db
+    .update(usersTable)
+    .set({ role, updatedAt: new Date() })
     .where(eq(usersTable.id, userId))
-    .limit(1);
+    .returning();
+
+  const updated = updatedRows[0];
 
   if (!updated) {
     return null;
@@ -704,34 +704,6 @@ export async function listPendingInvitesForClient(clientId: string) {
 }
 
 export async function seedIfEmpty() {
-  const now = new Date();
-
-  await db
-    .insert(usersTable)
-    .values([
-      {
-        createdAt: now,
-        email: "admin@clientra.app",
-        emailVerified: true,
-        id: "usr_admin_1",
-        image: null,
-        name: "Clientra Admin",
-        role: "admin",
-        updatedAt: now,
-      },
-      {
-        createdAt: now,
-        email: "client@acme.co",
-        emailVerified: true,
-        id: "usr_client_1",
-        image: null,
-        name: "Acme Client",
-        role: "client",
-        updatedAt: now,
-      },
-    ])
-    .onConflictDoNothing();
-
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(clientsTable);
@@ -739,6 +711,8 @@ export async function seedIfEmpty() {
   if (count > 0) {
     return;
   }
+
+  const now = new Date();
 
   await db.insert(clientsTable).values([
     {

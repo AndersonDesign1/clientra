@@ -2,6 +2,7 @@ import {
   createRouteHandler,
   createUploadthing,
   UploadThingError,
+  UTApi,
 } from "uploadthing/server";
 import { z } from "zod";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
@@ -14,12 +15,9 @@ import {
 
 loadEnvFiles();
 
-if (!process.env.UPLOADTHING_TOKEN) {
-  throw new Error("UPLOADTHING_TOKEN is required to enable file uploads.");
-}
-
 const f = createUploadthing();
 const maxFilesPerUpload = 6;
+const utapi = new UTApi();
 
 export const uploadRouter = {
   projectFiles: f(
@@ -47,6 +45,12 @@ export const uploadRouter = {
       })
     )
     .middleware(async ({ files, input, req }) => {
+      if (!process.env.UPLOADTHING_TOKEN) {
+        throw new UploadThingError(
+          "File uploads are not configured. Set the UPLOADTHING_TOKEN environment variable."
+        );
+      }
+
       const user = await getSessionUserFromHeaders(req.headers);
 
       if (!user) {
@@ -71,18 +75,48 @@ export const uploadRouter = {
       };
     })
     .onUploadComplete(async ({ file, metadata }) => {
-      const created = await createProjectFileRecord({
-        fileName: file.name,
-        fileSize: file.size,
-        fileUrl: file.ufsUrl,
-        id: crypto.randomUUID(),
-        mimeType: file.type || "application/octet-stream",
-        projectId: metadata.projectId,
-        storageKey: file.key,
-        uploadedBy: metadata.userId,
-      });
+      let created: Awaited<ReturnType<typeof createProjectFileRecord>> = null;
+
+      try {
+        created = await createProjectFileRecord({
+          fileName: file.name,
+          fileSize: file.size,
+          fileUrl: file.ufsUrl,
+          id: crypto.randomUUID(),
+          mimeType: file.type || "application/octet-stream",
+          projectId: metadata.projectId,
+          storageKey: file.key,
+          uploadedBy: metadata.userId,
+        });
+      } catch (error) {
+        try {
+          await utapi.deleteFiles(file.key);
+        } catch (cleanupError) {
+          console.error("UploadThing cleanup failed after DB insert error", {
+            cleanupError,
+            fileKey: file.key,
+          });
+        }
+
+        console.error("Failed to persist uploaded file metadata", {
+          error,
+          fileKey: file.key,
+          projectId: metadata.projectId,
+          userId: metadata.userId,
+        });
+        throw new UploadThingError("The uploaded file could not be saved.");
+      }
 
       if (!created) {
+        try {
+          await utapi.deleteFiles(file.key);
+        } catch (cleanupError) {
+          console.error("UploadThing cleanup failed after empty DB result", {
+            cleanupError,
+            fileKey: file.key,
+          });
+        }
+
         throw new UploadThingError("The uploaded file could not be saved.");
       }
 

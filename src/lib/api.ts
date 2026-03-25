@@ -38,7 +38,7 @@ export interface ProjectFile {
   uploaderName: string;
 }
 
-interface LoadableData<TData> {
+export interface LoadableData<TData> {
   data: TData | undefined;
   error: string | null;
   isLoading: boolean;
@@ -123,10 +123,21 @@ function isManagedUser(value: unknown): value is ManagedUser {
 
 async function fetchJson<T>(path: string): Promise<T> {
   const response = await createApiRequest(path);
-  const data = (await response.json().catch(() => null)) as
-    | { error?: string }
-    | T
-    | null;
+  let data: { error?: string } | T | null;
+
+  try {
+    data = (await response.json()) as { error?: string } | T;
+  } catch (error) {
+    if (response.ok) {
+      const parseMessage =
+        error instanceof Error ? error.message : "Unknown JSON parse failure";
+      throw new Error(
+        `Request succeeded with status ${response.status} but returned invalid JSON: ${parseMessage}`
+      );
+    }
+
+    data = null;
+  }
 
   if (!response.ok) {
     const errorMessage =

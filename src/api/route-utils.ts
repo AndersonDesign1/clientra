@@ -121,3 +121,13 @@ export function notFoundError(
 ) {
   return jsonError(404, { error: message });
 }
+
+export function getClientAddress(request: Request) {
+  // Only trust proxy-populated client IP headers here. Raw x-forwarded-for
+  // can be spoofed by callers unless an edge layer normalizes it first.
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}

@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createRateLimiter } from "@/api/rate-limit";
 import {
   forbiddenError,
+  getClientAddress,
   internalServerError,
   parseJsonBody,
   requireSameOrigin,
+  tooManyRequestsError,
   unauthorizedError,
 } from "@/api/route-utils";
 import { adminSignupSchema } from "@/api/validation";
@@ -15,6 +18,11 @@ import {
   hasWorkspaceAdmin,
   promoteUserToInitialAdmin,
 } from "@/db/records";
+
+const adminSignupRateLimiter = createRateLimiter({
+  maxAttempts: 3,
+  windowMs: 10 * 60 * 1000,
+});
 
 interface AuthApiResult {
   headers: Headers;
@@ -37,6 +45,18 @@ export const Route = createFileRoute("/api/auth/admin-signup")({
 
         if (!sameOrigin.ok) {
           return sameOrigin.error;
+        }
+
+        const rateLimitKey = ["admin-signup", getClientAddress(request)].join(
+          ":"
+        );
+        const rateLimit = adminSignupRateLimiter.check(rateLimitKey);
+
+        if (!rateLimit.ok) {
+          return tooManyRequestsError(
+            "Too many admin signup attempts. Please try again later.",
+            rateLimit.retryAfterSeconds
+          );
         }
 
         if (await hasWorkspaceAdmin()) {
@@ -88,7 +108,6 @@ export const Route = createFileRoute("/api/auth/admin-signup")({
 
             if (!deleted) {
               console.error("admin signup bootstrap cleanup failed", {
-                email: parsed.data.email,
                 userId: user.id,
               });
 
@@ -106,7 +125,6 @@ export const Route = createFileRoute("/api/auth/admin-signup")({
 
           if (!deleted) {
             console.error("admin signup rollback failed", {
-              email: parsed.data.email,
               userId: user.id,
             });
           }
