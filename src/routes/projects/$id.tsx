@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
+import { ProjectDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/projects/$id")({
       ensureProjectsData(context.queryClient),
       ensureProjectFilesData(context.queryClient, params.id),
     ]),
+  pendingComponent: ProjectDetailPendingPage,
   component: AdminProjectDetailPage,
 });
 

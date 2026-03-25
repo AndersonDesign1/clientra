@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { SettingsPendingPage } from "@/components/common/route-pending";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { ensureClientsData, useClientsData } from "@/lib/api";
@@ -8,6 +9,7 @@ import { ensureClientsData, useClientsData } from "@/lib/api";
 export const Route = createFileRoute("/settings")({
   beforeLoad: requireAdminSession,
   loader: ({ context }) => ensureClientsData(context.queryClient),
+  pendingComponent: SettingsPendingPage,
   component: SettingsPage,
 });
 

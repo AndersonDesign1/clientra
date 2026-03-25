@@ -3,6 +3,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useReducer } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { UsersPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -22,6 +23,7 @@ import { authClient } from "@/lib/auth-client";
 export const Route = createFileRoute("/users")({
   beforeLoad: requireAdminSession,
   loader: ({ context }) => ensureUsersData(context.queryClient),
+  pendingComponent: UsersPendingPage,
   component: UsersPage,
 });
 

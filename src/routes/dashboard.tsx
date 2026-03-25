@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
+import { DashboardPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
-import { Skeleton } from "@/components/ui/skeleton";
 import { recentActivity } from "@/features/dashboard/mock-data";
 import {
   ensureClientsData,
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/dashboard")({
       ensureClientsData(context.queryClient),
       ensureProjectsData(context.queryClient),
     ]),
+  pendingComponent: DashboardPendingPage,
   component: DashboardPage,
 });
 
@@ -26,11 +27,9 @@ function DashboardPage() {
   const projectsQuery = useProjectsData();
 
   if (clientsQuery.isLoading || projectsQuery.isLoading) {
-    return (
-      <AppShell>
-        <DashboardSkeleton />
-      </AppShell>
-    );
+    // Intentionally reused for both route-level pending UI and query-driven
+    // refreshes while this page still owns its own AppShell wrapper.
+    return <DashboardPendingPage />;
   }
 
   if (clientsQuery.error || projectsQuery.error) {
@@ -91,38 +90,6 @@ function MetricCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-xl border bg-white p-4">
       <p className="text-slate-500 text-sm">{label}</p>
       <p className="font-semibold text-3xl">{value}</p>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  const metricSkeletonKeys = ["clients", "projects", "deadlines"] as const;
-  const activitySkeletonKeys = [
-    "recent-client",
-    "recent-project",
-    "recent-deliverable",
-    "recent-update",
-  ] as const;
-
-  return (
-    <div>
-      <Skeleton className="mb-6 h-8 w-52" />
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        {metricSkeletonKeys.map((key) => (
-          <div className="rounded-xl border bg-white p-4" key={key}>
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="mt-4 h-10 w-20" />
-          </div>
-        ))}
-      </div>
-      <section className="rounded-xl border bg-white p-4">
-        <Skeleton className="mb-4 h-6 w-40" />
-        <div className="space-y-3">
-          {activitySkeletonKeys.map((key) => (
-            <Skeleton className="h-4 w-full last:w-5/6" key={key} />
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

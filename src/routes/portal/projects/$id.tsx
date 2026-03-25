@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
+import { PortalProjectDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/portal/projects/$id")({
       ensureProjectsData(context.queryClient),
       ensureProjectFilesData(context.queryClient, params.id),
     ]),
+  pendingComponent: PortalProjectDetailPendingPage,
   component: PortalProjectDetailPage,
 });
 

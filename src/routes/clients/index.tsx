@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDeferredValue, useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { ClientsPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -13,6 +14,7 @@ import { ensureClientsData, useClientsData, useSearchData } from "@/lib/api";
 export const Route = createFileRoute("/clients/")({
   beforeLoad: requireAdminSession,
   loader: ({ context }) => ensureClientsData(context.queryClient),
+  pendingComponent: ClientsPendingPage,
   component: ClientsPage,
 });
 

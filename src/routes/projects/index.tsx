@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
+import { ProjectsPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -12,6 +13,7 @@ import { ensureProjectsData, useProjectsData } from "@/lib/api";
 export const Route = createFileRoute("/projects/")({
   beforeLoad: requireAdminSession,
   loader: ({ context }) => ensureProjectsData(context.queryClient),
+  pendingComponent: ProjectsPendingPage,
   component: ProjectsPage,
 });
 
