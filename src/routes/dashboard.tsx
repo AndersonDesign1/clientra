@@ -27,6 +27,8 @@ function DashboardPage() {
   const projectsQuery = useProjectsData();
 
   if (clientsQuery.isLoading || projectsQuery.isLoading) {
+    // Intentionally reused for both route-level pending UI and query-driven
+    // refreshes while this page still owns its own AppShell wrapper.
     return <DashboardPendingPage />;
   }
 
