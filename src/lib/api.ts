@@ -38,6 +38,46 @@ export interface ProjectFile {
   uploaderName: string;
 }
 
+export interface ProjectComment {
+  authorId: string;
+  authorName: string;
+  authorRole: "admin" | "client";
+  content: string;
+  createdAt: string;
+  id: string;
+  projectId: string;
+}
+
+export type ProjectActivityEvent =
+  | {
+      createdAt: string;
+      id: string;
+      type: "project_created";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      authorRole: "admin" | "client";
+      contentPreview: string;
+      createdAt: string;
+      id: string;
+      type: "note_added";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      fileId: string;
+      fileName: string;
+      id: string;
+      type: "file_uploaded";
+    };
+
+export interface ProjectCollaborationPayload {
+  activity: ProjectActivityEvent[];
+  comments: ProjectComment[];
+}
+
 export interface LoadableData<TData> {
   data: TData | undefined;
   error: string | null;
@@ -83,6 +123,8 @@ async function createApiRequest(path: string, init?: RequestInit) {
 
 export const queryKeys = {
   clients: ["clients"] as const,
+  projectCollaboration: (projectId: string) =>
+    ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
@@ -228,6 +270,46 @@ async function deleteProjectFileRequest(id: string) {
   return data;
 }
 
+async function createProjectCommentRequest({
+  content,
+  projectId,
+}: {
+  content: string;
+  projectId: string;
+}): Promise<ProjectComment> {
+  const response = await createApiRequest("/api/notes", {
+    body: JSON.stringify({
+      content,
+      projectId,
+    }),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+
+  const data = (await response.json().catch(() => null)) as
+    | ProjectComment
+    | { error?: string }
+    | null;
+
+  if (!response.ok) {
+    const errorMessage =
+      data && "error" in data && typeof data.error === "string"
+        ? data.error
+        : `Request failed with status ${response.status}`;
+    throw new Error(errorMessage);
+  }
+
+  const candidate = data as { id?: unknown } | null;
+
+  if (!candidate || typeof candidate !== "object" || typeof candidate.id !== "string") {
+    throw new Error("The server returned an invalid collaboration payload.");
+  }
+
+  return candidate as ProjectComment;
+}
+
 export function clientsQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<Client[]>("/api/clients"),
@@ -253,6 +335,16 @@ export function projectFilesQueryOptions(projectId: string) {
   return queryOptions({
     queryFn: () => fetchJson<ProjectFile[]>(`/api/projects/${projectId}/files`),
     queryKey: queryKeys.projectFiles(projectId),
+  });
+}
+
+export function projectCollaborationQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<ProjectCollaborationPayload>(
+        `/api/projects/${projectId}/collaboration`
+      ),
+    queryKey: queryKeys.projectCollaboration(projectId),
   });
 }
 
@@ -289,6 +381,13 @@ export function ensureProjectFilesData(
   return queryClient.ensureQueryData(projectFilesQueryOptions(projectId));
 }
 
+export function ensureProjectCollaborationData(
+  queryClient: QueryClient,
+  projectId: string
+) {
+  return queryClient.ensureQueryData(projectCollaborationQueryOptions(projectId));
+}
+
 export function useClientsData(): LoadableData<Client[]> {
   return mapQueryState(useQuery(clientsQueryOptions()));
 }
@@ -305,6 +404,12 @@ export function useProjectFilesData(
   projectId: string
 ): LoadableData<ProjectFile[]> {
   return mapQueryState(useQuery(projectFilesQueryOptions(projectId)));
+}
+
+export function useProjectCollaborationData(
+  projectId: string
+): LoadableData<ProjectCollaborationPayload> {
+  return mapQueryState(useQuery(projectCollaborationQueryOptions(projectId)));
 }
 
 export function useSearchData(query: string): LoadableData<SearchResults> {
@@ -366,6 +471,64 @@ export function useDeleteProjectFileMutation() {
         queryKeys.projectFiles(variables.projectId),
         (current) =>
           (current ?? []).filter((file) => file.id !== variables.fileId)
+      );
+    },
+  });
+}
+
+function truncateCommentPreview(content: string) {
+  const normalized = content.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 140) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 137)}...`;
+}
+
+function createCommentActivityEvent(
+  comment: ProjectComment
+): ProjectActivityEvent {
+  return {
+    authorId: comment.authorId,
+    authorName: comment.authorName,
+    authorRole: comment.authorRole,
+    contentPreview: truncateCommentPreview(comment.content),
+    createdAt: comment.createdAt,
+    id: `note:${comment.id}`,
+    type: "note_added",
+  };
+}
+
+export function useCreateProjectCommentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      content,
+      projectId,
+    }: {
+      content: string;
+      projectId: string;
+    }) => createProjectCommentRequest({ content, projectId }),
+    onSuccess: (comment) => {
+      queryClient.setQueryData<ProjectCollaborationPayload>(
+        queryKeys.projectCollaboration(comment.projectId),
+        (current) => {
+          const nextComments = [comment, ...(current?.comments ?? [])];
+          const nextActivity = [
+            createCommentActivityEvent(comment),
+            ...(current?.activity ?? []),
+          ].sort(
+            (left, right) =>
+              Date.parse(right.createdAt) - Date.parse(left.createdAt)
+          );
+
+          return {
+            activity: nextActivity,
+            comments: nextComments,
+          };
+        }
       );
     },
   });

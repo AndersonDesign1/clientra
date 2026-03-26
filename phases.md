@@ -27,8 +27,9 @@ Status: Ongoing
 - Done: Add global search over clients and projects with DB-backed filtering
 - Done: Add role guards, redirects, and auth-backed ownership for user-generated notes
 - Done: Add in-app admin user management for listing users, changing roles, and deleting non-self accounts
+- Done: Add real file uploads, downloads, and admin delete flows for project files across admin and portal project views
+- Done: Add non-blocking route loading with shared pending skeletons for authenticated data routes
 - Ongoing: Replace remaining placeholder timeline/activity sections with DB-backed collaboration history
-- Ongoing: Add real file uploads and file management flows
 - Not started: Add comments/discussion flows for client collaboration
 
 ## Phase 4 — Documentation, QA, and Readiness
@@ -38,5 +39,6 @@ Status: Ongoing
 - Done: Update README with setup and stack notes
 - Done: Keep this phase tracker aligned with implementation progress
 - Done: Establish repeatable verification with `lint`, `typecheck`, `check`, and `build`
-- Not started: Add automated tests for auth, invites, and protected routes
+- Done: Add automated tests for protected-route pending-state navigation
+- Not started: Add automated tests for auth and invite flows
 - Not started: Add deployment/runtime validation for production auth callbacks and cookies

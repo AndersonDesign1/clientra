@@ -8,7 +8,11 @@ import {
 } from "@/api/route-utils";
 import { createNoteSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { canAccessProject, createProjectNoteRecord } from "@/db/records";
+import {
+  canAccessProject,
+  createProjectNoteRecord,
+  serializeProjectComment,
+} from "@/db/records";
 
 export const Route = createFileRoute("/api/notes")({
   server: {
@@ -53,7 +57,7 @@ export const Route = createFileRoute("/api/notes")({
           );
         }
 
-        return Response.json(created, { status: 201 });
+        return Response.json(serializeProjectComment(created), { status: 201 });
       },
     },
   },

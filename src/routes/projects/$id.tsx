@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
 import { ProjectDetailPendingPage } from "@/components/common/route-pending";
+import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
-import { projectTimeline } from "@/features/projects/mock-data";
 import {
+  ensureProjectCollaborationData,
   ensureProjectFilesData,
   ensureProjectsData,
   useProjectsData,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/projects/$id")({
   beforeLoad: requireAdminSession,
   loader: ({ context, params }) =>
     Promise.all([
+      ensureProjectCollaborationData(context.queryClient, params.id),
       ensureProjectsData(context.queryClient),
       ensureProjectFilesData(context.queryClient, params.id),
     ]),
@@ -73,14 +75,9 @@ function AdminProjectDetailPage() {
           {project.deadline || "No deadline yet"}
         </p>
       </div>
-      <section className="mb-4 rounded-xl border bg-white p-4">
-        <h2 className="mb-2 font-medium">Activity timeline</h2>
-        <ul className="space-y-2 text-slate-600 text-sm">
-          {projectTimeline.map((item) => (
-            <li key={item}>• {item}</li>
-          ))}
-        </ul>
-      </section>
+      <div className="mb-4">
+        <ProjectCollaborationPanel projectId={project.id} />
+      </div>
       <ProjectFilesPanel canDelete projectId={project.id} />
     </AppShell>
   );
