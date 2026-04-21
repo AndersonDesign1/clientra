@@ -149,7 +149,7 @@ export function DashboardActivityList({
             <p className="font-medium text-slate-900 text-sm">
               {formatDashboardActivityTitle(event)}
             </p>
-            <time className="text-slate-500 text-xs">
+            <time className="text-slate-500 text-xs" dateTime={event.createdAt}>
               {new Date(event.createdAt).toLocaleString()}
             </time>
           </div>

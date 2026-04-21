@@ -9,6 +9,9 @@ import {
 import { createIsomorphicFn } from "@tanstack/react-start";
 import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
+import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
+
+export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
 export interface SearchResults {
   clients: Client[];
@@ -25,46 +28,6 @@ export interface ManagedUser {
   providers: string[];
   role: "admin" | "client";
 }
-
-export type DashboardActivityEvent =
-  | {
-      clientId: string;
-      clientName: string;
-      company: string;
-      createdAt: string;
-      id: string;
-      type: "client_created";
-    }
-  | {
-      clientId: string;
-      clientName: string;
-      createdAt: string;
-      id: string;
-      projectId: string;
-      projectTitle: string;
-      type: "project_created";
-    }
-  | {
-      authorId: string;
-      authorName: string;
-      contentPreview: string;
-      createdAt: string;
-      id: string;
-      projectId: string;
-      projectTitle: string;
-      type: "comment_added";
-    }
-  | {
-      authorId: string;
-      authorName: string;
-      createdAt: string;
-      fileId: string;
-      fileName: string;
-      id: string;
-      projectId: string;
-      projectTitle: string;
-      type: "file_uploaded";
-    };
 
 export interface ProjectFile {
   createdAt: string;
