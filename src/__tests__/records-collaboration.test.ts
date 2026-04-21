@@ -41,7 +41,8 @@ async function createRecordsTestContext() {
   const databaseUrl = `file:${databasePath}`;
 
   process.env.TURSO_DATABASE_URL = databaseUrl;
-  process.env.TURSO_AUTH_TOKEN = undefined;
+  // biome-ignore lint/performance/noDelete: the libSQL client treats a literal "undefined" token differently from an absent token.
+  delete process.env.TURSO_AUTH_TOKEN;
 
   const client = await applyMigrations(databaseUrl);
   const records = await import("@/db/records");

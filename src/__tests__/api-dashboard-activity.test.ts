@@ -7,11 +7,10 @@ vi.mock("@/auth/session.server", () => ({
 
 vi.mock("@/db/records", () => ({
   listDashboardActivity: vi.fn(),
-  seedIfEmpty: vi.fn(),
 }));
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { listDashboardActivity, seedIfEmpty } from "@/db/records";
+import { listDashboardActivity } from "@/db/records";
 import { Route as DashboardActivityRoute } from "@/routes/api/dashboard/activity";
 
 const handlers = DashboardActivityRoute.options.server?.handlers as {
@@ -45,7 +44,6 @@ describe("dashboard activity API route", () => {
       request: new Request("https://clientra.test/api/dashboard/activity"),
     } as never);
 
-    expect(seedIfEmpty).toHaveBeenCalled();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual([
       {
@@ -67,7 +65,6 @@ describe("dashboard activity API route", () => {
     } as never);
 
     expect(response.status).toBe(401);
-    expect(seedIfEmpty).not.toHaveBeenCalled();
     expect(listDashboardActivity).not.toHaveBeenCalled();
   });
 
@@ -84,7 +81,6 @@ describe("dashboard activity API route", () => {
     } as never);
 
     expect(response.status).toBe(403);
-    expect(seedIfEmpty).not.toHaveBeenCalled();
     expect(listDashboardActivity).not.toHaveBeenCalled();
   });
 });
