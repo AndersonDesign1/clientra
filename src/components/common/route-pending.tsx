@@ -50,6 +50,11 @@ function TableCardSkeleton({
   columns: string[];
   rows: number;
 }) {
+  const rowKeys = Array.from(
+    { length: rows },
+    (_, index) => `row-${index + 1}`
+  );
+
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
       <table className="w-full text-sm">
@@ -63,10 +68,10 @@ function TableCardSkeleton({
           </tr>
         </thead>
         <tbody>
-          {Array.from({ length: rows }, (_, rowIndex) => (
-            <tr className="border-t" key={`row-${rowIndex}`}>
+          {rowKeys.map((rowKey) => (
+            <tr className="border-t" key={rowKey}>
               {columns.map((column, columnIndex) => (
-                <td className="p-3" key={`${column}-${rowIndex}`}>
+                <td className="p-3" key={`${column}-${rowKey}`}>
                   <Skeleton
                     className={
                       columnIndex === columns.length - 1

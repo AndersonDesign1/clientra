@@ -26,6 +26,46 @@ export interface ManagedUser {
   role: "admin" | "client";
 }
 
+export type DashboardActivityEvent =
+  | {
+      clientId: string;
+      clientName: string;
+      company: string;
+      createdAt: string;
+      id: string;
+      type: "client_created";
+    }
+  | {
+      clientId: string;
+      clientName: string;
+      createdAt: string;
+      id: string;
+      projectId: string;
+      projectTitle: string;
+      type: "project_created";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      contentPreview: string;
+      createdAt: string;
+      id: string;
+      projectId: string;
+      projectTitle: string;
+      type: "comment_added";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      fileId: string;
+      fileName: string;
+      id: string;
+      projectId: string;
+      projectTitle: string;
+      type: "file_uploaded";
+    };
+
 export interface ProjectFile {
   createdAt: string;
   fileName: string;
@@ -123,6 +163,7 @@ async function createApiRequest(path: string, init?: RequestInit) {
 
 export const queryKeys = {
   clients: ["clients"] as const,
+  dashboardActivity: ["dashboard-activity"] as const,
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
@@ -303,7 +344,11 @@ async function createProjectCommentRequest({
 
   const candidate = data as { id?: unknown } | null;
 
-  if (!candidate || typeof candidate !== "object" || typeof candidate.id !== "string") {
+  if (
+    !candidate ||
+    typeof candidate !== "object" ||
+    typeof candidate.id !== "string"
+  ) {
     throw new Error("The server returned an invalid collaboration payload.");
   }
 
@@ -328,6 +373,14 @@ export function usersQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<ManagedUser[]>("/api/users"),
     queryKey: queryKeys.users,
+  });
+}
+
+export function dashboardActivityQueryOptions() {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<DashboardActivityEvent[]>("/api/dashboard/activity"),
+    queryKey: queryKeys.dashboardActivity,
   });
 }
 
@@ -374,6 +427,10 @@ export function ensureUsersData(queryClient: QueryClient) {
   return queryClient.ensureQueryData(usersQueryOptions());
 }
 
+export function ensureDashboardActivityData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(dashboardActivityQueryOptions());
+}
+
 export function ensureProjectFilesData(
   queryClient: QueryClient,
   projectId: string
@@ -385,7 +442,9 @@ export function ensureProjectCollaborationData(
   queryClient: QueryClient,
   projectId: string
 ) {
-  return queryClient.ensureQueryData(projectCollaborationQueryOptions(projectId));
+  return queryClient.ensureQueryData(
+    projectCollaborationQueryOptions(projectId)
+  );
 }
 
 export function useClientsData(): LoadableData<Client[]> {
@@ -398,6 +457,12 @@ export function useProjectsData(): LoadableData<Project[]> {
 
 export function useUsersData(): LoadableData<ManagedUser[]> {
   return mapQueryState(useQuery(usersQueryOptions()));
+}
+
+export function useDashboardActivityData(): LoadableData<
+  DashboardActivityEvent[]
+> {
+  return mapQueryState(useQuery(dashboardActivityQueryOptions()));
 }
 
 export function useProjectFilesData(

@@ -29,8 +29,8 @@ Status: Ongoing
 - Done: Add in-app admin user management for listing users, changing roles, and deleting non-self accounts
 - Done: Add real file uploads, downloads, and admin delete flows for project files across admin and portal project views
 - Done: Add non-blocking route loading with shared pending skeletons for authenticated data routes
-- Ongoing: Replace remaining placeholder timeline/activity sections with DB-backed collaboration history
-- Not started: Add comments/discussion flows for client collaboration
+- Done: Add comments/discussion flows for client collaboration
+- Done: Replace dashboard recent activity and project timeline sections with DB-backed collaboration history
 
 ## Phase 4 — Documentation, QA, and Readiness
 Status: Ongoing

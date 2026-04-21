@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  ProjectCollaborationView,
   formatEventTitle,
+  ProjectCollaborationView,
 } from "@/components/projects/project-collaboration-panel";
 import type {
   ProjectActivityEvent,

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import { PortalProjectDetailPendingPage } from "@/components/common/route-pending";
-import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
+import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import {
   ensureProjectCollaborationData,

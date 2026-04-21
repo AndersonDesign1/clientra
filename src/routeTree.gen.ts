@@ -35,6 +35,7 @@ import { Route as PortalProjectsIdRouteImport } from './routes/portal/projects/$
 import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
 import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
 import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
+import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
 import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiProjectsIdFilesRouteImport } from './routes/api/projects/$id/files'
@@ -170,6 +171,11 @@ const ApiFilesIdRoute = ApiFilesIdRouteImport.update({
   path: '/api/files/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDashboardActivityRoute = ApiDashboardActivityRouteImport.update({
+  id: '/api/dashboard/activity',
+  path: '/api/dashboard/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthAdminSignupRoute = ApiAuthAdminSignupRouteImport.update({
   id: '/api/auth/admin-signup',
   path: '/api/auth/admin-signup',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/projects/': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
+    | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
     | '/api/users/$id'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
+    | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
     | '/api/users/$id'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
+    | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
     | '/api/users/$id'
@@ -412,6 +424,7 @@ export interface RootRouteChildren {
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
+  ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
   PortalProjectsIdRoute: typeof PortalProjectsIdRoute
   PortalProjectsIndexRoute: typeof PortalProjectsIndexRoute
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFilesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dashboard/activity': {
+      id: '/api/dashboard/activity'
+      path: '/api/dashboard/activity'
+      fullPath: '/api/dashboard/activity'
+      preLoaderRoute: typeof ApiDashboardActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/admin-signup': {
       id: '/api/auth/admin-signup'
       path: '/api/auth/admin-signup'
@@ -694,6 +714,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjectsIndexRoute: ProjectsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
+  ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
   PortalProjectsIdRoute: PortalProjectsIdRoute,
   PortalProjectsIndexRoute: PortalProjectsIndexRoute,

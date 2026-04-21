@@ -21,8 +21,8 @@ import {
   seedIfEmpty,
   serializeProjectComment,
 } from "@/db/records";
-import { Route as CollaborationRoute } from "@/routes/api/projects/$id/collaboration";
 import { Route as NotesRoute } from "@/routes/api/notes";
+import { Route as CollaborationRoute } from "@/routes/api/projects/$id/collaboration";
 
 const collaborationHandlers = CollaborationRoute.options.server?.handlers as {
   GET: (context: unknown) => Promise<Response>;
@@ -46,19 +46,33 @@ describe("collaboration API routes", () => {
     });
     vi.mocked(canAccessProject).mockResolvedValue(true);
     vi.mocked(getProjectCollaboration).mockResolvedValue({
-      activity: [{ createdAt: "2026-03-01T10:00:00.000Z", id: "p", type: "project_created" }],
+      activity: [
+        {
+          createdAt: "2026-03-01T10:00:00.000Z",
+          id: "p",
+          type: "project_created",
+        },
+      ],
       comments: [],
     });
 
     const response = await collaborationHandlers.GET({
       params: { id: "project_1" },
-      request: new Request("https://clientra.test/api/projects/project_1/collaboration"),
+      request: new Request(
+        "https://clientra.test/api/projects/project_1/collaboration"
+      ),
     } as never);
 
     expect(seedIfEmpty).toHaveBeenCalled();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
-      activity: [{ createdAt: "2026-03-01T10:00:00.000Z", id: "p", type: "project_created" }],
+      activity: [
+        {
+          createdAt: "2026-03-01T10:00:00.000Z",
+          id: "p",
+          type: "project_created",
+        },
+      ],
       comments: [],
     });
   });
@@ -74,7 +88,9 @@ describe("collaboration API routes", () => {
 
     const response = await collaborationHandlers.GET({
       params: { id: "project_1" },
-      request: new Request("https://clientra.test/api/projects/project_1/collaboration"),
+      request: new Request(
+        "https://clientra.test/api/projects/project_1/collaboration"
+      ),
     } as never);
 
     expect(response.status).toBe(403);

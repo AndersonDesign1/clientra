@@ -6,8 +6,8 @@ import {
 } from "@/components/common/state-panel";
 import { Button } from "@/components/ui/button";
 import {
-  type ProjectCollaborationPayload,
   type ProjectActivityEvent,
+  type ProjectCollaborationPayload,
   useCreateProjectCommentMutation,
   useProjectCollaborationData,
 } from "@/lib/api";
@@ -33,6 +33,8 @@ export function formatEventTitle(event: ProjectActivityEvent) {
       return `${event.authorName} added a comment`;
     case "file_uploaded":
       return `${event.authorName} uploaded ${event.fileName}`;
+    default:
+      return "Project activity";
   }
 }
 
@@ -44,6 +46,8 @@ export function formatEventDescription(event: ProjectActivityEvent) {
       return event.contentPreview;
     case "file_uploaded":
       return "File shared with everyone who can access this project.";
+    default:
+      return "Project activity was updated.";
   }
 }
 
