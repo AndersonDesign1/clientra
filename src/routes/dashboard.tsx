@@ -15,12 +15,14 @@ import {
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: requireAdminSession,
-  loader: ({ context }) =>
-    Promise.all([
+  loader: async ({ context }) => {
+    await Promise.all([
       ensureClientsData(context.queryClient),
-      ensureDashboardActivityData(context.queryClient),
       ensureProjectsData(context.queryClient),
-    ]),
+    ]);
+
+    return ensureDashboardActivityData(context.queryClient);
+  },
   pendingComponent: DashboardPendingPage,
   component: DashboardPage,
 });
