@@ -1,7 +1,7 @@
-import { createClient } from "@libsql/client";
+import { readdir, readFile } from "node:fs/promises";
 import os from "node:os";
-import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ROLES, type SessionUser } from "@/auth/roles";
 
@@ -41,6 +41,7 @@ async function createRecordsTestContext() {
   const databaseUrl = `file:${databasePath}`;
 
   process.env.TURSO_DATABASE_URL = databaseUrl;
+  // biome-ignore lint/performance/noDelete: the libSQL client treats a literal "undefined" token differently from an absent token.
   delete process.env.TURSO_AUTH_TOKEN;
 
   const client = await applyMigrations(databaseUrl);
@@ -49,7 +50,9 @@ async function createRecordsTestContext() {
   return { client, records };
 }
 
-async function seedCollaborationScenario(client: ReturnType<typeof createClient>) {
+async function seedCollaborationScenario(
+  client: ReturnType<typeof createClient>
+) {
   const timestamps = {
     file: 1_741_000_300_000,
     noteFromClient: 1_741_000_200_000,
@@ -126,7 +129,7 @@ async function seedCollaborationScenario(client: ReturnType<typeof createClient>
 
   await client.execute({
     args: ["link_1", "client_1", "client_user_1"],
-    sql: `insert into client_users (id, client_id, user_id) values (?, ?, ?)`,
+    sql: "insert into client_users (id, client_id, user_id) values (?, ?, ?)",
   });
 
   await client.execute({
@@ -135,7 +138,7 @@ async function seedCollaborationScenario(client: ReturnType<typeof createClient>
       "client_1",
       "Client Portal Refresh",
       "in_progress",
-      15000,
+      15_000,
       "2026-04-10",
       "Upgrade the client collaboration experience.",
       timestamps.project,
@@ -190,7 +193,7 @@ async function seedCollaborationScenario(client: ReturnType<typeof createClient>
 }
 
 describe("records collaboration helpers", () => {
-  const clientsToClose: Array<ReturnType<typeof createClient>> = [];
+  const clientsToClose: ReturnType<typeof createClient>[] = [];
 
   afterEach(async () => {
     while (clientsToClose.length > 0) {
@@ -202,9 +205,7 @@ describe("records collaboration helpers", () => {
     }
   });
 
-  it(
-    "lists project comments with author metadata and enforces access",
-    async () => {
+  it("lists project comments with author metadata and enforces access", async () => {
     const { client, records } = await createRecordsTestContext();
     clientsToClose.push(client);
     await seedCollaborationScenario(client);
@@ -240,9 +241,7 @@ describe("records collaboration helpers", () => {
     );
 
     expect(blockedComments).toBeNull();
-    },
-    15_000
-  );
+  }, 15_000);
 
   it("builds a unified activity feed in reverse chronological order", async () => {
     const { client, records } = await createRecordsTestContext();
@@ -265,6 +264,59 @@ describe("records collaboration helpers", () => {
       authorName: "Client User",
       type: "note_added",
     });
+  });
+
+  it("builds admin dashboard activity from clients, projects, comments, and files", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedCollaborationScenario(client);
+
+    const longComment = `${"A detailed implementation note ".repeat(8)}done.`;
+
+    await client.execute({
+      args: ["note_3", "project_1", "admin_1", longComment, 1_741_000_400_000],
+      sql: `insert into project_notes
+        (id, project_id, user_id, content, created_at)
+        values (?, ?, ?, ?, ?)`,
+    });
+
+    const activity = await records.listDashboardActivity();
+
+    expect(activity.map((event) => event.type)).toEqual([
+      "comment_added",
+      "file_uploaded",
+      "comment_added",
+      "comment_added",
+      "client_created",
+      "project_created",
+    ]);
+    const firstEvent = activity[0];
+
+    expect(firstEvent).toMatchObject({
+      authorName: "Admin User",
+      projectTitle: "Client Portal Refresh",
+      type: "comment_added",
+    });
+    expect(firstEvent.type).toBe("comment_added");
+    if (firstEvent.type !== "comment_added") {
+      throw new Error("Expected the newest dashboard event to be a comment.");
+    }
+    expect(firstEvent.contentPreview).toHaveLength(140);
+    expect(firstEvent.contentPreview.endsWith("...")).toBe(true);
+    expect(activity).toContainEqual(
+      expect.objectContaining({
+        clientName: "Jordan Lee",
+        company: "Acme Inc.",
+        type: "client_created",
+      })
+    );
+    expect(activity).toContainEqual(
+      expect.objectContaining({
+        clientName: "Jordan Lee",
+        projectTitle: "Client Portal Refresh",
+        type: "project_created",
+      })
+    );
   });
 
   it("keeps project access checks working for admin, linked client, and outsider", async () => {

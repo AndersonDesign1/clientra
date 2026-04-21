@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
 import { ProjectDetailPendingPage } from "@/components/common/route-pending";
-import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import {
   ensureProjectCollaborationData,

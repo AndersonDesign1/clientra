@@ -23,7 +23,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 3. Clients CRUD with archive/delete options.
 4. Projects CRUD linked to clients.
 5. Project notes/activity timeline.
-6. Client portal with project visibility, updates, files, comments.
+6. Client portal with project visibility, updates, files, and project notes.
 7. Client invites by email.
 8. Global search for clients/projects.
 
@@ -33,12 +33,11 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: API routes are running through TanStack Start with Drizzle + Turso persistence for users, clients, projects, notes, sessions, and invites.
 - Done: Global search across clients and projects.
 - Done: In-app admin user management for listing users, changing roles, and deleting non-self accounts.
-- Done: Project file uploads/downloads are wired through UploadThing-backed storage and exposed in both admin and portal project views, with admin delete support.
+- Done: Project notes, collaboration activity, and file uploads/downloads are wired through database-backed project views for admins and clients.
+- Done: Dashboard recent activity is backed by real client, project, project note, and file events.
 - Done: Protected route navigation now uses route-level pending skeletons so authenticated pages can render immediate loading states during data fetches.
 - Done: Automated coverage exists for protected-route pending-state navigation.
-- Ongoing: Dashboard recent activity and some timeline-style UI sections still rely on placeholder content.
-- Ongoing: Notes exist at the API/data layer, but richer collaboration history and UX are still limited.
-- Not started: Comment threads and richer client collaboration features.
+- Ongoing: Broader collaboration polish can still improve timeline filtering, notifications, and richer discussion affordances.
 - Not started: Automated auth/invite flow coverage and broader end-to-end test coverage.
 
 ## Routes
@@ -63,7 +62,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 - `clients`
 - `client_users`
 - `projects`
-- `project_notes`
+- `project_notes` stores project notes authored by admins and clients.
 - `files`
 
 ## Architecture

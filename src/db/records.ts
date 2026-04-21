@@ -1,5 +1,6 @@
 import { and, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
+import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 import { db } from "./client";
 import {
   accounts as accountsTable,
@@ -112,7 +113,7 @@ export type PublicProjectFile = {
   uploaderName: string;
 } & Record<string, string | number>;
 
-export type PublicProjectComment = {
+export interface PublicProjectComment {
   authorId: string;
   authorName: string;
   authorRole: Role;
@@ -120,7 +121,7 @@ export type PublicProjectComment = {
   createdAt: string;
   id: string;
   projectId: string;
-};
+}
 
 export type PublicProjectActivityEvent =
   | {
@@ -151,6 +152,8 @@ export interface PublicProjectCollaboration {
   activity: PublicProjectActivityEvent[];
   comments: PublicProjectComment[];
 }
+
+export type PublicDashboardActivityEvent = DashboardActivityEvent;
 
 function serializeTags(tags: string[]) {
   return JSON.stringify(tags);
@@ -365,6 +368,72 @@ export function buildProjectActivityFeed({
   });
 }
 
+export function buildDashboardActivityFeed({
+  clients,
+  comments,
+  files,
+  projects,
+}: {
+  clients: (typeof clientsTable.$inferSelect)[];
+  comments: {
+    authorName: string | null;
+    note: typeof projectNotesTable.$inferSelect;
+    projectTitle: string | null;
+  }[];
+  files: {
+    file: typeof filesTable.$inferSelect;
+    projectTitle: string | null;
+    uploaderName: string | null;
+  }[];
+  projects: {
+    clientName: string | null;
+    project: typeof projectsTable.$inferSelect;
+  }[];
+}): PublicDashboardActivityEvent[] {
+  return [
+    ...clients.map((client) => ({
+      clientId: client.id,
+      clientName: client.name,
+      company: client.company,
+      createdAt: client.createdAt.toISOString(),
+      id: `client:${client.id}:created`,
+      type: "client_created" as const,
+    })),
+    ...projects.map(({ clientName, project }) => ({
+      clientId: project.clientId,
+      clientName: clientName ?? "Unknown client",
+      createdAt: project.createdAt.toISOString(),
+      id: `project:${project.id}:created`,
+      projectId: project.id,
+      projectTitle: project.title,
+      type: "project_created" as const,
+    })),
+    ...comments.map(({ authorName, note, projectTitle }) => ({
+      authorId: note.userId,
+      authorName: authorName ?? "Unknown user",
+      contentPreview: truncateActivityContent(note.content),
+      createdAt: note.createdAt.toISOString(),
+      id: `comment:${note.id}`,
+      projectId: note.projectId,
+      projectTitle: projectTitle ?? "Unknown project",
+      type: "comment_added" as const,
+    })),
+    ...files.map(({ file, projectTitle, uploaderName }) => ({
+      authorId: file.uploadedBy,
+      authorName: uploaderName ?? "Unknown user",
+      createdAt: file.createdAt.toISOString(),
+      fileId: file.id,
+      fileName: file.fileName,
+      id: `file:${file.id}`,
+      projectId: file.projectId,
+      projectTitle: projectTitle ?? "Unknown project",
+      type: "file_uploaded" as const,
+    })),
+  ].sort(
+    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)
+  );
+}
+
 async function listProjectComments(projectId: string) {
   const rows = await db
     .select({
@@ -393,6 +462,57 @@ export async function listClients() {
     .orderBy(desc(clientsTable.createdAt));
 
   return rows.map(mapClient);
+}
+
+export async function listDashboardActivity(limit = 8) {
+  const [clients, projects, comments, files] = await Promise.all([
+    db
+      .select()
+      .from(clientsTable)
+      .orderBy(desc(clientsTable.createdAt))
+      .limit(limit),
+    db
+      .select({
+        clientName: clientsTable.name,
+        project: projectsTable,
+      })
+      .from(projectsTable)
+      .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .orderBy(desc(projectsTable.createdAt))
+      .limit(limit),
+    db
+      .select({
+        authorName: usersTable.name,
+        note: projectNotesTable,
+        projectTitle: projectsTable.title,
+      })
+      .from(projectNotesTable)
+      .leftJoin(usersTable, eq(projectNotesTable.userId, usersTable.id))
+      .leftJoin(
+        projectsTable,
+        eq(projectNotesTable.projectId, projectsTable.id)
+      )
+      .orderBy(desc(projectNotesTable.createdAt))
+      .limit(limit),
+    db
+      .select({
+        file: filesTable,
+        projectTitle: projectsTable.title,
+        uploaderName: usersTable.name,
+      })
+      .from(filesTable)
+      .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+      .leftJoin(projectsTable, eq(filesTable.projectId, projectsTable.id))
+      .orderBy(desc(filesTable.createdAt))
+      .limit(limit),
+  ]);
+
+  return buildDashboardActivityFeed({
+    clients,
+    comments,
+    files,
+    projects,
+  }).slice(0, limit);
 }
 
 export async function listClientsForUser(user: SessionUser) {

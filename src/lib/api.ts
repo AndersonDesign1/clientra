@@ -9,6 +9,9 @@ import {
 import { createIsomorphicFn } from "@tanstack/react-start";
 import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
+import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
+
+export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
 export interface SearchResults {
   clients: Client[];
@@ -123,6 +126,7 @@ async function createApiRequest(path: string, init?: RequestInit) {
 
 export const queryKeys = {
   clients: ["clients"] as const,
+  dashboardActivity: ["dashboard-activity"] as const,
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
@@ -303,7 +307,11 @@ async function createProjectCommentRequest({
 
   const candidate = data as { id?: unknown } | null;
 
-  if (!candidate || typeof candidate !== "object" || typeof candidate.id !== "string") {
+  if (
+    !candidate ||
+    typeof candidate !== "object" ||
+    typeof candidate.id !== "string"
+  ) {
     throw new Error("The server returned an invalid collaboration payload.");
   }
 
@@ -328,6 +336,14 @@ export function usersQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<ManagedUser[]>("/api/users"),
     queryKey: queryKeys.users,
+  });
+}
+
+export function dashboardActivityQueryOptions() {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<DashboardActivityEvent[]>("/api/dashboard/activity"),
+    queryKey: queryKeys.dashboardActivity,
   });
 }
 
@@ -374,6 +390,10 @@ export function ensureUsersData(queryClient: QueryClient) {
   return queryClient.ensureQueryData(usersQueryOptions());
 }
 
+export function ensureDashboardActivityData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(dashboardActivityQueryOptions());
+}
+
 export function ensureProjectFilesData(
   queryClient: QueryClient,
   projectId: string
@@ -385,7 +405,9 @@ export function ensureProjectCollaborationData(
   queryClient: QueryClient,
   projectId: string
 ) {
-  return queryClient.ensureQueryData(projectCollaborationQueryOptions(projectId));
+  return queryClient.ensureQueryData(
+    projectCollaborationQueryOptions(projectId)
+  );
 }
 
 export function useClientsData(): LoadableData<Client[]> {
@@ -398,6 +420,12 @@ export function useProjectsData(): LoadableData<Project[]> {
 
 export function useUsersData(): LoadableData<ManagedUser[]> {
   return mapQueryState(useQuery(usersQueryOptions()));
+}
+
+export function useDashboardActivityData(): LoadableData<
+  DashboardActivityEvent[]
+> {
+  return mapQueryState(useQuery(dashboardActivityQueryOptions()));
 }
 
 export function useProjectFilesData(

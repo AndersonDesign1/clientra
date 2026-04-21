@@ -2,12 +2,12 @@
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet,
-  RouterProvider,
   createMemoryHistory,
   createRootRoute,
   createRoute,
   createRouter,
+  Outlet,
+  RouterProvider,
 } from "@tanstack/react-router";
 import { cleanup, render, screen } from "@testing-library/react";
 import { act } from "react";
