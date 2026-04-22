@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   DeleteProjectDialog,
@@ -69,7 +69,10 @@ export function AdminProjectDetailPage({
 }) {
   const navigate = useNavigate();
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [statusDraft, setStatusDraft] = useState<Project["status"]>("planning");
+  const [statusDraft, setStatusDraft] = useState<{
+    projectId: string;
+    status: Project["status"];
+  } | null>(null);
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
   const updateProject = useUpdateProjectMutation();
@@ -82,12 +85,6 @@ export function AdminProjectDetailPage({
         projectSlug,
       })
     : findProjectByPathParam(projectsQuery.data ?? [], projectSlug);
-
-  useEffect(() => {
-    if (project) {
-      setStatusDraft(project.status);
-    }
-  }, [project?.id, project?.status, project]);
 
   if (projectsQuery.isLoading || clientsQuery.isLoading) {
     return (
@@ -123,7 +120,11 @@ export function AdminProjectDetailPage({
   }
 
   const selectedProject = project;
-  const hasStatusChange = statusDraft !== selectedProject.status;
+  const currentStatusDraft =
+    statusDraft?.projectId === selectedProject.id
+      ? statusDraft.status
+      : selectedProject.status;
+  const hasStatusChange = currentStatusDraft !== selectedProject.status;
 
   async function saveStatus() {
     await updateProject.mutateAsync({
@@ -133,10 +134,11 @@ export function AdminProjectDetailPage({
         clientId: selectedProject.clientId,
         deadline: selectedProject.deadline,
         description: selectedProject.description,
-        status: statusDraft,
+        status: currentStatusDraft,
         title: selectedProject.title,
       },
     });
+    setStatusDraft(null);
   }
 
   return (
@@ -151,12 +153,15 @@ export function AdminProjectDetailPage({
           <Select
             items={PROJECT_STATUS_OPTIONS}
             onValueChange={(value) =>
-              setStatusDraft(value as Project["status"])
+              setStatusDraft({
+                projectId: selectedProject.id,
+                status: value as Project["status"],
+              })
             }
-            value={statusDraft}
+            value={currentStatusDraft}
           >
             <SelectTrigger className="w-36" size="sm">
-              <SelectValue>{formatStatusLabel(statusDraft)}</SelectValue>
+              <SelectValue>{formatStatusLabel(currentStatusDraft)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>

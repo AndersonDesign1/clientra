@@ -41,6 +41,8 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: Automated coverage exists for protected-route pending-state navigation.
 - Done: Admin clients CRUD supports create, edit, archive, and delete flows in the UI.
 - Done: Admin projects CRUD supports create, edit, delete, and status update flows in the UI.
+- Done: Admin client and project pages use readable URL slugs, with projects scoped under client slugs to avoid cross-client ambiguity.
+- Done: The database enforces unique project slugs per client.
 - Done: Client detail shows linked projects and primary admin actions.
 - Next: Improve client detail with pending invite visibility.
 - Next: Add first-class project updates or status reports plus lightweight milestones/deliverables.
@@ -58,20 +60,22 @@ Clientra is a lightweight client and project management system for freelancers, 
 ### Admin
 - `/dashboard`
 - `/clients`
-- `/clients/:id`
+- `/clients/:clientSlug`
 - `/projects`
+- `/projects/:clientSlug/:projectSlug`
 - `/settings`
 
 ### Client Portal
 - `/portal`
 - `/portal/projects`
-- `/portal/projects/:id`
+- `/portal/projects/:clientSlug/:projectSlug`
 
 ## Data Model
 - `users`
 - `clients`
 - `client_users`
 - `projects`
+- `projects.slug` is unique per client for readable project URLs.
 - planned: `project_updates`
 - planned: `project_milestones`
 - `project_notes` stores project notes authored by admins and clients.

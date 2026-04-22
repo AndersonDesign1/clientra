@@ -35,6 +35,8 @@ Status: Current
 - Done: Add in-app admin user management for listing users, changing roles, and deleting non-self accounts.
 - Done: Complete clients create, edit, archive, and delete flows from the admin UI.
 - Done: Complete projects create, edit, delete, and status update flows from the admin UI.
+- Done: Add readable client and project URLs, including client-scoped project slugs.
+- Done: Enforce unique project slugs per client at the database level.
 - Done: Improve client detail with linked projects and primary admin actions.
 - Done: Add focused API coverage for admin client and project update/delete flows.
 - Next: Add pending invite visibility on client detail pages.

@@ -2,7 +2,6 @@ import {
   cloneElement,
   type FormEvent,
   isValidElement,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -130,10 +129,10 @@ function toClientPayload(state: ClientFormState): ClientPayload {
     notes: optionalString(state.notes),
     phone: optionalString(state.phone),
     status: state.status,
-    tags: state.tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean),
+    tags: state.tags.split(",").flatMap((tag) => {
+      const trimmedTag = tag.trim();
+      return trimmedTag ? [trimmedTag] : [];
+    }),
     website: optionalString(state.website),
   };
 }
@@ -160,37 +159,21 @@ function getMutationError(error: Error | null) {
   return error?.message ?? null;
 }
 
-function useClientFormState(client: Client | undefined, open: boolean) {
+function useClientFormState(client: Client | undefined) {
   const initialState = useMemo(() => getClientFormState(client), [client]);
   const [state, setState] = useState(initialState);
 
-  useEffect(() => {
-    if (open) {
-      setState(initialState);
-    }
-  }, [initialState, open]);
-
-  return [state, setState] as const;
+  return [state, setState, initialState] as const;
 }
 
-function useProjectFormState(
-  clients: Client[],
-  project: Project | undefined,
-  open: boolean
-) {
+function useProjectFormState(clients: Client[], project: Project | undefined) {
   const initialState = useMemo(
     () => getProjectFormState(clients, project),
     [clients, project]
   );
   const [state, setState] = useState(initialState);
 
-  useEffect(() => {
-    if (open) {
-      setState(initialState);
-    }
-  }, [initialState, open]);
-
-  return [state, setState] as const;
+  return [state, setState, initialState] as const;
 }
 
 export function ClientFormDialog({
@@ -210,9 +193,15 @@ export function ClientFormDialog({
   const updateClient = useUpdateClientMutation();
   const isEditing = Boolean(client);
   const activeMutation = isEditing ? updateClient : createClient;
-  const [state, setState] = useClientFormState(client, open);
+  const [state, setState, initialState] = useClientFormState(client);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setState(initialState);
+    }
+    onOpenChange(nextOpen);
+  };
   const triggerElement = isValidElement<{ onClick?: () => void }>(trigger)
-    ? cloneElement(trigger, { onClick: () => onOpenChange(true) })
+    ? cloneElement(trigger, { onClick: () => handleOpenChange(true) })
     : trigger;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -231,7 +220,7 @@ export function ClientFormDialog({
   return (
     <>
       {triggerElement}
-      <Dialog onOpenChange={onOpenChange} open={open}>
+      <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
@@ -414,7 +403,13 @@ export function ProjectFormDialog({
   const updateProject = useUpdateProjectMutation();
   const isEditing = Boolean(project);
   const activeMutation = isEditing ? updateProject : createProject;
-  const [state, setState] = useProjectFormState(clients, project, open);
+  const [state, setState, initialState] = useProjectFormState(clients, project);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setState(initialState);
+    }
+    onOpenChange(nextOpen);
+  };
   const selectedClient = clients.find((client) => client.id === state.clientId);
   const hasSelectedClient = Boolean(selectedClient);
   const canSubmit = isEditing ? Boolean(state.clientId) : hasSelectedClient;
@@ -427,7 +422,7 @@ export function ProjectFormDialog({
     value: option.value,
   }));
   const triggerElement = isValidElement<{ onClick?: () => void }>(trigger)
-    ? cloneElement(trigger, { onClick: () => onOpenChange(true) })
+    ? cloneElement(trigger, { onClick: () => handleOpenChange(true) })
     : trigger;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -450,7 +445,7 @@ export function ProjectFormDialog({
   return (
     <>
       {triggerElement}
-      <Dialog onOpenChange={onOpenChange} open={open}>
+      <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
