@@ -4,7 +4,7 @@
 `phases.md` is the single source of truth for product progress and next actions. Keep updates feature-level, use the status labels `Done`, `Current`, `Next`, `Not started`, and `Blocked`, and move the `Current` marker to the next shippable slice as work progresses.
 
 ## Current Focus
-Phase 3 is current. The next shippable slice is completing core admin operations so an admin can fully create, manage, archive, and delete clients and projects from the app UI.
+Phase 3 is current. The next shippable slice is expanding admin operations with focused UI coverage and pending invite visibility on client detail pages.
 
 ## Phase 1 - Frontend Foundation
 Status: Done
@@ -33,10 +33,12 @@ Status: Current
 - Done: Add global search over clients and projects with DB-backed filtering.
 - Done: Add role guards, redirects, and auth-backed ownership for user-generated notes.
 - Done: Add in-app admin user management for listing users, changing roles, and deleting non-self accounts.
-- Current: Complete clients create, edit, archive, and delete flows from the admin UI.
-- Current: Complete projects create, edit, delete, and status update flows from the admin UI.
-- Next: Improve client detail with linked projects, pending invite visibility, and primary admin actions.
-- Next: Add focused automated coverage for admin client and project management flows.
+- Done: Complete clients create, edit, archive, and delete flows from the admin UI.
+- Done: Complete projects create, edit, delete, and status update flows from the admin UI.
+- Done: Improve client detail with linked projects and primary admin actions.
+- Done: Add focused API coverage for admin client and project update/delete flows.
+- Next: Add pending invite visibility on client detail pages.
+- Next: Add focused UI coverage for admin client and project management flows.
 
 ## Phase 4 - Client Delivery Experience
 Status: Next

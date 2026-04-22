@@ -39,9 +39,10 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: Dashboard recent activity is backed by real client, project, project note, and file events.
 - Done: Protected route navigation now uses route-level pending skeletons so authenticated pages can render immediate loading states during data fetches.
 - Done: Automated coverage exists for protected-route pending-state navigation.
-- Current: Complete admin clients CRUD with create, edit, archive, and delete flows in the UI.
-- Current: Complete admin projects CRUD with create, edit, delete, and status update flows in the UI.
-- Next: Improve client detail with linked projects, pending invite visibility, and primary admin actions.
+- Done: Admin clients CRUD supports create, edit, archive, and delete flows in the UI.
+- Done: Admin projects CRUD supports create, edit, delete, and status update flows in the UI.
+- Done: Client detail shows linked projects and primary admin actions.
+- Next: Improve client detail with pending invite visibility.
 - Next: Add first-class project updates or status reports plus lightweight milestones/deliverables.
 - Next: Improve the client portal so clients can quickly see active work, latest updates, key dates, files, and discussion.
 - Not started: Pending invite visibility, resend invite, and revoke invite management.

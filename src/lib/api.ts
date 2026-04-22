@@ -18,6 +18,26 @@ export interface SearchResults {
   projects: Project[];
 }
 
+export interface ClientPayload {
+  company: string;
+  email: string;
+  name: string;
+  notes?: string;
+  phone?: string;
+  status: Client["status"];
+  tags: string[];
+  website?: string;
+}
+
+export interface ProjectPayload {
+  budget: number;
+  clientId: string;
+  deadline?: string;
+  description?: string;
+  status: Project["status"];
+  title: string;
+}
+
 export interface ManagedUser {
   createdAt: string;
   email: string;
@@ -234,6 +254,128 @@ async function updateUserRoleRequest(
   }
 
   return data;
+}
+
+async function createClientRequest(input: ClientPayload): Promise<Client> {
+  const response = await createApiRequest("/api/clients", {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+
+  return parseMutationResponse<Client>(response, "client");
+}
+
+async function updateClientRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ClientPayload;
+}): Promise<Client> {
+  const response = await createApiRequest(`/api/clients/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<Client>(response, "client");
+}
+
+async function deleteClientRequest(id: string) {
+  const response = await createApiRequest(`/api/clients/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+async function createProjectRequest(input: ProjectPayload): Promise<Project> {
+  const response = await createApiRequest("/api/projects", {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "POST",
+  });
+
+  return parseMutationResponse<Project>(response, "project");
+}
+
+async function updateProjectRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ProjectPayload;
+}): Promise<Project> {
+  const response = await createApiRequest(`/api/projects/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<Project>(response, "project");
+}
+
+async function deleteProjectRequest(id: string) {
+  const response = await createApiRequest(`/api/projects/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+async function parseMutationResponse<TRecord extends { id: unknown }>(
+  response: Response,
+  recordName: string
+): Promise<TRecord> {
+  const data = (await response.json().catch(() => null)) as
+    | TRecord
+    | { error?: string }
+    | null;
+
+  if (!response.ok) {
+    const errorMessage =
+      data && "error" in data && typeof data.error === "string"
+        ? data.error
+        : `Request failed with status ${response.status}`;
+    throw new Error(errorMessage);
+  }
+
+  if (!data || typeof data !== "object" || !("id" in data)) {
+    throw new Error(`The server returned an invalid ${recordName} payload.`);
+  }
+
+  return data as TRecord;
 }
 
 async function deleteUserRequest(id: string) {
@@ -471,6 +613,118 @@ export function useUpdateUserRoleMutation() {
           user.id === updatedUser.id ? updatedUser : user
         )
       );
+    },
+  });
+}
+
+function invalidateAdminData(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.clients });
+  queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+  queryClient.invalidateQueries({ queryKey: queryKeys.dashboardActivity });
+  queryClient.invalidateQueries({ queryKey: ["search"] });
+}
+
+export function useCreateClientMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createClientRequest,
+    onSuccess: (createdClient) => {
+      queryClient.setQueryData<Client[]>(queryKeys.clients, (current) => [
+        createdClient,
+        ...(current ?? []),
+      ]);
+      invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useUpdateClientMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateClientRequest,
+    onSuccess: (updatedClient) => {
+      queryClient.setQueryData<Client[]>(queryKeys.clients, (current) =>
+        (current ?? []).map((client) =>
+          client.id === updatedClient.id ? updatedClient : client
+        )
+      );
+      invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useDeleteClientMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteClientRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<Client[]>(queryKeys.clients, (current) =>
+        (current ?? []).filter((client) => client.id !== variables.id)
+      );
+      queryClient.setQueryData<Project[]>(queryKeys.projects, (current) =>
+        (current ?? []).filter((project) => project.clientId !== variables.id)
+      );
+      invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useCreateProjectMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProjectRequest,
+    onSuccess: (createdProject) => {
+      queryClient.setQueryData<Project[]>(queryKeys.projects, (current) => [
+        createdProject,
+        ...(current ?? []),
+      ]);
+      invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useUpdateProjectMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProjectRequest,
+    onSuccess: (updatedProject) => {
+      queryClient.setQueryData<Project[]>(queryKeys.projects, (current) =>
+        (current ?? []).map((project) =>
+          project.id === updatedProject.id ? updatedProject : project
+        )
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectCollaboration(updatedProject.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectFiles(updatedProject.id),
+      });
+      invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useDeleteProjectMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteProjectRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<Project[]>(queryKeys.projects, (current) =>
+        (current ?? []).filter((project) => project.id !== variables.id)
+      );
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectCollaboration(variables.id),
+      });
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectFiles(variables.id),
+      });
+      invalidateAdminData(queryClient);
     },
   });
 }

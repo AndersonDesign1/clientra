@@ -1,17 +1,22 @@
-export function StatusBadge({ value }: { value: string }) {
-  let color = "bg-slate-100 text-slate-700";
+import type { ComponentProps } from "react";
+import { Badge } from "@/components/ui/badge";
 
-  if (value === "completed" || value === "active") {
-    color = "bg-emerald-100 text-emerald-700";
-  } else if (value === "in_progress") {
-    color = "bg-blue-100 text-blue-700";
+export function formatStatusLabel(value: string) {
+  const normalized = value.replaceAll("_", " ");
+
+  return `${normalized.slice(0, 1).toUpperCase()}${normalized.slice(1)}`;
+}
+
+export function StatusBadge({ value }: { value: string }) {
+  let variant: ComponentProps<typeof Badge>["variant"] = "secondary";
+
+  if (value === "archived") {
+    variant = "outline";
+  } else if (value === "completed") {
+    variant = "default";
   } else if (value === "planning") {
-    color = "bg-amber-100 text-amber-700";
+    variant = "outline";
   }
 
-  return (
-    <span className={`rounded-full px-2 py-1 font-medium text-xs ${color}`}>
-      {value.replace("_", " ")}
-    </span>
-  );
+  return <Badge variant={variant}>{formatStatusLabel(value)}</Badge>;
 }
