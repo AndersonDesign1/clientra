@@ -65,6 +65,10 @@ export function forbiddenError(
   return jsonError(403, { error: message });
 }
 
+export function conflictError(message = "That resource already exists.") {
+  return jsonError(409, { error: message });
+}
+
 export function tooManyRequestsError(
   message = "Too many requests. Please try again later.",
   retryAfterSeconds?: number

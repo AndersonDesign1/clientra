@@ -205,6 +205,77 @@ describe("records collaboration helpers", () => {
     }
   });
 
+  it("keeps a migrated deduped project slug when the title is unchanged", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+
+    await client.execute({
+      args: [
+        "client_1",
+        "Jordan Lee",
+        "Acme Inc.",
+        "jordan@acme.co",
+        "",
+        "",
+        "active",
+        "",
+        "[]",
+        1_741_000_000_000,
+      ],
+      sql: `insert into clients
+        (id, name, company, email, phone, website, status, notes, tags, created_at)
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    });
+
+    await client.batch([
+      {
+        args: [
+          "project_1",
+          "client_1",
+          "Same Name",
+          "same-name",
+          "planning",
+          1000,
+          "",
+          "",
+          1_741_000_000_001,
+        ],
+        sql: `insert into projects
+          (id, client_id, title, slug, status, budget, deadline, description, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+      {
+        args: [
+          "project_2",
+          "client_1",
+          "Same Name",
+          "same-name-2",
+          "planning",
+          2000,
+          "",
+          "",
+          1_741_000_000_002,
+        ],
+        sql: `insert into projects
+          (id, client_id, title, slug, status, budget, deadline, description, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+    ]);
+
+    const updated = await records.updateProjectRecord("project_2", {
+      budget: 2500,
+      clientId: "client_1",
+      deadline: "",
+      description: "Updated without renaming.",
+      id: "project_2",
+      status: "in_progress",
+      title: "Same Name",
+    });
+
+    expect(updated?.slug).toBe("same-name-2");
+    expect(updated?.budget).toBe(2500);
+  }, 10_000);
+
   it("lists project comments with author metadata and enforces access", async () => {
     const { client, records } = await createRecordsTestContext();
     clientsToClose.push(client);

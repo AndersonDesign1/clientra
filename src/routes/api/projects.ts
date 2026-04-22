@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  conflictError,
   forbiddenError,
   internalServerError,
   parseJsonBody,
@@ -11,6 +12,7 @@ import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   createProjectRecord,
+  DuplicateProjectSlugError,
   listProjectsForUser,
   seedIfEmpty,
 } from "@/db/records";
@@ -52,10 +54,20 @@ export const Route = createFileRoute("/api/projects")({
           return parsed.error;
         }
 
-        const created = await createProjectRecord({
-          ...parsed.data,
-          id: crypto.randomUUID(),
-        });
+        let created: Awaited<ReturnType<typeof createProjectRecord>>;
+
+        try {
+          created = await createProjectRecord({
+            ...parsed.data,
+            id: crypto.randomUUID(),
+          });
+        } catch (error) {
+          if (error instanceof DuplicateProjectSlugError) {
+            return conflictError(error.message);
+          }
+
+          throw error;
+        }
 
         if (!created) {
           return internalServerError(

@@ -1,5 +1,6 @@
-import { and, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
+import { getProjectSlug } from "@/lib/project-slugs";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 import { db } from "./client";
 import {
@@ -99,6 +100,13 @@ interface ProjectCommentRecord extends Record<string, unknown> {
   createdAt: Date;
   id: string;
   projectId: string;
+}
+
+export class DuplicateProjectSlugError extends Error {
+  constructor() {
+    super("A project with this name already exists for this client.");
+    this.name = "DuplicateProjectSlugError";
+  }
 }
 
 export type PublicProjectFile = {
@@ -202,6 +210,7 @@ function mapProject(row: typeof projectsTable.$inferSelect) {
     deadline: row.deadline ?? "",
     description: row.description ?? "",
     id: row.id,
+    slug: row.slug,
     status: row.status,
     title: row.title,
   };
@@ -553,6 +562,36 @@ export async function createClientRecord(input: ClientInsert) {
   return created ? mapClient(created) : null;
 }
 
+export async function updateClientRecord(id: string, input: ClientInsert) {
+  const updatedRows = await db
+    .update(clientsTable)
+    .set({
+      company: input.company,
+      email: input.email,
+      name: input.name,
+      notes: input.notes ?? "",
+      phone: input.phone ?? "",
+      status: input.status,
+      tags: serializeTags(input.tags),
+      website: input.website ?? "",
+    })
+    .where(eq(clientsTable.id, id))
+    .returning();
+
+  const updated = updatedRows[0];
+
+  return updated ? mapClient(updated) : null;
+}
+
+export async function deleteClientRecord(id: string) {
+  const deletedRows = await db
+    .delete(clientsTable)
+    .where(eq(clientsTable.id, id))
+    .returning({ id: clientsTable.id });
+
+  return deletedRows.length > 0;
+}
+
 export async function listProjects() {
   const rows = await db
     .select()
@@ -580,17 +619,68 @@ export async function listProjectsForUser(user: SessionUser) {
   return linkedProjects.map(({ project }) => mapProject(project));
 }
 
+async function ensureProjectSlugIsAvailable({
+  clientId,
+  excludeProjectId,
+  slug,
+}: {
+  clientId: string;
+  excludeProjectId?: string;
+  slug: string;
+}) {
+  const conditions = [
+    eq(projectsTable.clientId, clientId),
+    eq(projectsTable.slug, slug),
+  ];
+
+  if (excludeProjectId) {
+    conditions.push(ne(projectsTable.id, excludeProjectId));
+  }
+
+  const duplicateRows = await db
+    .select({ id: projectsTable.id })
+    .from(projectsTable)
+    .where(and(...conditions))
+    .limit(1);
+
+  if (duplicateRows.length > 0) {
+    throw new DuplicateProjectSlugError();
+  }
+}
+
+function isProjectSlugUniqueError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return message.includes("projects_client_id_slug_unique");
+}
+
 export async function createProjectRecord(input: ProjectInsert) {
-  await db.insert(projectsTable).values({
-    budget: input.budget,
+  const slug = getProjectSlug(input.title);
+
+  await ensureProjectSlugIsAvailable({
     clientId: input.clientId,
-    createdAt: new Date(),
-    deadline: input.deadline ?? "",
-    description: input.description ?? "",
-    id: input.id,
-    status: input.status,
-    title: input.title,
+    slug,
   });
+
+  try {
+    await db.insert(projectsTable).values({
+      budget: input.budget,
+      clientId: input.clientId,
+      createdAt: new Date(),
+      deadline: input.deadline ?? "",
+      description: input.description ?? "",
+      id: input.id,
+      slug,
+      status: input.status,
+      title: input.title,
+    });
+  } catch (error) {
+    if (isProjectSlugUniqueError(error)) {
+      throw new DuplicateProjectSlugError();
+    }
+
+    throw error;
+  }
 
   const [created] = await db
     .select()
@@ -599,6 +689,91 @@ export async function createProjectRecord(input: ProjectInsert) {
     .limit(1);
 
   return created ? mapProject(created) : null;
+}
+
+export async function updateProjectRecord(id: string, input: ProjectInsert) {
+  const [existing] = await db
+    .select({
+      clientId: projectsTable.clientId,
+      slug: projectsTable.slug,
+      title: projectsTable.title,
+    })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, id))
+    .limit(1);
+
+  if (!existing) {
+    return null;
+  }
+
+  const slug =
+    input.title === existing.title
+      ? existing.slug
+      : getProjectSlug(input.title);
+
+  if (input.clientId !== existing.clientId || slug !== existing.slug) {
+    await ensureProjectSlugIsAvailable({
+      clientId: input.clientId,
+      excludeProjectId: id,
+      slug,
+    });
+  }
+
+  let updatedRows: (typeof projectsTable.$inferSelect)[];
+
+  try {
+    updatedRows = await db
+      .update(projectsTable)
+      .set({
+        budget: input.budget,
+        clientId: input.clientId,
+        deadline: input.deadline ?? "",
+        description: input.description ?? "",
+        slug,
+        status: input.status,
+        title: input.title,
+      })
+      .where(eq(projectsTable.id, id))
+      .returning();
+  } catch (error) {
+    if (isProjectSlugUniqueError(error)) {
+      throw new DuplicateProjectSlugError();
+    }
+
+    throw error;
+  }
+
+  const updated = updatedRows[0];
+
+  return updated ? mapProject(updated) : null;
+}
+
+export async function deleteProjectRecord(id: string) {
+  const deletedRows = await db
+    .delete(projectsTable)
+    .where(eq(projectsTable.id, id))
+    .returning({ id: projectsTable.id });
+
+  return deletedRows.length > 0;
+}
+
+export async function listProjectStorageKeys(projectId: string) {
+  const rows = await db
+    .select({ storageKey: filesTable.storageKey })
+    .from(filesTable)
+    .where(eq(filesTable.projectId, projectId));
+
+  return rows.map((row) => row.storageKey);
+}
+
+export async function listClientStorageKeys(clientId: string) {
+  const rows = await db
+    .select({ storageKey: filesTable.storageKey })
+    .from(filesTable)
+    .innerJoin(projectsTable, eq(filesTable.projectId, projectsTable.id))
+    .where(eq(projectsTable.clientId, clientId));
+
+  return rows.map((row) => row.storageKey);
 }
 
 export async function createProjectNoteRecord(input: NoteInsert) {
@@ -1098,6 +1273,7 @@ export async function seedIfEmpty() {
       deadline: "2026-04-10",
       description: "Modernize IA, design system, and page templates.",
       id: "proj_1",
+      slug: "marketing-site-redesign",
       status: "in_progress",
       title: "Marketing Site Redesign",
     },
@@ -1108,6 +1284,7 @@ export async function seedIfEmpty() {
       deadline: "2026-05-20",
       description: "Client-facing project status and messaging app.",
       id: "proj_2",
+      slug: "ios-client-portal",
       status: "planning",
       title: "iOS Client Portal",
     },

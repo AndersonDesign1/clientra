@@ -16,6 +16,8 @@ export const createClientSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
 });
 
+export const updateClientSchema = createClientSchema;
+
 export const createProjectSchema = z.object({
   clientId: idSchema,
   title: z.string().trim().min(1).max(160),
@@ -24,6 +26,8 @@ export const createProjectSchema = z.object({
   deadline: z.string().trim().max(32).optional(),
   description: trimmedOptionalString,
 });
+
+export const updateProjectSchema = createProjectSchema;
 
 export const createNoteSchema = z.object({
   projectId: idSchema,

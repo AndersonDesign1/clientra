@@ -111,20 +111,30 @@ export const invites = sqliteTable("invites", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
-export const projects = sqliteTable("projects", {
-  id: text("id").primaryKey(),
-  clientId: text("client_id")
-    .notNull()
-    .references(() => clients.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  status: text("status", {
-    enum: ["planning", "in_progress", "completed"],
-  }).notNull(),
-  budget: real("budget").notNull().default(0),
-  deadline: text("deadline"),
-  description: text("description"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-});
+export const projects = sqliteTable(
+  "projects",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    slug: text("slug").notNull(),
+    status: text("status", {
+      enum: ["planning", "in_progress", "completed"],
+    }).notNull(),
+    budget: real("budget").notNull().default(0),
+    deadline: text("deadline"),
+    description: text("description"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    projectClientSlugUnique: uniqueIndex("projects_client_id_slug_unique").on(
+      table.clientId,
+      table.slug
+    ),
+  })
+);
 
 export const projectNotes = sqliteTable("project_notes", {
   id: text("id").primaryKey(),

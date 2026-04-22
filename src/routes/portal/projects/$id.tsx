@@ -6,29 +6,44 @@ import { PortalShell } from "@/components/layout/portal-shell";
 import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
 import {
-  ensureProjectCollaborationData,
-  ensureProjectFilesData,
+  ensureClientsData,
   ensureProjectsData,
+  useClientsData,
   useProjectsData,
 } from "@/lib/api";
+import {
+  findProjectByClientAndProjectPathParams,
+  findProjectByPathParam,
+} from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/portal/projects/$id")({
   beforeLoad: requireClientSession,
-  loader: ({ context, params }) =>
+  loader: ({ context }) =>
     Promise.all([
-      ensureProjectCollaborationData(context.queryClient, params.id),
+      ensureClientsData(context.queryClient),
       ensureProjectsData(context.queryClient),
-      ensureProjectFilesData(context.queryClient, params.id),
     ]),
   pendingComponent: PortalProjectDetailPendingPage,
-  component: PortalProjectDetailPage,
+  component: LegacyPortalProjectDetailRoute,
 });
 
-function PortalProjectDetailPage() {
+function LegacyPortalProjectDetailRoute() {
   const { id } = Route.useParams();
+
+  return <PortalProjectDetailPage projectSlug={id} />;
+}
+
+export function PortalProjectDetailPage({
+  clientSlug,
+  projectSlug,
+}: {
+  clientSlug?: string;
+  projectSlug: string;
+}) {
+  const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
 
-  if (projectsQuery.isLoading) {
+  if (projectsQuery.isLoading || clientsQuery.isLoading) {
     return (
       <PortalShell>
         <LoadingPanel />
@@ -36,15 +51,25 @@ function PortalProjectDetailPage() {
     );
   }
 
-  if (projectsQuery.error) {
+  if (projectsQuery.error || clientsQuery.error) {
     return (
       <PortalShell>
-        <ErrorPanel description={projectsQuery.error} />
+        <ErrorPanel
+          description={projectsQuery.error ?? clientsQuery.error ?? undefined}
+        />
       </PortalShell>
     );
   }
 
-  const project = projectsQuery.data?.find((entry) => entry.id === id);
+  const clients = clientsQuery.data ?? [];
+  const project = clientSlug
+    ? findProjectByClientAndProjectPathParams({
+        clients,
+        clientSlug,
+        projects: projectsQuery.data ?? [],
+        projectSlug,
+      })
+    : findProjectByPathParam(projectsQuery.data ?? [], projectSlug);
 
   if (!project) {
     return (

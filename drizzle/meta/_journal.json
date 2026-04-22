@@ -36,6 +36,13 @@
       "when": 1774038998380,
       "tag": "0004_woozy_shape",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1776869518069,
+      "tag": "0005_lonely_roughhouse",
+      "breakpoints": true
     }
   ]
 }
