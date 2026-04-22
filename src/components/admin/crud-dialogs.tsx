@@ -197,6 +197,9 @@ export function ClientFormDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setState(initialState);
+    } else {
+      createClient.reset();
+      updateClient.reset();
     }
     onOpenChange(nextOpen);
   };
@@ -213,7 +216,7 @@ export function ClientFormDialog({
       ? await updateClient.mutateAsync({ id: client.id, input: payload })
       : await createClient.mutateAsync(payload);
 
-    onOpenChange(false);
+    handleOpenChange(false);
     onSaved?.(savedClient);
   }
 
@@ -230,7 +233,12 @@ export function ClientFormDialog({
               Keep the client profile small, useful, and easy to scan.
             </DialogDescription>
           </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(event) => {
+              handleSubmit(event).catch(() => undefined);
+            }}
+          >
             <FieldGroup>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field>
@@ -407,6 +415,9 @@ export function ProjectFormDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setState(initialState);
+    } else {
+      createProject.reset();
+      updateProject.reset();
     }
     onOpenChange(nextOpen);
   };
@@ -438,7 +449,7 @@ export function ProjectFormDialog({
       ? await updateProject.mutateAsync({ id: project.id, input: payload })
       : await createProject.mutateAsync(payload);
 
-    onOpenChange(false);
+    handleOpenChange(false);
     onSaved?.(savedProject);
   }
 
@@ -457,7 +468,12 @@ export function ProjectFormDialog({
                 : "Choose the client and track the essentials for delivery."}
             </DialogDescription>
           </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(event) => {
+              handleSubmit(event).catch(() => undefined);
+            }}
+          >
             <FieldGroup>
               {isEditing ? (
                 <Field>

@@ -1,6 +1,6 @@
 import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
-import { getClientPathParam } from "@/lib/client-slugs";
+import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
 
 export function getProjectSlug(title: string) {
   return slugifyProjectTitle(title);
@@ -39,8 +39,10 @@ export function findProjectByClientAndProjectPathParams({
 }) {
   return projects.find((project) => {
     const client = clients.find((entry) => entry.id === project.clientId);
+    const pathClient = findClientByPathParam(clients, clientSlug);
     const matchesClient =
       project.clientId === clientSlug ||
+      pathClient?.id === project.clientId ||
       (client ? getClientPathParam(client) === clientSlug : false);
     const matchesProject =
       project.id === projectSlug ||

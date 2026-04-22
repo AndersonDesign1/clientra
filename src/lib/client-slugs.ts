@@ -1,14 +1,25 @@
 import type { Client } from "@/features/clients/mock-data";
 
 export function getClientPathParam(client: Client) {
-  return slugifyClientName(client.name) || client.id;
+  const slug = slugifyClientName(client.name);
+  return slug ? `${slug}-${client.id}` : client.id;
 }
 
 export function findClientByPathParam(clients: Client[], pathParam: string) {
-  return clients.find(
+  const exactMatch = clients.find(
     (client) =>
       client.id === pathParam || getClientPathParam(client) === pathParam
   );
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const slugMatches = clients.filter(
+    (client) => slugifyClientName(client.name) === pathParam
+  );
+
+  return slugMatches.length === 1 ? slugMatches[0] : undefined;
 }
 
 function slugifyClientName(name: string) {

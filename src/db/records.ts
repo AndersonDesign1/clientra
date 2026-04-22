@@ -692,13 +692,32 @@ export async function createProjectRecord(input: ProjectInsert) {
 }
 
 export async function updateProjectRecord(id: string, input: ProjectInsert) {
-  const slug = getProjectSlug(input.title);
+  const [existing] = await db
+    .select({
+      clientId: projectsTable.clientId,
+      slug: projectsTable.slug,
+      title: projectsTable.title,
+    })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, id))
+    .limit(1);
 
-  await ensureProjectSlugIsAvailable({
-    clientId: input.clientId,
-    excludeProjectId: id,
-    slug,
-  });
+  if (!existing) {
+    return null;
+  }
+
+  const slug =
+    input.title === existing.title
+      ? existing.slug
+      : getProjectSlug(input.title);
+
+  if (input.clientId !== existing.clientId || slug !== existing.slug) {
+    await ensureProjectSlugIsAvailable({
+      clientId: input.clientId,
+      excludeProjectId: id,
+      slug,
+    });
+  }
 
   let updatedRows: (typeof projectsTable.$inferSelect)[];
 

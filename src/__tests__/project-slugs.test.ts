@@ -36,7 +36,7 @@ describe("project URL slugs", () => {
 
   it("builds nested client and project route params", () => {
     expect(getProjectPathParams(project, [client])).toEqual({
-      clientSlug: "jordan-lee",
+      clientSlug: "jordan-lee-cli_1",
       projectSlug: "marketing-site-redesign",
     });
   });
@@ -53,6 +53,14 @@ describe("project URL slugs", () => {
       findProjectByClientAndProjectPathParams({
         clients: [client],
         clientSlug: "jordan-lee",
+        projects: [project],
+        projectSlug: "marketing-site-redesign",
+      })?.id
+    ).toBe("proj_1");
+    expect(
+      findProjectByClientAndProjectPathParams({
+        clients: [client],
+        clientSlug: "jordan-lee-cli_1",
         projects: [project],
         projectSlug: "marketing-site-redesign",
       })?.id
