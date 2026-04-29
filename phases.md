@@ -4,7 +4,7 @@
 `phases.md` is the single source of truth for product progress and next actions. Keep updates feature-level, use the status labels `Done`, `Current`, `Next`, `Not started`, and `Blocked`, and move the `Current` marker to the next shippable slice as work progresses.
 
 ## Current Focus
-Phase 3 is current. The next shippable slice is expanding admin operations with focused UI coverage and pending invite visibility on client detail pages.
+Phase 3 is current. The next shippable slice is expanding admin operations with focused UI coverage for client and project management flows.
 
 ## Phase 1 - Frontend Foundation
 Status: Done
@@ -39,7 +39,7 @@ Status: Current
 - Done: Enforce unique project slugs per client at the database level.
 - Done: Improve client detail with linked projects and primary admin actions.
 - Done: Add focused API coverage for admin client and project update/delete flows.
-- Next: Add pending invite visibility on client detail pages.
+- Done: Add pending invite visibility on client detail pages.
 - Next: Add focused UI coverage for admin client and project management flows.
 
 ## Phase 4 - Client Delivery Experience
@@ -57,7 +57,7 @@ Status: Next
 ## Phase 5 - Access, Invites, and Notifications
 Status: Not started
 
-- Not started: Show pending invites on relevant admin client views.
+- Done: Show pending invites on relevant admin client views.
 - Not started: Add resend and revoke actions for pending invites.
 - Not started: Add lightweight email notifications for client invites, new project updates, new files, and new comments.
 - Not started: Add notification safeguards so Clientra stays lightweight and avoids complex automation workflows.

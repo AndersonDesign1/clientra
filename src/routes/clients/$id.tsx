@@ -9,11 +9,16 @@ import { ClientDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ensureClientsData,
+  ensurePendingInvitesData,
   ensureProjectsData,
+  type LoadableData,
+  type PendingInvite,
   useClientsData,
+  usePendingInvitesData,
   useProjectsData,
   useUpdateClientMutation,
 } from "@/lib/api";
@@ -22,11 +27,21 @@ import { getProjectPathParams } from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/clients/$id")({
   beforeLoad: requireAdminSession,
-  loader: ({ context }) =>
-    Promise.all([
-      ensureClientsData(context.queryClient),
-      ensureProjectsData(context.queryClient),
-    ]),
+  loader: ({ context, params }) => {
+    const clientsPromise = ensureClientsData(context.queryClient);
+    const projectsPromise = ensureProjectsData(context.queryClient);
+
+    return clientsPromise.then((clients) => {
+      const client = findClientByPathParam(clients, params.id);
+      const pendingInvitesPromise = client
+        ? ensurePendingInvitesData(context.queryClient, client.id)
+        : Promise.resolve();
+
+      return Promise.all([projectsPromise, pendingInvitesPromise]).then(
+        () => undefined
+      );
+    });
+  },
   pendingComponent: ClientDetailPendingPage,
   component: ClientDetailPage,
 });
@@ -38,6 +53,8 @@ function ClientDetailPage() {
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
   const updateClient = useUpdateClientMutation();
+  const client = findClientByPathParam(clientsQuery.data ?? [], id);
+  const pendingInvitesQuery = usePendingInvitesData(client?.id);
 
   if (clientsQuery.isLoading || projectsQuery.isLoading) {
     return (
@@ -57,7 +74,6 @@ function ClientDetailPage() {
     );
   }
 
-  const client = findClientByPathParam(clientsQuery.data ?? [], id);
   const linkedProjects =
     projectsQuery.data?.filter((project) => project.clientId === client?.id) ??
     [];
@@ -200,6 +216,85 @@ function ClientDetailPage() {
           </div>
         )}
       </section>
+      <PendingInvitesPanel pendingInvites={pendingInvitesQuery} />
     </AppShell>
+  );
+}
+
+function formatInviteDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export function PendingInvitesPanel({
+  pendingInvites,
+}: {
+  pendingInvites: LoadableData<PendingInvite[]>;
+}) {
+  const invites = pendingInvites.data ?? [];
+
+  return (
+    <section className="mt-4 rounded-xl border bg-white p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-medium text-lg">Pending invites</h2>
+        <Badge variant="outline">{invites.length} pending</Badge>
+      </div>
+      {pendingInvites.error ? (
+        <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
+          {pendingInvites.error}
+        </p>
+      ) : null}
+      {pendingInvites.isLoading ? (
+        <p className="text-slate-600 text-sm">Loading pending invites...</p>
+      ) : null}
+      {!(pendingInvites.isLoading || pendingInvites.error) &&
+      invites.length === 0 ? (
+        <p className="text-slate-600 text-sm">
+          No pending invites for this client.
+        </p>
+      ) : null}
+      {invites.length > 0 ? (
+        <div className="grid gap-3">
+          {invites.map((invite) => (
+            <div
+              className="rounded-lg border border-slate-200 p-3"
+              key={invite.id}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="font-medium">{invite.email}</p>
+                <Badge variant="secondary">Pending</Badge>
+              </div>
+              <dl className="mt-2 grid gap-2 text-slate-600 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="font-medium text-slate-700">Created</dt>
+                  <dd>
+                    <time dateTime={invite.createdAt}>
+                      {formatInviteDate(invite.createdAt)}
+                    </time>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-slate-700">Expires</dt>
+                  <dd>
+                    <time dateTime={invite.expiresAt}>
+                      {formatInviteDate(invite.expiresAt)}
+                    </time>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
