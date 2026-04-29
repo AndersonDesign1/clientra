@@ -33,13 +33,16 @@ export const Route = createFileRoute("/clients/$id")({
 
     return clientsPromise.then((clients) => {
       const client = findClientByPathParam(clients, params.id);
-      const pendingInvitesPromise = client
-        ? ensurePendingInvitesData(context.queryClient, client.id)
-        : Promise.resolve();
 
-      return Promise.all([projectsPromise, pendingInvitesPromise]).then(
-        () => undefined
-      );
+      if (client) {
+        ensurePendingInvitesData(context.queryClient, client.id).catch(
+          (error) => {
+            console.error("pending invite prefetch failed", error);
+          }
+        );
+      }
+
+      return projectsPromise.then(() => undefined);
     });
   },
   pendingComponent: ClientDetailPendingPage,
@@ -246,7 +249,9 @@ export function PendingInvitesPanel({
     <section className="mt-4 rounded-xl border bg-white p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-medium text-lg">Pending invites</h2>
-        <Badge variant="outline">{invites.length} pending</Badge>
+        <Badge variant="outline">
+          {pendingInvites.isLoading ? "Loading" : `${invites.length} pending`}
+        </Badge>
       </div>
       {pendingInvites.error ? (
         <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">

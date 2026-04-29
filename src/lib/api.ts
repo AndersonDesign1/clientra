@@ -153,12 +153,14 @@ async function createApiRequest(path: string, init?: RequestInit) {
 }
 
 export const queryKeys = {
+  allPendingInvites: ["pending-invites"] as const,
   clients: ["clients"] as const,
   dashboardActivity: ["dashboard-activity"] as const,
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
-  pendingInvites: (clientId: string) => ["pending-invites", clientId] as const,
+  pendingInvites: (clientId: string) =>
+    [...queryKeys.allPendingInvites, clientId] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
@@ -664,7 +666,7 @@ function invalidateAdminData(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: queryKeys.clients });
   queryClient.invalidateQueries({ queryKey: queryKeys.projects });
   queryClient.invalidateQueries({ queryKey: queryKeys.dashboardActivity });
-  queryClient.invalidateQueries({ queryKey: ["pending-invites"] });
+  queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
   queryClient.invalidateQueries({ queryKey: ["search"] });
 }
 
