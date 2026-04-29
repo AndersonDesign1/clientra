@@ -71,6 +71,14 @@ export interface ProjectComment {
   projectId: string;
 }
 
+export interface PendingInvite {
+  clientId: string;
+  createdAt: string;
+  email: string;
+  expiresAt: string;
+  id: string;
+}
+
 export type ProjectActivityEvent =
   | {
       createdAt: string;
@@ -145,11 +153,14 @@ async function createApiRequest(path: string, init?: RequestInit) {
 }
 
 export const queryKeys = {
+  allPendingInvites: ["pending-invites"] as const,
   clients: ["clients"] as const,
   dashboardActivity: ["dashboard-activity"] as const,
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
+  pendingInvites: (clientId: string) =>
+    [...queryKeys.allPendingInvites, clientId] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
@@ -506,6 +517,14 @@ export function projectCollaborationQueryOptions(projectId: string) {
   });
 }
 
+export function pendingInvitesQueryOptions(clientId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<PendingInvite[]>(`/api/clients/${clientId}/invites`),
+    queryKey: queryKeys.pendingInvites(clientId),
+  });
+}
+
 export function searchQueryOptions(query: string) {
   const normalized = query.trim();
 
@@ -552,6 +571,13 @@ export function ensureProjectCollaborationData(
   );
 }
 
+export function ensurePendingInvitesData(
+  queryClient: QueryClient,
+  clientId: string
+) {
+  return queryClient.ensureQueryData(pendingInvitesQueryOptions(clientId));
+}
+
 export function useClientsData(): LoadableData<Client[]> {
   return mapQueryState(useQuery(clientsQueryOptions()));
 }
@@ -580,6 +606,25 @@ export function useProjectCollaborationData(
   projectId: string
 ): LoadableData<ProjectCollaborationPayload> {
   return mapQueryState(useQuery(projectCollaborationQueryOptions(projectId)));
+}
+
+export function usePendingInvitesData(
+  clientId: string | null | undefined
+): LoadableData<PendingInvite[]> {
+  const result = useQuery({
+    ...pendingInvitesQueryOptions(clientId ?? ""),
+    enabled: Boolean(clientId),
+  });
+
+  if (!clientId) {
+    return {
+      data: [],
+      error: null,
+      isLoading: false,
+    };
+  }
+
+  return mapQueryState(result);
 }
 
 export function useSearchData(query: string): LoadableData<SearchResults> {
@@ -621,6 +666,7 @@ function invalidateAdminData(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: queryKeys.clients });
   queryClient.invalidateQueries({ queryKey: queryKeys.projects });
   queryClient.invalidateQueries({ queryKey: queryKeys.dashboardActivity });
+  queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
   queryClient.invalidateQueries({ queryKey: ["search"] });
 }
 

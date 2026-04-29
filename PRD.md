@@ -44,10 +44,10 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: Admin client and project pages use readable URL slugs, with projects scoped under client slugs to avoid cross-client ambiguity.
 - Done: The database enforces unique project slugs per client.
 - Done: Client detail shows linked projects and primary admin actions.
-- Next: Improve client detail with pending invite visibility.
+- Done: Client detail shows pending invite visibility for admins.
 - Next: Add first-class project updates or status reports plus lightweight milestones/deliverables.
 - Next: Improve the client portal so clients can quickly see active work, latest updates, key dates, files, and discussion.
-- Not started: Pending invite visibility, resend invite, and revoke invite management.
+- Not started: Resend invite and revoke invite management.
 - Not started: Lightweight email notifications for invite, project update, file, and comment events.
 - Not started: Automated auth/invite flow coverage and broader end-to-end test coverage.
 - Not started: Production runtime validation for auth callbacks, cookies, Turso, UploadThing, and OAuth configuration.

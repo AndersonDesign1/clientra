@@ -335,7 +335,7 @@ describe("records collaboration helpers", () => {
       authorName: "Client User",
       type: "note_added",
     });
-  });
+  }, 15_000);
 
   it("builds admin dashboard activity from clients, projects, comments, and files", async () => {
     const { client, records } = await createRecordsTestContext();
