@@ -117,6 +117,26 @@ export interface ProjectMilestonePayload {
   title: string;
 }
 
+export interface PortalProjectUpdate extends ProjectUpdate {
+  projectTitle: string;
+}
+
+export interface PortalProjectMilestone extends ProjectMilestone {
+  projectTitle: string;
+}
+
+export interface PortalProjectFile extends ProjectFile {
+  projectTitle: string;
+}
+
+export interface PortalSummary {
+  activeProjects: Project[];
+  latestUpdates: PortalProjectUpdate[];
+  projectCount: number;
+  recentFiles: PortalProjectFile[];
+  upcomingMilestones: PortalProjectMilestone[];
+}
+
 export interface PendingInvite {
   clientId: string;
   createdAt: string;
@@ -220,6 +240,7 @@ export const queryKeys = {
     ["project-updates", projectId] as const,
   pendingInvites: (clientId: string) =>
     [...queryKeys.allPendingInvites, clientId] as const,
+  portalSummary: ["portal-summary"] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
@@ -675,6 +696,13 @@ export function dashboardActivityQueryOptions() {
   });
 }
 
+export function portalSummaryQueryOptions() {
+  return queryOptions({
+    queryFn: () => fetchJson<PortalSummary>("/api/portal/summary"),
+    queryKey: queryKeys.portalSummary,
+  });
+}
+
 export function projectFilesQueryOptions(projectId: string) {
   return queryOptions({
     queryFn: () => fetchJson<ProjectFile[]>(`/api/projects/${projectId}/files`),
@@ -746,6 +774,10 @@ export function ensureDashboardActivityData(queryClient: QueryClient) {
   return queryClient.ensureQueryData(dashboardActivityQueryOptions());
 }
 
+export function ensurePortalSummaryData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(portalSummaryQueryOptions());
+}
+
 export function ensureProjectFilesData(
   queryClient: QueryClient,
   projectId: string
@@ -799,6 +831,10 @@ export function useDashboardActivityData(): LoadableData<
   DashboardActivityEvent[]
 > {
   return mapQueryState(useQuery(dashboardActivityQueryOptions()));
+}
+
+export function usePortalSummaryData(): LoadableData<PortalSummary> {
+  return mapQueryState(useQuery(portalSummaryQueryOptions()));
 }
 
 export function useProjectFilesData(

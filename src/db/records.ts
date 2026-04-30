@@ -698,6 +698,74 @@ export async function listDashboardActivity(limit = 8) {
   }).slice(0, limit);
 }
 
+export async function getPortalSummary(user: SessionUser) {
+  const projects = await listProjectsForUser(user);
+  const activeProjects = projects.filter(
+    (project) => project.status !== "completed"
+  );
+
+  const [updatesByProject, milestonesByProject, filesByProject] =
+    await Promise.all([
+      Promise.all(projects.map((project) => listProjectUpdates(project.id))),
+      Promise.all(projects.map((project) => listProjectMilestones(project.id))),
+      Promise.all(
+        projects.map(async (project) => ({
+          files: await listProjectFilesForUser(project.id, user),
+          project,
+        }))
+      ),
+    ]);
+
+  const projectTitles = new Map(
+    projects.map((project) => [project.id, project.title])
+  );
+  const latestUpdates = updatesByProject
+    .flat()
+    .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+    .slice(0, 5)
+    .map((update) => ({
+      ...serializeProjectUpdate(update),
+      projectTitle: projectTitles.get(update.projectId) ?? "Project",
+    }));
+  const upcomingMilestones = milestonesByProject
+    .flat()
+    .filter((milestone) => milestone.status !== "done")
+    .sort((left, right) => {
+      const leftTime = left.dueDate
+        ? Date.parse(left.dueDate)
+        : Number.POSITIVE_INFINITY;
+      const rightTime = right.dueDate
+        ? Date.parse(right.dueDate)
+        : Number.POSITIVE_INFINITY;
+
+      return leftTime - rightTime || left.sortOrder - right.sortOrder;
+    })
+    .slice(0, 5)
+    .map((milestone) => ({
+      ...serializeProjectMilestone(milestone),
+      projectTitle: projectTitles.get(milestone.projectId) ?? "Project",
+    }));
+  const recentFiles = filesByProject
+    .flatMap(({ files, project }) =>
+      (files ?? []).map((file) => ({
+        ...serializeProjectFile(file),
+        projectTitle: project.title,
+      }))
+    )
+    .sort(
+      (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)
+    )
+    .slice(0, 5);
+
+  return {
+    activeProjects,
+    latestUpdates,
+    projectCount: projects.length,
+    recentFiles,
+    upcomingMilestones,
+  };
+}
+
 export async function listClientsForUser(user: SessionUser) {
   if (user.role === ROLES.ADMIN) {
     return listClients();
