@@ -496,4 +496,89 @@ describe("records collaboration helpers", () => {
       await records.listProjectMilestonesForUser("project_1", outsideClient)
     ).toBeNull();
   });
+
+  it("enriches existing demo clients with delivery data", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+
+    const createdAt = 1_741_000_000_000;
+
+    await client.batch([
+      {
+        args: [
+          "cli_1",
+          "Jordan Lee",
+          "Acme Inc.",
+          "jordan@acme.co",
+          "",
+          "",
+          "active",
+          "",
+          "[]",
+          createdAt,
+        ],
+        sql: `insert into clients
+          (id, name, company, email, phone, website, status, notes, tags, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+      {
+        args: [
+          "cli_2",
+          "Avery Stone",
+          "Northstar Labs",
+          "avery@northstar.dev",
+          "",
+          "",
+          "active",
+          "",
+          "[]",
+          createdAt,
+        ],
+        sql: `insert into clients
+          (id, name, company, email, phone, website, status, notes, tags, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+      {
+        args: [
+          "proj_1",
+          "cli_1",
+          "Marketing Site Redesign",
+          "marketing-site-redesign",
+          "in_progress",
+          12_000,
+          "2026-04-10",
+          "Modernize IA, design system, and page templates.",
+          createdAt,
+        ],
+        sql: `insert into projects
+          (id, client_id, title, slug, status, budget, deadline, description, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+      {
+        args: [
+          "proj_2",
+          "cli_2",
+          "iOS Client Portal",
+          "ios-client-portal",
+          "planning",
+          18_000,
+          "2026-05-20",
+          "Client-facing project status and messaging app.",
+          createdAt,
+        ],
+        sql: `insert into projects
+          (id, client_id, title, slug, status, budget, deadline, description, created_at)
+          values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      },
+    ]);
+
+    await records.seedIfEmpty();
+    await records.seedIfEmpty();
+
+    expect(await records.listProjectUpdates("proj_1")).toHaveLength(2);
+    expect(await records.listProjectMilestones("proj_1")).toHaveLength(3);
+    expect(
+      (await records.getProjectCollaboration("proj_1"))?.comments
+    ).toHaveLength(2);
+  }, 15_000);
 });

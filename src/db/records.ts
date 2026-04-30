@@ -1651,61 +1651,276 @@ export async function seedIfEmpty() {
     .select({ count: sql<number>`count(*)` })
     .from(clientsTable);
 
-  if (count > 0) {
-    return;
-  }
-
   const now = new Date();
 
-  await db.insert(clientsTable).values([
-    {
-      company: "Acme Inc.",
-      createdAt: now,
-      email: "jordan@acme.co",
-      id: "cli_1",
-      name: "Jordan Lee",
-      notes: "Primary stakeholder for website refresh.",
-      phone: "+1 555-0101",
-      status: "active",
-      tags: serializeTags(["retainer", "web"]),
-      website: "https://acme.co",
-    },
-    {
-      company: "Northstar Labs",
-      createdAt: now,
-      email: "avery@northstar.dev",
-      id: "cli_2",
-      name: "Avery Stone",
-      notes: "Prefers weekly async updates.",
-      phone: "+1 555-0199",
-      status: "active",
-      tags: serializeTags(["mobile"]),
-      website: "https://northstar.dev",
-    },
-  ]);
+  if (count === 0) {
+    await db.insert(clientsTable).values([
+      {
+        company: "Acme Inc.",
+        createdAt: now,
+        email: "jordan@acme.co",
+        id: "cli_1",
+        name: "Jordan Lee",
+        notes: "Primary stakeholder for website refresh.",
+        phone: "+1 555-0101",
+        status: "active",
+        tags: serializeTags(["retainer", "web"]),
+        website: "https://acme.co",
+      },
+      {
+        company: "Northstar Labs",
+        createdAt: now,
+        email: "avery@northstar.dev",
+        id: "cli_2",
+        name: "Avery Stone",
+        notes: "Prefers weekly async updates.",
+        phone: "+1 555-0199",
+        status: "active",
+        tags: serializeTags(["mobile"]),
+        website: "https://northstar.dev",
+      },
+    ]);
 
-  await db.insert(projectsTable).values([
-    {
-      budget: 12_000,
-      clientId: "cli_1",
-      createdAt: now,
-      deadline: "2026-04-10",
-      description: "Modernize IA, design system, and page templates.",
-      id: "proj_1",
-      slug: "marketing-site-redesign",
-      status: "in_progress",
-      title: "Marketing Site Redesign",
-    },
-    {
-      budget: 18_000,
-      clientId: "cli_2",
-      createdAt: now,
-      deadline: "2026-05-20",
-      description: "Client-facing project status and messaging app.",
-      id: "proj_2",
-      slug: "ios-client-portal",
-      status: "planning",
-      title: "iOS Client Portal",
-    },
-  ]);
+    await db.insert(projectsTable).values([
+      {
+        budget: 12_000,
+        clientId: "cli_1",
+        createdAt: now,
+        deadline: "2026-04-10",
+        description: "Modernize IA, design system, and page templates.",
+        id: "proj_1",
+        slug: "marketing-site-redesign",
+        status: "in_progress",
+        title: "Marketing Site Redesign",
+      },
+      {
+        budget: 18_000,
+        clientId: "cli_2",
+        createdAt: now,
+        deadline: "2026-05-20",
+        description: "Client-facing project status and messaging app.",
+        id: "proj_2",
+        slug: "ios-client-portal",
+        status: "planning",
+        title: "iOS Client Portal",
+      },
+    ]);
+  }
+
+  await seedDemoDeliveryData(now);
+}
+
+async function seedDemoDeliveryData(now: Date) {
+  const daysAgo = (days: number) =>
+    new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  await db
+    .insert(usersTable)
+    .values([
+      {
+        createdAt: daysAgo(18),
+        email: "maya@clientra.test",
+        emailVerified: true,
+        id: "demo_admin",
+        image: null,
+        name: "Maya Rivera",
+        role: "admin",
+        updatedAt: daysAgo(1),
+      },
+      {
+        createdAt: daysAgo(17),
+        email: "jordan@acme.co",
+        emailVerified: true,
+        id: "demo_acme_client",
+        image: null,
+        name: "Jordan Lee",
+        role: "client",
+        updatedAt: daysAgo(1),
+      },
+      {
+        createdAt: daysAgo(17),
+        email: "avery@northstar.dev",
+        emailVerified: true,
+        id: "demo_northstar_client",
+        image: null,
+        name: "Avery Stone",
+        role: "client",
+        updatedAt: daysAgo(1),
+      },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(clientUsersTable)
+    .values([
+      {
+        clientId: "cli_1",
+        id: "demo_link_acme",
+        userId: "demo_acme_client",
+      },
+      {
+        clientId: "cli_2",
+        id: "demo_link_northstar",
+        userId: "demo_northstar_client",
+      },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(projectUpdatesTable)
+    .values([
+      {
+        authorId: "demo_admin",
+        body: "Homepage wireframes are approved and the component audit is complete. The next push is production-ready responsive templates.",
+        createdAt: daysAgo(5),
+        id: "demo_update_proj_1_wireframes",
+        projectId: "proj_1",
+        status: "on_track",
+        title: "Wireframes approved",
+        updatedAt: daysAgo(5),
+      },
+      {
+        authorId: "demo_admin",
+        body: "A few legacy pages need content cleanup before migration. Timeline is still workable if final copy lands this week.",
+        createdAt: daysAgo(2),
+        id: "demo_update_proj_1_content",
+        projectId: "proj_1",
+        status: "at_risk",
+        title: "Content migration needs attention",
+        updatedAt: daysAgo(2),
+      },
+      {
+        authorId: "demo_admin",
+        body: "Discovery interviews are booked and the portal information architecture is drafted for review.",
+        createdAt: daysAgo(3),
+        id: "demo_update_proj_2_discovery",
+        projectId: "proj_2",
+        status: "on_track",
+        title: "Discovery underway",
+        updatedAt: daysAgo(3),
+      },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(projectMilestonesTable)
+    .values([
+      {
+        createdAt: daysAgo(12),
+        description:
+          "Confirm site goals, analytics baselines, and priority content.",
+        dueDate: "2026-03-25",
+        id: "demo_milestone_proj_1_discovery",
+        projectId: "proj_1",
+        sortOrder: 1,
+        status: "done",
+        title: "Discovery complete",
+        updatedAt: daysAgo(8),
+      },
+      {
+        createdAt: daysAgo(10),
+        description:
+          "Approve homepage, product page, and content system direction.",
+        dueDate: "2026-04-05",
+        id: "demo_milestone_proj_1_design",
+        projectId: "proj_1",
+        sortOrder: 2,
+        status: "in_progress",
+        title: "Design approval",
+        updatedAt: daysAgo(2),
+      },
+      {
+        createdAt: daysAgo(8),
+        description: "Ship page templates, redirect map, and launch checklist.",
+        dueDate: "2026-04-10",
+        id: "demo_milestone_proj_1_launch",
+        projectId: "proj_1",
+        sortOrder: 3,
+        status: "todo",
+        title: "Launch preparation",
+        updatedAt: daysAgo(1),
+      },
+      {
+        createdAt: daysAgo(7),
+        description: "Map client-facing screens and notification expectations.",
+        dueDate: "2026-05-02",
+        id: "demo_milestone_proj_2_requirements",
+        projectId: "proj_2",
+        sortOrder: 1,
+        status: "in_progress",
+        title: "Requirements review",
+        updatedAt: daysAgo(2),
+      },
+      {
+        createdAt: daysAgo(7),
+        description:
+          "Prepare a clickable prototype for weekly status workflows.",
+        dueDate: "2026-05-14",
+        id: "demo_milestone_proj_2_prototype",
+        projectId: "proj_2",
+        sortOrder: 2,
+        status: "todo",
+        title: "Prototype handoff",
+        updatedAt: daysAgo(2),
+      },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(projectNotesTable)
+    .values([
+      {
+        content:
+          "Please keep the launch checklist focused on redirects, SEO metadata, and final analytics QA.",
+        createdAt: daysAgo(4),
+        id: "demo_note_proj_1_client",
+        projectId: "proj_1",
+        userId: "demo_acme_client",
+      },
+      {
+        content:
+          "Added the redirect inventory and flagged pages that still need final copy.",
+        createdAt: daysAgo(2),
+        id: "demo_note_proj_1_admin",
+        projectId: "proj_1",
+        userId: "demo_admin",
+      },
+      {
+        content:
+          "Shared the first workflow map for review before prototype work starts.",
+        createdAt: daysAgo(1),
+        id: "demo_note_proj_2_admin",
+        projectId: "proj_2",
+        userId: "demo_admin",
+      },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(filesTable)
+    .values([
+      {
+        createdAt: daysAgo(6),
+        fileName: "Acme content inventory.pdf",
+        fileSize: 428_000,
+        fileUrl: "https://example.com/clientra-demo/acme-content-inventory.pdf",
+        id: "demo_file_proj_1_inventory",
+        mimeType: "application/pdf",
+        projectId: "proj_1",
+        storageKey: "demo/acme-content-inventory.pdf",
+        uploadedBy: "demo_admin",
+      },
+      {
+        createdAt: daysAgo(2),
+        fileName: "Portal workflow map.png",
+        fileSize: 816_000,
+        fileUrl: "https://example.com/clientra-demo/portal-workflow-map.png",
+        id: "demo_file_proj_2_workflow",
+        mimeType: "image/png",
+        projectId: "proj_2",
+        storageKey: "demo/portal-workflow-map.png",
+        uploadedBy: "demo_admin",
+      },
+    ])
+    .onConflictDoNothing();
 }
