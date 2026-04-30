@@ -36,6 +36,8 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: Global search across clients and projects.
 - Done: In-app admin user management for listing users, changing roles, and deleting non-self accounts.
 - Done: Project notes, collaboration activity, and file uploads/downloads are wired through database-backed project views for admins and clients.
+- Done: Project updates/status reports are first-class progress records with admin management and portal visibility.
+- Done: Lightweight milestones/deliverables are available on admin and portal project detail pages.
 - Done: Dashboard recent activity is backed by real client, project, project note, and file events.
 - Done: Protected route navigation now uses route-level pending skeletons so authenticated pages can render immediate loading states during data fetches.
 - Done: Automated coverage exists for protected-route pending-state navigation.
@@ -45,8 +47,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: The database enforces unique project slugs per client.
 - Done: Client detail shows linked projects and primary admin actions.
 - Done: Client detail shows pending invite visibility for admins.
-- Next: Add first-class project updates or status reports plus lightweight milestones/deliverables.
-- Next: Improve the client portal so clients can quickly see active work, latest updates, key dates, files, and discussion.
+- Done: The client portal home summarizes active work, latest updates, upcoming milestones, and recent files.
 - Not started: Resend invite and revoke invite management.
 - Not started: Lightweight email notifications for invite, project update, file, and comment events.
 - Not started: Automated auth/invite flow coverage and broader end-to-end test coverage.
@@ -76,8 +77,8 @@ Clientra is a lightweight client and project management system for freelancers, 
 - `client_users`
 - `projects`
 - `projects.slug` is unique per client for readable project URLs.
-- planned: `project_updates`
-- planned: `project_milestones`
+- `project_updates`
+- `project_milestones`
 - `project_notes` stores project notes authored by admins and clients.
 - `files`
 
