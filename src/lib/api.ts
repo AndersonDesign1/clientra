@@ -71,6 +71,30 @@ export interface ProjectComment {
   projectId: string;
 }
 
+export type ProjectUpdateStatus =
+  | "on_track"
+  | "at_risk"
+  | "blocked"
+  | "complete";
+
+export interface ProjectUpdate {
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  id: string;
+  projectId: string;
+  status: ProjectUpdateStatus;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ProjectUpdatePayload {
+  body: string;
+  status: ProjectUpdateStatus;
+  title: string;
+}
+
 export interface PendingInvite {
   clientId: string;
   createdAt: string;
@@ -102,6 +126,15 @@ export type ProjectActivityEvent =
       fileName: string;
       id: string;
       type: "file_uploaded";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      id: string;
+      status: ProjectUpdateStatus;
+      title: string;
+      type: "project_update";
     };
 
 export interface ProjectCollaborationPayload {
@@ -159,6 +192,8 @@ export const queryKeys = {
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
+  projectUpdates: (projectId: string) =>
+    ["project-updates", projectId] as const,
   pendingInvites: (clientId: string) =>
     [...queryKeys.allPendingInvites, clientId] as const,
   projects: ["projects"] as const,
@@ -471,6 +506,64 @@ async function createProjectCommentRequest({
   return candidate as ProjectComment;
 }
 
+async function createProjectUpdateRequest({
+  input,
+  projectId,
+}: {
+  input: ProjectUpdatePayload;
+  projectId: string;
+}): Promise<ProjectUpdate> {
+  const response = await createApiRequest(
+    `/api/projects/${projectId}/updates`,
+    {
+      body: JSON.stringify(input),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  return parseMutationResponse<ProjectUpdate>(response, "project update");
+}
+
+async function updateProjectUpdateRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ProjectUpdatePayload;
+}): Promise<ProjectUpdate> {
+  const response = await createApiRequest(`/api/project-updates/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<ProjectUpdate>(response, "project update");
+}
+
+async function deleteProjectUpdateRequest(id: string) {
+  const response = await createApiRequest(`/api/project-updates/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
 export function clientsQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<Client[]>("/api/clients"),
@@ -514,6 +607,14 @@ export function projectCollaborationQueryOptions(projectId: string) {
         `/api/projects/${projectId}/collaboration`
       ),
     queryKey: queryKeys.projectCollaboration(projectId),
+  });
+}
+
+export function projectUpdatesQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
+    queryKey: queryKeys.projectUpdates(projectId),
   });
 }
 
@@ -571,6 +672,13 @@ export function ensureProjectCollaborationData(
   );
 }
 
+export function ensureProjectUpdatesData(
+  queryClient: QueryClient,
+  projectId: string
+) {
+  return queryClient.ensureQueryData(projectUpdatesQueryOptions(projectId));
+}
+
 export function ensurePendingInvitesData(
   queryClient: QueryClient,
   clientId: string
@@ -606,6 +714,12 @@ export function useProjectCollaborationData(
   projectId: string
 ): LoadableData<ProjectCollaborationPayload> {
   return mapQueryState(useQuery(projectCollaborationQueryOptions(projectId)));
+}
+
+export function useProjectUpdatesData(
+  projectId: string
+): LoadableData<ProjectUpdate[]> {
+  return mapQueryState(useQuery(projectUpdatesQueryOptions(projectId)));
 }
 
 export function usePendingInvitesData(
@@ -770,6 +884,9 @@ export function useDeleteProjectMutation() {
       queryClient.removeQueries({
         queryKey: queryKeys.projectFiles(variables.id),
       });
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectUpdates(variables.id),
+      });
       invalidateAdminData(queryClient);
     },
   });
@@ -858,6 +975,90 @@ export function useCreateProjectCommentMutation() {
           };
         }
       );
+    },
+  });
+}
+
+function createProjectUpdateActivityEvent(
+  update: ProjectUpdate
+): ProjectActivityEvent {
+  return {
+    authorId: update.authorId,
+    authorName: update.authorName,
+    createdAt: update.createdAt,
+    id: `update:${update.id}`,
+    status: update.status,
+    title: update.title,
+    type: "project_update",
+  };
+}
+
+export function useCreateProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      input,
+      projectId,
+    }: {
+      input: ProjectUpdatePayload;
+      projectId: string;
+    }) => createProjectUpdateRequest({ input, projectId }),
+    onSuccess: (update) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(update.projectId),
+        (current) => [update, ...(current ?? [])]
+      );
+      queryClient.setQueryData<ProjectCollaborationPayload>(
+        queryKeys.projectCollaboration(update.projectId),
+        (current) => ({
+          activity: [
+            createProjectUpdateActivityEvent(update),
+            ...(current?.activity ?? []),
+          ].sort(
+            (left, right) =>
+              Date.parse(right.createdAt) - Date.parse(left.createdAt)
+          ),
+          comments: current?.comments ?? [],
+        })
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardActivity });
+    },
+  });
+}
+
+export function useUpdateProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProjectUpdateRequest,
+    onSuccess: (update) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(update.projectId),
+        (current) =>
+          (current ?? []).map((item) => (item.id === update.id ? update : item))
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectCollaboration(update.projectId),
+      });
+    },
+  });
+}
+
+export function useDeleteProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; projectId: string }) =>
+      deleteProjectUpdateRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(variables.projectId),
+        (current) => (current ?? []).filter((item) => item.id !== variables.id)
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectCollaboration(variables.projectId),
+      });
     },
   });
 }

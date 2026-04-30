@@ -34,6 +34,12 @@ export const createNoteSchema = z.object({
   content: z.string().trim().min(1).max(10_000),
 });
 
+export const projectUpdateSchema = z.object({
+  body: z.string().trim().min(1).max(10_000),
+  status: z.enum(["on_track", "at_risk", "blocked", "complete"]),
+  title: z.string().trim().min(1).max(160),
+});
+
 export const inviteSchema = z.object({
   email: emailSchema,
   clientId: idSchema,

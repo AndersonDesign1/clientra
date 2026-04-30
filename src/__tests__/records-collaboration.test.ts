@@ -58,6 +58,7 @@ async function seedCollaborationScenario(
     noteFromClient: 1_741_000_200_000,
     noteFromAdmin: 1_741_000_100_000,
     project: 1_741_000_000_000,
+    update: 1_741_000_350_000,
     user: 1_740_999_900_000,
   } as const;
 
@@ -189,6 +190,22 @@ async function seedCollaborationScenario(
     sql: `insert into files
       (id, project_id, uploaded_by, storage_key, file_url, file_name, file_size, mime_type, created_at)
       values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  });
+
+  await client.execute({
+    args: [
+      "update_1",
+      "project_1",
+      "admin_1",
+      "Weekly status",
+      "The build is on track for the next review.",
+      "on_track",
+      timestamps.update,
+      timestamps.update,
+    ],
+    sql: `insert into project_updates
+      (id, project_id, author_id, title, body, status, created_at, updated_at)
+      values (?, ?, ?, ?, ?, ?, ?, ?)`,
   });
 }
 
@@ -322,16 +339,21 @@ describe("records collaboration helpers", () => {
     const collaboration = await records.getProjectCollaboration("project_1");
 
     expect(collaboration?.activity.map((event) => event.type)).toEqual([
+      "project_update",
       "file_uploaded",
       "note_added",
       "note_added",
       "project_created",
     ]);
     expect(collaboration?.activity[0]).toMatchObject({
+      title: "Weekly status",
+      type: "project_update",
+    });
+    expect(collaboration?.activity[1]).toMatchObject({
       fileName: "brief.pdf",
       type: "file_uploaded",
     });
-    expect(collaboration?.activity[1]).toMatchObject({
+    expect(collaboration?.activity[2]).toMatchObject({
       authorName: "Client User",
       type: "note_added",
     });

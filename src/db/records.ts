@@ -11,6 +11,7 @@ import {
   invites as invitesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
+  projectUpdates as projectUpdatesTable,
   users as usersTable,
 } from "./schema";
 
@@ -46,6 +47,21 @@ interface NoteInsert {
   id: string;
   projectId: string;
   userId: string;
+}
+
+interface ProjectUpdateInsert {
+  authorId: string;
+  body: string;
+  id: string;
+  projectId: string;
+  status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+}
+
+interface ProjectUpdatePatch {
+  body: string;
+  status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
 }
 
 interface ProjectFileInsert {
@@ -102,6 +118,18 @@ interface ProjectCommentRecord extends Record<string, unknown> {
   projectId: string;
 }
 
+interface ProjectUpdateRecord extends Record<string, unknown> {
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: Date;
+  id: string;
+  projectId: string;
+  status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+  updatedAt: Date;
+}
+
 export class DuplicateProjectSlugError extends Error {
   constructor() {
     super("A project with this name already exists for this client.");
@@ -154,11 +182,32 @@ export type PublicProjectActivityEvent =
       fileName: string;
       id: string;
       type: "file_uploaded";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      id: string;
+      status: "on_track" | "at_risk" | "blocked" | "complete";
+      title: string;
+      type: "project_update";
     };
 
 export interface PublicProjectCollaboration {
   activity: PublicProjectActivityEvent[];
   comments: PublicProjectComment[];
+}
+
+export interface PublicProjectUpdate {
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  id: string;
+  projectId: string;
+  status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+  updatedAt: string;
 }
 
 export type PublicDashboardActivityEvent = DashboardActivityEvent;
@@ -278,6 +327,23 @@ function mapProjectComment(
   };
 }
 
+function mapProjectUpdate(
+  row: typeof projectUpdatesTable.$inferSelect,
+  authorName: string | null
+): ProjectUpdateRecord {
+  return {
+    authorId: row.authorId,
+    authorName: authorName ?? "Unknown user",
+    body: row.body,
+    createdAt: row.createdAt,
+    id: row.id,
+    projectId: row.projectId,
+    status: row.status,
+    title: row.title,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export function serializeProjectFile(
   file: ProjectFileRecord
 ): PublicProjectFile {
@@ -305,6 +371,22 @@ export function serializeProjectComment(
     createdAt: comment.createdAt.toISOString(),
     id: comment.id,
     projectId: comment.projectId,
+  };
+}
+
+export function serializeProjectUpdate(
+  update: ProjectUpdateRecord
+): PublicProjectUpdate {
+  return {
+    authorId: update.authorId,
+    authorName: update.authorName,
+    body: update.body,
+    createdAt: update.createdAt.toISOString(),
+    id: update.id,
+    projectId: update.projectId,
+    status: update.status,
+    title: update.title,
+    updatedAt: update.updatedAt.toISOString(),
   };
 }
 
@@ -356,19 +438,36 @@ function createFileUploadedActivity(
   };
 }
 
+function createProjectUpdateActivity(
+  update: ProjectUpdateRecord
+): PublicProjectActivityEvent {
+  return {
+    authorId: update.authorId,
+    authorName: update.authorName,
+    createdAt: update.createdAt.toISOString(),
+    id: `update:${update.id}`,
+    status: update.status,
+    title: update.title,
+    type: "project_update",
+  };
+}
+
 export function buildProjectActivityFeed({
   comments,
   files,
   project,
+  updates = [],
 }: {
   comments: ProjectCommentRecord[];
   files: ProjectFileRecord[];
   project: typeof projectsTable.$inferSelect;
+  updates?: ProjectUpdateRecord[];
 }): PublicProjectActivityEvent[] {
   return [
     createProjectCreatedActivity(project),
     ...comments.map(createNoteActivity),
     ...files.map(createFileUploadedActivity),
+    ...updates.map(createProjectUpdateActivity),
   ].sort((left, right) => {
     const leftTime = Date.parse(left.createdAt);
     const rightTime = Date.parse(right.createdAt);
@@ -801,6 +900,101 @@ export async function createProjectNoteRecord(input: NoteInsert) {
     : null;
 }
 
+export async function listProjectUpdates(projectId: string) {
+  const rows = await db
+    .select({
+      authorName: usersTable.name,
+      update: projectUpdatesTable,
+    })
+    .from(projectUpdatesTable)
+    .leftJoin(usersTable, eq(projectUpdatesTable.authorId, usersTable.id))
+    .where(eq(projectUpdatesTable.projectId, projectId))
+    .orderBy(desc(projectUpdatesTable.createdAt));
+
+  return rows.map(({ authorName, update }) =>
+    mapProjectUpdate(update, authorName)
+  );
+}
+
+export async function listProjectUpdatesForUser(
+  projectId: string,
+  user: SessionUser
+) {
+  const hasAccess = await canAccessProject(user, projectId);
+
+  if (!hasAccess) {
+    return null;
+  }
+
+  return listProjectUpdates(projectId);
+}
+
+export async function createProjectUpdateRecord(input: ProjectUpdateInsert) {
+  const now = new Date();
+
+  await db.insert(projectUpdatesTable).values({
+    authorId: input.authorId,
+    body: input.body,
+    createdAt: now,
+    id: input.id,
+    projectId: input.projectId,
+    status: input.status,
+    title: input.title,
+    updatedAt: now,
+  });
+
+  const [created] = await db
+    .select({
+      authorName: usersTable.name,
+      update: projectUpdatesTable,
+    })
+    .from(projectUpdatesTable)
+    .leftJoin(usersTable, eq(projectUpdatesTable.authorId, usersTable.id))
+    .where(eq(projectUpdatesTable.id, input.id))
+    .limit(1);
+
+  return created ? mapProjectUpdate(created.update, created.authorName) : null;
+}
+
+export async function updateProjectUpdateRecord(
+  id: string,
+  input: ProjectUpdatePatch
+) {
+  const updatedRows = await db
+    .update(projectUpdatesTable)
+    .set({
+      body: input.body,
+      status: input.status,
+      title: input.title,
+      updatedAt: new Date(),
+    })
+    .where(eq(projectUpdatesTable.id, id))
+    .returning();
+
+  const updated = updatedRows[0];
+
+  if (!updated) {
+    return null;
+  }
+
+  const [author] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, updated.authorId))
+    .limit(1);
+
+  return mapProjectUpdate(updated, author?.name ?? null);
+}
+
+export async function deleteProjectUpdateRecord(id: string) {
+  const deletedRows = await db
+    .delete(projectUpdatesTable)
+    .where(eq(projectUpdatesTable.id, id))
+    .returning({ id: projectUpdatesTable.id });
+
+  return deletedRows.length > 0;
+}
+
 export async function createProjectFileRecord(input: ProjectFileInsert) {
   await db.insert(filesTable).values({
     createdAt: input.createdAt ?? new Date(),
@@ -896,7 +1090,7 @@ export async function listProjectFilesForUser(
 }
 
 export async function getProjectCollaboration(projectId: string) {
-  const [project, comments, files] = await Promise.all([
+  const [project, comments, files, updates] = await Promise.all([
     getProjectById(projectId),
     listProjectComments(projectId),
     db
@@ -908,6 +1102,7 @@ export async function getProjectCollaboration(projectId: string) {
       .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
       .where(eq(filesTable.projectId, projectId))
       .orderBy(desc(filesTable.createdAt)),
+    listProjectUpdates(projectId),
   ]);
 
   if (!project) {
@@ -923,6 +1118,7 @@ export async function getProjectCollaboration(projectId: string) {
       comments,
       files: mappedFiles,
       project,
+      updates,
     }),
     comments: comments.map(serializeProjectComment),
   } satisfies PublicProjectCollaboration;

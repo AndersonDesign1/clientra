@@ -33,6 +33,8 @@ export function formatEventTitle(event: ProjectActivityEvent) {
       return `${event.authorName} added a comment`;
     case "file_uploaded":
       return `${event.authorName} uploaded ${event.fileName}`;
+    case "project_update":
+      return `${event.authorName} published ${event.title}`;
     default:
       return "Project activity";
   }
@@ -46,6 +48,8 @@ export function formatEventDescription(event: ProjectActivityEvent) {
       return event.contentPreview;
     case "file_uploaded":
       return "File shared with everyone who can access this project.";
+    case "project_update":
+      return `Status report marked ${event.status.replaceAll("_", " ")}.`;
     default:
       return "Project activity was updated.";
   }
