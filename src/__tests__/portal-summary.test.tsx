@@ -9,7 +9,10 @@ const summary: PortalSummary = {
   activeProjects: [
     {
       budget: 12_000,
+      clientCompany: "Acme Inc.",
       clientId: "client_1",
+      clientName: "Jordan Lee",
+      clientSlug: "acme-inc",
       deadline: "2026-04-30",
       description: "Delivery portal.",
       id: "project_1",
@@ -77,6 +80,9 @@ describe("PortalSummaryView", () => {
     expect(screen.getByText("Design approval")).toBeTruthy();
     expect(screen.getByText("brief.pdf")).toBeTruthy();
     expect(screen.getByText("1 active / 1 total")).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Delivery Portal" }).getAttribute("href")
+    ).toBe("/portal/projects/acme-inc/delivery-portal");
   });
 
   it("renders useful empty states", () => {

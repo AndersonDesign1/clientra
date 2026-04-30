@@ -14,7 +14,7 @@ import {
   type PortalSummary,
   usePortalSummaryData,
 } from "@/lib/api";
-import { getProjectPathParams } from "@/lib/project-slugs";
+import { getProjectPathParam } from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/portal/")({
   beforeLoad: requireClientSession,
@@ -93,10 +93,7 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {summary.activeProjects.map((project) => {
-              const { clientSlug, projectSlug } = getProjectPathParams(
-                project,
-                []
-              );
+              const projectSlug = getProjectPathParam(project);
 
               return (
                 <article
@@ -106,7 +103,7 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <a
                       className="font-medium hover:underline"
-                      href={`/portal/projects/${clientSlug}/${projectSlug}`}
+                      href={`/portal/projects/${project.clientSlug}/${projectSlug}`}
                     >
                       {project.title}
                     </a>

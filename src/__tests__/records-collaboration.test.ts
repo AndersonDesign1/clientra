@@ -581,4 +581,39 @@ describe("records collaboration helpers", () => {
       (await records.getProjectCollaboration("proj_1"))?.comments
     ).toHaveLength(2);
   }, 15_000);
+
+  it("skips demo delivery records when demo parents are absent", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+
+    await client.execute({
+      args: [
+        "real_client",
+        "Real Client",
+        "Real Co",
+        "hello@real.co",
+        "",
+        "",
+        "active",
+        "",
+        "[]",
+        1_741_000_000_000,
+      ],
+      sql: `insert into clients
+        (id, name, company, email, phone, website, status, notes, tags, created_at)
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    });
+
+    await records.seedIfEmpty();
+
+    const updateRows = await client.execute(
+      "select count(*) as count from project_updates"
+    );
+    const milestoneRows = await client.execute(
+      "select count(*) as count from project_milestones"
+    );
+
+    expect(updateRows.rows[0]?.count).toBe(0);
+    expect(milestoneRows.rows[0]?.count).toBe(0);
+  }, 15_000);
 });

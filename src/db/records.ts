@@ -1,5 +1,6 @@
-import { and, desc, eq, gt, isNull, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
+import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 import { db } from "./client";
@@ -125,6 +126,12 @@ interface ProjectFileRecord extends Record<string, unknown> {
   storageKey: string;
   uploadedBy: string;
   uploaderName: string;
+}
+
+interface PortalProjectRecord extends ReturnType<typeof mapProject> {
+  clientCompany: string;
+  clientName: string;
+  clientSlug: string;
 }
 
 interface ProjectCommentRecord extends Record<string, unknown> {
@@ -698,37 +705,130 @@ export async function listDashboardActivity(limit = 8) {
   }).slice(0, limit);
 }
 
+function mapPortalProject({
+  client,
+  project,
+}: {
+  client: typeof clientsTable.$inferSelect;
+  project: typeof projectsTable.$inferSelect;
+}): PortalProjectRecord {
+  return {
+    ...mapProject(project),
+    clientCompany: client.company,
+    clientName: client.name,
+    clientSlug: getClientPathParam(mapClient(client)),
+  };
+}
+
+async function listPortalProjectsForUser(user: SessionUser) {
+  if (user.role === ROLES.ADMIN) {
+    const rows = await db
+      .select({
+        client: clientsTable,
+        project: projectsTable,
+      })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .orderBy(desc(projectsTable.createdAt));
+
+    return rows.map(mapPortalProject);
+  }
+
+  const rows = await db
+    .select({
+      client: clientsTable,
+      project: projectsTable,
+    })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .innerJoin(
+      projectsTable,
+      eq(projectsTable.clientId, clientUsersTable.clientId)
+    )
+    .where(eq(clientUsersTable.userId, user.id))
+    .orderBy(desc(projectsTable.createdAt));
+
+  return rows.map(mapPortalProject);
+}
+
+async function listPortalUpdates(projectIds: string[]) {
+  if (projectIds.length === 0) {
+    return [];
+  }
+
+  const rows = await db
+    .select({
+      authorName: usersTable.name,
+      update: projectUpdatesTable,
+    })
+    .from(projectUpdatesTable)
+    .leftJoin(usersTable, eq(projectUpdatesTable.authorId, usersTable.id))
+    .where(inArray(projectUpdatesTable.projectId, projectIds))
+    .orderBy(desc(projectUpdatesTable.createdAt));
+
+  return rows.map(({ authorName, update }) =>
+    mapProjectUpdate(update, authorName)
+  );
+}
+
+async function listPortalMilestones(projectIds: string[]) {
+  if (projectIds.length === 0) {
+    return [];
+  }
+
+  const rows = await db
+    .select()
+    .from(projectMilestonesTable)
+    .where(inArray(projectMilestonesTable.projectId, projectIds))
+    .orderBy(projectMilestonesTable.sortOrder, projectMilestonesTable.dueDate);
+
+  return rows.map(mapProjectMilestone);
+}
+
+async function listPortalFiles(projectIds: string[]) {
+  if (projectIds.length === 0) {
+    return [];
+  }
+
+  const rows = await db
+    .select({
+      file: filesTable,
+      uploaderName: usersTable.name,
+    })
+    .from(filesTable)
+    .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .where(inArray(filesTable.projectId, projectIds))
+    .orderBy(desc(filesTable.createdAt));
+
+  return rows.map(({ file, uploaderName }) =>
+    mapProjectFile(file, uploaderName)
+  );
+}
+
 export async function getPortalSummary(user: SessionUser) {
-  const projects = await listProjectsForUser(user);
+  const projects = await listPortalProjectsForUser(user);
   const activeProjects = projects.filter(
     (project) => project.status !== "completed"
   );
+  const projectIds = projects.map((project) => project.id);
 
-  const [updatesByProject, milestonesByProject, filesByProject] =
-    await Promise.all([
-      Promise.all(projects.map((project) => listProjectUpdates(project.id))),
-      Promise.all(projects.map((project) => listProjectMilestones(project.id))),
-      Promise.all(
-        projects.map(async (project) => ({
-          files: await listProjectFilesForUser(project.id, user),
-          project,
-        }))
-      ),
-    ]);
+  const [updates, milestones, files] = await Promise.all([
+    listPortalUpdates(projectIds),
+    listPortalMilestones(projectIds),
+    listPortalFiles(projectIds),
+  ]);
 
   const projectTitles = new Map(
     projects.map((project) => [project.id, project.title])
   );
-  const latestUpdates = updatesByProject
-    .flat()
+  const latestUpdates = updates
     .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
     .slice(0, 5)
     .map((update) => ({
       ...serializeProjectUpdate(update),
       projectTitle: projectTitles.get(update.projectId) ?? "Project",
     }));
-  const upcomingMilestones = milestonesByProject
-    .flat()
+  const upcomingMilestones = milestones
     .filter((milestone) => milestone.status !== "done")
     .sort((left, right) => {
       const leftTime = left.dueDate
@@ -745,13 +845,11 @@ export async function getPortalSummary(user: SessionUser) {
       ...serializeProjectMilestone(milestone),
       projectTitle: projectTitles.get(milestone.projectId) ?? "Project",
     }));
-  const recentFiles = filesByProject
-    .flatMap(({ files, project }) =>
-      (files ?? []).map((file) => ({
-        ...serializeProjectFile(file),
-        projectTitle: project.title,
-      }))
-    )
+  const recentFiles = files
+    .map((file) => ({
+      ...serializeProjectFile(file),
+      projectTitle: projectTitles.get(file.projectId) ?? "Project",
+    }))
     .sort(
       (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)
     )
@@ -1713,6 +1811,26 @@ export async function seedIfEmpty() {
 async function seedDemoDeliveryData(now: Date) {
   const daysAgo = (days: number) =>
     new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const existingClients = new Set(
+    (
+      await db
+        .select({ id: clientsTable.id })
+        .from(clientsTable)
+        .where(inArray(clientsTable.id, ["cli_1", "cli_2"]))
+    ).map((client) => client.id)
+  );
+  const existingProjects = new Set(
+    (
+      await db
+        .select({ id: projectsTable.id })
+        .from(projectsTable)
+        .where(inArray(projectsTable.id, ["proj_1", "proj_2"]))
+    ).map((project) => project.id)
+  );
+
+  if (existingClients.size === 0 && existingProjects.size === 0) {
+    return;
+  }
 
   await db
     .insert(usersTable)
@@ -1750,25 +1868,43 @@ async function seedDemoDeliveryData(now: Date) {
     ])
     .onConflictDoNothing();
 
-  await db
-    .insert(clientUsersTable)
-    .values([
-      {
-        clientId: "cli_1",
-        id: "demo_link_acme",
-        userId: "demo_acme_client",
-      },
-      {
-        clientId: "cli_2",
-        id: "demo_link_northstar",
-        userId: "demo_northstar_client",
-      },
-    ])
-    .onConflictDoNothing();
+  const existingUsers = new Set(
+    (
+      await db
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(
+          inArray(usersTable.id, [
+            "demo_admin",
+            "demo_acme_client",
+            "demo_northstar_client",
+          ])
+        )
+    ).map((user) => user.id)
+  );
 
-  await db
-    .insert(projectUpdatesTable)
-    .values([
+  const clientLinks = [
+    {
+      clientId: "cli_1",
+      id: "demo_link_acme",
+      userId: "demo_acme_client",
+    },
+    {
+      clientId: "cli_2",
+      id: "demo_link_northstar",
+      userId: "demo_northstar_client",
+    },
+  ].filter(
+    (link) =>
+      existingClients.has(link.clientId) && existingUsers.has(link.userId)
+  );
+
+  if (clientLinks.length > 0) {
+    await db.insert(clientUsersTable).values(clientLinks).onConflictDoNothing();
+  }
+
+  const projectUpdates = (
+    [
       {
         authorId: "demo_admin",
         body: "Homepage wireframes are approved and the component audit is complete. The next push is production-ready responsive templates.",
@@ -1799,12 +1935,22 @@ async function seedDemoDeliveryData(now: Date) {
         title: "Discovery underway",
         updatedAt: daysAgo(3),
       },
-    ])
-    .onConflictDoNothing();
+    ] satisfies (typeof projectUpdatesTable.$inferInsert)[]
+  ).filter(
+    (update) =>
+      existingProjects.has(update.projectId) &&
+      existingUsers.has(update.authorId)
+  );
 
-  await db
-    .insert(projectMilestonesTable)
-    .values([
+  if (projectUpdates.length > 0) {
+    await db
+      .insert(projectUpdatesTable)
+      .values(projectUpdates)
+      .onConflictDoNothing();
+  }
+
+  const projectMilestones = (
+    [
       {
         createdAt: daysAgo(12),
         description:
@@ -1863,64 +2009,82 @@ async function seedDemoDeliveryData(now: Date) {
         title: "Prototype handoff",
         updatedAt: daysAgo(2),
       },
-    ])
-    .onConflictDoNothing();
+    ] satisfies (typeof projectMilestonesTable.$inferInsert)[]
+  ).filter((milestone) => existingProjects.has(milestone.projectId));
 
-  await db
-    .insert(projectNotesTable)
-    .values([
-      {
-        content:
-          "Please keep the launch checklist focused on redirects, SEO metadata, and final analytics QA.",
-        createdAt: daysAgo(4),
-        id: "demo_note_proj_1_client",
-        projectId: "proj_1",
-        userId: "demo_acme_client",
-      },
-      {
-        content:
-          "Added the redirect inventory and flagged pages that still need final copy.",
-        createdAt: daysAgo(2),
-        id: "demo_note_proj_1_admin",
-        projectId: "proj_1",
-        userId: "demo_admin",
-      },
-      {
-        content:
-          "Shared the first workflow map for review before prototype work starts.",
-        createdAt: daysAgo(1),
-        id: "demo_note_proj_2_admin",
-        projectId: "proj_2",
-        userId: "demo_admin",
-      },
-    ])
-    .onConflictDoNothing();
+  if (projectMilestones.length > 0) {
+    await db
+      .insert(projectMilestonesTable)
+      .values(projectMilestones)
+      .onConflictDoNothing();
+  }
 
-  await db
-    .insert(filesTable)
-    .values([
-      {
-        createdAt: daysAgo(6),
-        fileName: "Acme content inventory.pdf",
-        fileSize: 428_000,
-        fileUrl: "https://example.com/clientra-demo/acme-content-inventory.pdf",
-        id: "demo_file_proj_1_inventory",
-        mimeType: "application/pdf",
-        projectId: "proj_1",
-        storageKey: "demo/acme-content-inventory.pdf",
-        uploadedBy: "demo_admin",
-      },
-      {
-        createdAt: daysAgo(2),
-        fileName: "Portal workflow map.png",
-        fileSize: 816_000,
-        fileUrl: "https://example.com/clientra-demo/portal-workflow-map.png",
-        id: "demo_file_proj_2_workflow",
-        mimeType: "image/png",
-        projectId: "proj_2",
-        storageKey: "demo/portal-workflow-map.png",
-        uploadedBy: "demo_admin",
-      },
-    ])
-    .onConflictDoNothing();
+  const projectNotes = [
+    {
+      content:
+        "Please keep the launch checklist focused on redirects, SEO metadata, and final analytics QA.",
+      createdAt: daysAgo(4),
+      id: "demo_note_proj_1_client",
+      projectId: "proj_1",
+      userId: "demo_acme_client",
+    },
+    {
+      content:
+        "Added the redirect inventory and flagged pages that still need final copy.",
+      createdAt: daysAgo(2),
+      id: "demo_note_proj_1_admin",
+      projectId: "proj_1",
+      userId: "demo_admin",
+    },
+    {
+      content:
+        "Shared the first workflow map for review before prototype work starts.",
+      createdAt: daysAgo(1),
+      id: "demo_note_proj_2_admin",
+      projectId: "proj_2",
+      userId: "demo_admin",
+    },
+  ].filter(
+    (note) =>
+      existingProjects.has(note.projectId) && existingUsers.has(note.userId)
+  );
+
+  if (projectNotes.length > 0) {
+    await db
+      .insert(projectNotesTable)
+      .values(projectNotes)
+      .onConflictDoNothing();
+  }
+
+  const projectFiles = [
+    {
+      createdAt: daysAgo(6),
+      fileName: "Acme content inventory.pdf",
+      fileSize: 428_000,
+      fileUrl: "https://example.com/clientra-demo/acme-content-inventory.pdf",
+      id: "demo_file_proj_1_inventory",
+      mimeType: "application/pdf",
+      projectId: "proj_1",
+      storageKey: "demo/acme-content-inventory.pdf",
+      uploadedBy: "demo_admin",
+    },
+    {
+      createdAt: daysAgo(2),
+      fileName: "Portal workflow map.png",
+      fileSize: 816_000,
+      fileUrl: "https://example.com/clientra-demo/portal-workflow-map.png",
+      id: "demo_file_proj_2_workflow",
+      mimeType: "image/png",
+      projectId: "proj_2",
+      storageKey: "demo/portal-workflow-map.png",
+      uploadedBy: "demo_admin",
+    },
+  ].filter(
+    (file) =>
+      existingProjects.has(file.projectId) && existingUsers.has(file.uploadedBy)
+  );
+
+  if (projectFiles.length > 0) {
+    await db.insert(filesTable).values(projectFiles).onConflictDoNothing();
+  }
 }

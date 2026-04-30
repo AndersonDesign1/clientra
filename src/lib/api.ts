@@ -129,8 +129,14 @@ export interface PortalProjectFile extends ProjectFile {
   projectTitle: string;
 }
 
+export interface PortalSummaryProject extends Project {
+  clientCompany: string;
+  clientName: string;
+  clientSlug: string;
+}
+
 export interface PortalSummary {
-  activeProjects: Project[];
+  activeProjects: PortalSummaryProject[];
   latestUpdates: PortalProjectUpdate[];
   projectCount: number;
   recentFiles: PortalProjectFile[];

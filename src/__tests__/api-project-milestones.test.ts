@@ -189,6 +189,17 @@ describe("project milestone API routes", () => {
     expect(invalidResponse.status).toBe(422);
     expect(updateProjectMilestoneRecord).not.toHaveBeenCalled();
 
+    const invalidDueDateResponse = await milestonesHandlers.POST({
+      params: { id: "project_1" },
+      request: createRequest("/api/projects/project_1/milestones", {
+        body: JSON.stringify({ ...validPayload, dueDate: "next sprint" }),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(invalidDueDateResponse.status).toBe(422);
+    expect(createProjectMilestoneRecord).not.toHaveBeenCalled();
+
     vi.mocked(deleteProjectMilestoneRecord).mockResolvedValue(false);
 
     const missingResponse = await milestoneHandlers.DELETE({
