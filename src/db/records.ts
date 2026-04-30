@@ -9,6 +9,7 @@ import {
   clientUsers as clientUsersTable,
   files as filesTable,
   invites as invitesTable,
+  projectMilestones as projectMilestonesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
   projectUpdates as projectUpdatesTable,
@@ -61,6 +62,24 @@ interface ProjectUpdateInsert {
 interface ProjectUpdatePatch {
   body: string;
   status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+}
+
+interface ProjectMilestoneInsert {
+  description?: string;
+  dueDate?: string;
+  id: string;
+  projectId: string;
+  sortOrder: number;
+  status: "todo" | "in_progress" | "done";
+  title: string;
+}
+
+interface ProjectMilestonePatch {
+  description?: string;
+  dueDate?: string;
+  sortOrder: number;
+  status: "todo" | "in_progress" | "done";
   title: string;
 }
 
@@ -126,6 +145,18 @@ interface ProjectUpdateRecord extends Record<string, unknown> {
   id: string;
   projectId: string;
   status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+  updatedAt: Date;
+}
+
+interface ProjectMilestoneRecord extends Record<string, unknown> {
+  createdAt: Date;
+  description: string;
+  dueDate: string;
+  id: string;
+  projectId: string;
+  sortOrder: number;
+  status: "todo" | "in_progress" | "done";
   title: string;
   updatedAt: Date;
 }
@@ -206,6 +237,18 @@ export interface PublicProjectUpdate {
   id: string;
   projectId: string;
   status: "on_track" | "at_risk" | "blocked" | "complete";
+  title: string;
+  updatedAt: string;
+}
+
+export interface PublicProjectMilestone {
+  createdAt: string;
+  description: string;
+  dueDate: string;
+  id: string;
+  projectId: string;
+  sortOrder: number;
+  status: "todo" | "in_progress" | "done";
   title: string;
   updatedAt: string;
 }
@@ -344,6 +387,22 @@ function mapProjectUpdate(
   };
 }
 
+function mapProjectMilestone(
+  row: typeof projectMilestonesTable.$inferSelect
+): ProjectMilestoneRecord {
+  return {
+    createdAt: row.createdAt,
+    description: row.description ?? "",
+    dueDate: row.dueDate ?? "",
+    id: row.id,
+    projectId: row.projectId,
+    sortOrder: row.sortOrder,
+    status: row.status,
+    title: row.title,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export function serializeProjectFile(
   file: ProjectFileRecord
 ): PublicProjectFile {
@@ -387,6 +446,22 @@ export function serializeProjectUpdate(
     status: update.status,
     title: update.title,
     updatedAt: update.updatedAt.toISOString(),
+  };
+}
+
+export function serializeProjectMilestone(
+  milestone: ProjectMilestoneRecord
+): PublicProjectMilestone {
+  return {
+    createdAt: milestone.createdAt.toISOString(),
+    description: milestone.description,
+    dueDate: milestone.dueDate,
+    id: milestone.id,
+    projectId: milestone.projectId,
+    sortOrder: milestone.sortOrder,
+    status: milestone.status,
+    title: milestone.title,
+    updatedAt: milestone.updatedAt.toISOString(),
   };
 }
 
@@ -991,6 +1066,86 @@ export async function deleteProjectUpdateRecord(id: string) {
     .delete(projectUpdatesTable)
     .where(eq(projectUpdatesTable.id, id))
     .returning({ id: projectUpdatesTable.id });
+
+  return deletedRows.length > 0;
+}
+
+export async function listProjectMilestones(projectId: string) {
+  const rows = await db
+    .select()
+    .from(projectMilestonesTable)
+    .where(eq(projectMilestonesTable.projectId, projectId))
+    .orderBy(projectMilestonesTable.sortOrder, projectMilestonesTable.dueDate);
+
+  return rows.map(mapProjectMilestone);
+}
+
+export async function listProjectMilestonesForUser(
+  projectId: string,
+  user: SessionUser
+) {
+  const hasAccess = await canAccessProject(user, projectId);
+
+  if (!hasAccess) {
+    return null;
+  }
+
+  return listProjectMilestones(projectId);
+}
+
+export async function createProjectMilestoneRecord(
+  input: ProjectMilestoneInsert
+) {
+  const now = new Date();
+
+  await db.insert(projectMilestonesTable).values({
+    createdAt: now,
+    description: input.description ?? "",
+    dueDate: input.dueDate ?? "",
+    id: input.id,
+    projectId: input.projectId,
+    sortOrder: input.sortOrder,
+    status: input.status,
+    title: input.title,
+    updatedAt: now,
+  });
+
+  const [created] = await db
+    .select()
+    .from(projectMilestonesTable)
+    .where(eq(projectMilestonesTable.id, input.id))
+    .limit(1);
+
+  return created ? mapProjectMilestone(created) : null;
+}
+
+export async function updateProjectMilestoneRecord(
+  id: string,
+  input: ProjectMilestonePatch
+) {
+  const updatedRows = await db
+    .update(projectMilestonesTable)
+    .set({
+      description: input.description ?? "",
+      dueDate: input.dueDate ?? "",
+      sortOrder: input.sortOrder,
+      status: input.status,
+      title: input.title,
+      updatedAt: new Date(),
+    })
+    .where(eq(projectMilestonesTable.id, id))
+    .returning();
+
+  const updated = updatedRows[0];
+
+  return updated ? mapProjectMilestone(updated) : null;
+}
+
+export async function deleteProjectMilestoneRecord(id: string) {
+  const deletedRows = await db
+    .delete(projectMilestonesTable)
+    .where(eq(projectMilestonesTable.id, id))
+    .returning({ id: projectMilestonesTable.id });
 
   return deletedRows.length > 0;
 }

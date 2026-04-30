@@ -95,6 +95,28 @@ export interface ProjectUpdatePayload {
   title: string;
 }
 
+export type ProjectMilestoneStatus = "todo" | "in_progress" | "done";
+
+export interface ProjectMilestone {
+  createdAt: string;
+  description: string;
+  dueDate: string;
+  id: string;
+  projectId: string;
+  sortOrder: number;
+  status: ProjectMilestoneStatus;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ProjectMilestonePayload {
+  description?: string;
+  dueDate?: string;
+  sortOrder: number;
+  status: ProjectMilestoneStatus;
+  title: string;
+}
+
 export interface PendingInvite {
   clientId: string;
   createdAt: string;
@@ -192,6 +214,8 @@ export const queryKeys = {
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
+  projectMilestones: (projectId: string) =>
+    ["project-milestones", projectId] as const,
   projectUpdates: (projectId: string) =>
     ["project-updates", projectId] as const,
   pendingInvites: (clientId: string) =>
@@ -564,6 +588,64 @@ async function deleteProjectUpdateRequest(id: string) {
   return data;
 }
 
+async function createProjectMilestoneRequest({
+  input,
+  projectId,
+}: {
+  input: ProjectMilestonePayload;
+  projectId: string;
+}): Promise<ProjectMilestone> {
+  const response = await createApiRequest(
+    `/api/projects/${projectId}/milestones`,
+    {
+      body: JSON.stringify(input),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  return parseMutationResponse<ProjectMilestone>(response, "milestone");
+}
+
+async function updateProjectMilestoneRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ProjectMilestonePayload;
+}): Promise<ProjectMilestone> {
+  const response = await createApiRequest(`/api/project-milestones/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<ProjectMilestone>(response, "milestone");
+}
+
+async function deleteProjectMilestoneRequest(id: string) {
+  const response = await createApiRequest(`/api/project-milestones/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
 export function clientsQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<Client[]>("/api/clients"),
@@ -615,6 +697,14 @@ export function projectUpdatesQueryOptions(projectId: string) {
     queryFn: () =>
       fetchJson<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
     queryKey: queryKeys.projectUpdates(projectId),
+  });
+}
+
+export function projectMilestonesQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<ProjectMilestone[]>(`/api/projects/${projectId}/milestones`),
+    queryKey: queryKeys.projectMilestones(projectId),
   });
 }
 
@@ -679,6 +769,13 @@ export function ensureProjectUpdatesData(
   return queryClient.ensureQueryData(projectUpdatesQueryOptions(projectId));
 }
 
+export function ensureProjectMilestonesData(
+  queryClient: QueryClient,
+  projectId: string
+) {
+  return queryClient.ensureQueryData(projectMilestonesQueryOptions(projectId));
+}
+
 export function ensurePendingInvitesData(
   queryClient: QueryClient,
   clientId: string
@@ -720,6 +817,12 @@ export function useProjectUpdatesData(
   projectId: string
 ): LoadableData<ProjectUpdate[]> {
   return mapQueryState(useQuery(projectUpdatesQueryOptions(projectId)));
+}
+
+export function useProjectMilestonesData(
+  projectId: string
+): LoadableData<ProjectMilestone[]> {
+  return mapQueryState(useQuery(projectMilestonesQueryOptions(projectId)));
 }
 
 export function usePendingInvitesData(
@@ -886,6 +989,9 @@ export function useDeleteProjectMutation() {
       });
       queryClient.removeQueries({
         queryKey: queryKeys.projectUpdates(variables.id),
+      });
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectMilestones(variables.id),
       });
       invalidateAdminData(queryClient);
     },
@@ -1059,6 +1165,61 @@ export function useDeleteProjectUpdateMutation() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.projectCollaboration(variables.projectId),
       });
+    },
+  });
+}
+
+export function useCreateProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      input,
+      projectId,
+    }: {
+      input: ProjectMilestonePayload;
+      projectId: string;
+    }) => createProjectMilestoneRequest({ input, projectId }),
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(milestone.projectId),
+        (current) =>
+          [milestone, ...(current ?? [])].sort(
+            (left, right) => left.sortOrder - right.sortOrder
+          )
+      );
+    },
+  });
+}
+
+export function useUpdateProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProjectMilestoneRequest,
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(milestone.projectId),
+        (current) =>
+          (current ?? [])
+            .map((item) => (item.id === milestone.id ? milestone : item))
+            .sort((left, right) => left.sortOrder - right.sortOrder)
+      );
+    },
+  });
+}
+
+export function useDeleteProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; projectId: string }) =>
+      deleteProjectMilestoneRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(variables.projectId),
+        (current) => (current ?? []).filter((item) => item.id !== variables.id)
+      );
     },
   });
 }

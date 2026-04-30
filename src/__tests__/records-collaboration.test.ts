@@ -55,6 +55,7 @@ async function seedCollaborationScenario(
 ) {
   const timestamps = {
     file: 1_741_000_300_000,
+    milestone: 1_741_000_360_000,
     noteFromClient: 1_741_000_200_000,
     noteFromAdmin: 1_741_000_100_000,
     project: 1_741_000_000_000,
@@ -206,6 +207,23 @@ async function seedCollaborationScenario(
     sql: `insert into project_updates
       (id, project_id, author_id, title, body, status, created_at, updated_at)
       values (?, ?, ?, ?, ?, ?, ?, ?)`,
+  });
+
+  await client.execute({
+    args: [
+      "milestone_1",
+      "project_1",
+      "Design approval",
+      "Approve the final design direction.",
+      "in_progress",
+      "2026-04-12",
+      1,
+      timestamps.milestone,
+      timestamps.milestone,
+    ],
+    sql: `insert into project_milestones
+      (id, project_id, title, description, status, due_date, sort_order, created_at, updated_at)
+      values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   });
 }
 
@@ -443,5 +461,39 @@ describe("records collaboration helpers", () => {
     expect(await records.canAccessProject(outsideClient, "project_1")).toBe(
       false
     );
+  });
+
+  it("lists project milestones for linked users in display order", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedCollaborationScenario(client);
+
+    const linkedClient: SessionUser = {
+      email: "client@example.com",
+      id: "client_user_1",
+      name: "Client User",
+      role: ROLES.CLIENT,
+    };
+    const outsideClient: SessionUser = {
+      email: "outside@example.com",
+      id: "client_user_2",
+      name: "Outside User",
+      role: ROLES.CLIENT,
+    };
+
+    const milestones = await records.listProjectMilestonesForUser(
+      "project_1",
+      linkedClient
+    );
+
+    expect(milestones?.[0]).toMatchObject({
+      dueDate: "2026-04-12",
+      status: "in_progress",
+      title: "Design approval",
+    });
+
+    expect(
+      await records.listProjectMilestonesForUser("project_1", outsideClient)
+    ).toBeNull();
   });
 });

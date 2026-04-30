@@ -40,6 +40,14 @@ export const projectUpdateSchema = z.object({
   title: z.string().trim().min(1).max(160),
 });
 
+export const projectMilestoneSchema = z.object({
+  description: trimmedOptionalString,
+  dueDate: z.string().trim().max(32).optional(),
+  sortOrder: z.number().int().min(0).max(10_000).default(0),
+  status: z.enum(["todo", "in_progress", "done"]),
+  title: z.string().trim().min(1).max(160),
+});
+
 export const inviteSchema = z.object({
   email: emailSchema,
   clientId: idSchema,

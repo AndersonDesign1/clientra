@@ -8,863 +8,904 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as UsersRouteImport } from "./routes/users";
-import { Route as UnauthorizedRouteImport } from "./routes/unauthorized";
-import { Route as SignupRouteImport } from "./routes/signup";
-import { Route as SettingsRouteImport } from "./routes/settings";
-import { Route as LoginRouteImport } from "./routes/login";
-import { Route as DashboardRouteImport } from "./routes/dashboard";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as ProjectsIndexRouteImport } from "./routes/projects/index";
-import { Route as PortalIndexRouteImport } from "./routes/portal/index";
-import { Route as ClientsIndexRouteImport } from "./routes/clients/index";
-import { Route as ProjectsIdRouteImport } from "./routes/projects/$id";
-import { Route as InviteTokenRouteImport } from "./routes/invite/$token";
-import { Route as ClientsIdRouteImport } from "./routes/clients/$id";
-import { Route as ApiUsersRouteImport } from "./routes/api/users";
-import { Route as ApiUploadthingRouteImport } from "./routes/api/uploadthing";
-import { Route as ApiSearchRouteImport } from "./routes/api/search";
-import { Route as ApiProjectsRouteImport } from "./routes/api/projects";
-import { Route as ApiNotesRouteImport } from "./routes/api/notes";
-import { Route as ApiInvitesRouteImport } from "./routes/api/invites";
-import { Route as ApiHealthRouteImport } from "./routes/api/health";
-import { Route as ApiClientsRouteImport } from "./routes/api/clients";
-import { Route as PortalProjectsIndexRouteImport } from "./routes/portal/projects/index";
-import { Route as ProjectsClientSlugProjectSlugRouteImport } from "./routes/projects/$clientSlug/$projectSlug";
-import { Route as PortalProjectsIdRouteImport } from "./routes/portal/projects/$id";
-import { Route as ApiUsersIdRouteImport } from "./routes/api/users/$id";
-import { Route as ApiProjectsIdRouteImport } from "./routes/api/projects/$id";
-import { Route as ApiProjectUpdatesIdRouteImport } from "./routes/api/project-updates/$id";
-import { Route as ApiInvitesRedeemRouteImport } from "./routes/api/invites/redeem";
-import { Route as ApiFilesIdRouteImport } from "./routes/api/files/$id";
-import { Route as ApiDashboardActivityRouteImport } from "./routes/api/dashboard/activity";
-import { Route as ApiClientsIdRouteImport } from "./routes/api/clients/$id";
-import { Route as ApiAuthAdminSignupRouteImport } from "./routes/api/auth/admin-signup";
-import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
-import { Route as PortalProjectsClientSlugProjectSlugRouteImport } from "./routes/portal/projects/$clientSlug/$projectSlug";
-import { Route as ApiProjectsIdUpdatesRouteImport } from "./routes/api/projects/$id/updates";
-import { Route as ApiProjectsIdFilesRouteImport } from "./routes/api/projects/$id/files";
-import { Route as ApiProjectsIdCollaborationRouteImport } from "./routes/api/projects/$id/collaboration";
-import { Route as ApiClientsIdInvitesRouteImport } from "./routes/api/clients/$id/invites";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
+import { Route as PortalIndexRouteImport } from './routes/portal/index'
+import { Route as ClientsIndexRouteImport } from './routes/clients/index'
+import { Route as ProjectsIdRouteImport } from './routes/projects/$id'
+import { Route as InviteTokenRouteImport } from './routes/invite/$token'
+import { Route as ClientsIdRouteImport } from './routes/clients/$id'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
+import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
+import { Route as ApiSearchRouteImport } from './routes/api/search'
+import { Route as ApiProjectsRouteImport } from './routes/api/projects'
+import { Route as ApiNotesRouteImport } from './routes/api/notes'
+import { Route as ApiInvitesRouteImport } from './routes/api/invites'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiClientsRouteImport } from './routes/api/clients'
+import { Route as PortalProjectsIndexRouteImport } from './routes/portal/projects/index'
+import { Route as ProjectsClientSlugProjectSlugRouteImport } from './routes/projects/$clientSlug/$projectSlug'
+import { Route as PortalProjectsIdRouteImport } from './routes/portal/projects/$id'
+import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
+import { Route as ApiProjectsIdRouteImport } from './routes/api/projects/$id'
+import { Route as ApiProjectUpdatesIdRouteImport } from './routes/api/project-updates/$id'
+import { Route as ApiProjectMilestonesIdRouteImport } from './routes/api/project-milestones/$id'
+import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
+import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
+import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
+import { Route as ApiClientsIdRouteImport } from './routes/api/clients/$id'
+import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as PortalProjectsClientSlugProjectSlugRouteImport } from './routes/portal/projects/$clientSlug/$projectSlug'
+import { Route as ApiProjectsIdUpdatesRouteImport } from './routes/api/projects/$id/updates'
+import { Route as ApiProjectsIdMilestonesRouteImport } from './routes/api/projects/$id/milestones'
+import { Route as ApiProjectsIdFilesRouteImport } from './routes/api/projects/$id/files'
+import { Route as ApiProjectsIdCollaborationRouteImport } from './routes/api/projects/$id/collaboration'
+import { Route as ApiClientsIdInvitesRouteImport } from './routes/api/clients/$id/invites'
 
 const UsersRoute = UsersRouteImport.update({
-  id: "/users",
-  path: "/users",
+  id: '/users',
+  path: '/users',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const UnauthorizedRoute = UnauthorizedRouteImport.update({
-  id: "/unauthorized",
-  path: "/unauthorized",
+  id: '/unauthorized',
+  path: '/unauthorized',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SignupRoute = SignupRouteImport.update({
-  id: "/signup",
-  path: "/signup",
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
-  id: "/settings",
-  path: "/settings",
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LoginRoute = LoginRouteImport.update({
-  id: "/login",
-  path: "/login",
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
-  id: "/dashboard",
-  path: "/dashboard",
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
-  id: "/projects/",
-  path: "/projects/",
+  id: '/projects/',
+  path: '/projects/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
-  id: "/portal/",
-  path: "/portal/",
+  id: '/portal/',
+  path: '/portal/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ClientsIndexRoute = ClientsIndexRouteImport.update({
-  id: "/clients/",
-  path: "/clients/",
+  id: '/clients/',
+  path: '/clients/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
-  id: "/projects/$id",
-  path: "/projects/$id",
+  id: '/projects/$id',
+  path: '/projects/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
-  id: "/invite/$token",
-  path: "/invite/$token",
+  id: '/invite/$token',
+  path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ClientsIdRoute = ClientsIdRouteImport.update({
-  id: "/clients/$id",
-  path: "/clients/$id",
+  id: '/clients/$id',
+  path: '/clients/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiUsersRoute = ApiUsersRouteImport.update({
-  id: "/api/users",
-  path: "/api/users",
+  id: '/api/users',
+  path: '/api/users',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
-  id: "/api/uploadthing",
-  path: "/api/uploadthing",
+  id: '/api/uploadthing',
+  path: '/api/uploadthing',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiSearchRoute = ApiSearchRouteImport.update({
-  id: "/api/search",
-  path: "/api/search",
+  id: '/api/search',
+  path: '/api/search',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiProjectsRoute = ApiProjectsRouteImport.update({
-  id: "/api/projects",
-  path: "/api/projects",
+  id: '/api/projects',
+  path: '/api/projects',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiNotesRoute = ApiNotesRouteImport.update({
-  id: "/api/notes",
-  path: "/api/notes",
+  id: '/api/notes',
+  path: '/api/notes',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiInvitesRoute = ApiInvitesRouteImport.update({
-  id: "/api/invites",
-  path: "/api/invites",
+  id: '/api/invites',
+  path: '/api/invites',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: "/api/health",
-  path: "/api/health",
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiClientsRoute = ApiClientsRouteImport.update({
-  id: "/api/clients",
-  path: "/api/clients",
+  id: '/api/clients',
+  path: '/api/clients',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PortalProjectsIndexRoute = PortalProjectsIndexRouteImport.update({
-  id: "/portal/projects/",
-  path: "/portal/projects/",
+  id: '/portal/projects/',
+  path: '/portal/projects/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ProjectsClientSlugProjectSlugRoute =
   ProjectsClientSlugProjectSlugRouteImport.update({
-    id: "/projects/$clientSlug/$projectSlug",
-    path: "/projects/$clientSlug/$projectSlug",
+    id: '/projects/$clientSlug/$projectSlug',
+    path: '/projects/$clientSlug/$projectSlug',
     getParentRoute: () => rootRouteImport,
-  } as any);
+  } as any)
 const PortalProjectsIdRoute = PortalProjectsIdRouteImport.update({
-  id: "/portal/projects/$id",
-  path: "/portal/projects/$id",
+  id: '/portal/projects/$id',
+  path: '/portal/projects/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiUsersIdRoute = ApiUsersIdRouteImport.update({
-  id: "/$id",
-  path: "/$id",
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => ApiUsersRoute,
-} as any);
+} as any)
 const ApiProjectsIdRoute = ApiProjectsIdRouteImport.update({
-  id: "/$id",
-  path: "/$id",
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => ApiProjectsRoute,
-} as any);
+} as any)
 const ApiProjectUpdatesIdRoute = ApiProjectUpdatesIdRouteImport.update({
-  id: "/api/project-updates/$id",
-  path: "/api/project-updates/$id",
+  id: '/api/project-updates/$id',
+  path: '/api/project-updates/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
+const ApiProjectMilestonesIdRoute = ApiProjectMilestonesIdRouteImport.update({
+  id: '/api/project-milestones/$id',
+  path: '/api/project-milestones/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitesRedeemRoute = ApiInvitesRedeemRouteImport.update({
-  id: "/redeem",
-  path: "/redeem",
+  id: '/redeem',
+  path: '/redeem',
   getParentRoute: () => ApiInvitesRoute,
-} as any);
+} as any)
 const ApiFilesIdRoute = ApiFilesIdRouteImport.update({
-  id: "/api/files/$id",
-  path: "/api/files/$id",
+  id: '/api/files/$id',
+  path: '/api/files/$id',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiDashboardActivityRoute = ApiDashboardActivityRouteImport.update({
-  id: "/api/dashboard/activity",
-  path: "/api/dashboard/activity",
+  id: '/api/dashboard/activity',
+  path: '/api/dashboard/activity',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiClientsIdRoute = ApiClientsIdRouteImport.update({
-  id: "/$id",
-  path: "/$id",
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => ApiClientsRoute,
-} as any);
+} as any)
 const ApiAuthAdminSignupRoute = ApiAuthAdminSignupRouteImport.update({
-  id: "/api/auth/admin-signup",
-  path: "/api/auth/admin-signup",
+  id: '/api/auth/admin-signup',
+  path: '/api/auth/admin-signup',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: "/api/auth/$",
-  path: "/api/auth/$",
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PortalProjectsClientSlugProjectSlugRoute =
   PortalProjectsClientSlugProjectSlugRouteImport.update({
-    id: "/portal/projects/$clientSlug/$projectSlug",
-    path: "/portal/projects/$clientSlug/$projectSlug",
+    id: '/portal/projects/$clientSlug/$projectSlug',
+    path: '/portal/projects/$clientSlug/$projectSlug',
     getParentRoute: () => rootRouteImport,
-  } as any);
+  } as any)
 const ApiProjectsIdUpdatesRoute = ApiProjectsIdUpdatesRouteImport.update({
-  id: "/updates",
-  path: "/updates",
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => ApiProjectsIdRoute,
-} as any);
+} as any)
+const ApiProjectsIdMilestonesRoute = ApiProjectsIdMilestonesRouteImport.update({
+  id: '/milestones',
+  path: '/milestones',
+  getParentRoute: () => ApiProjectsIdRoute,
+} as any)
 const ApiProjectsIdFilesRoute = ApiProjectsIdFilesRouteImport.update({
-  id: "/files",
-  path: "/files",
+  id: '/files',
+  path: '/files',
   getParentRoute: () => ApiProjectsIdRoute,
-} as any);
+} as any)
 const ApiProjectsIdCollaborationRoute =
   ApiProjectsIdCollaborationRouteImport.update({
-    id: "/collaboration",
-    path: "/collaboration",
+    id: '/collaboration',
+    path: '/collaboration',
     getParentRoute: () => ApiProjectsIdRoute,
-  } as any);
+  } as any)
 const ApiClientsIdInvitesRoute = ApiClientsIdInvitesRouteImport.update({
-  id: "/invites",
-  path: "/invites",
+  id: '/invites',
+  path: '/invites',
   getParentRoute: () => ApiClientsIdRoute,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/settings": typeof SettingsRoute;
-  "/signup": typeof SignupRoute;
-  "/unauthorized": typeof UnauthorizedRoute;
-  "/users": typeof UsersRoute;
-  "/api/clients": typeof ApiClientsRouteWithChildren;
-  "/api/health": typeof ApiHealthRoute;
-  "/api/invites": typeof ApiInvitesRouteWithChildren;
-  "/api/notes": typeof ApiNotesRoute;
-  "/api/projects": typeof ApiProjectsRouteWithChildren;
-  "/api/search": typeof ApiSearchRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
-  "/api/users": typeof ApiUsersRouteWithChildren;
-  "/clients/$id": typeof ClientsIdRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/projects/$id": typeof ProjectsIdRoute;
-  "/clients/": typeof ClientsIndexRoute;
-  "/portal/": typeof PortalIndexRoute;
-  "/projects/": typeof ProjectsIndexRoute;
-  "/api/auth/$": typeof ApiAuthSplatRoute;
-  "/api/auth/admin-signup": typeof ApiAuthAdminSignupRoute;
-  "/api/clients/$id": typeof ApiClientsIdRouteWithChildren;
-  "/api/dashboard/activity": typeof ApiDashboardActivityRoute;
-  "/api/files/$id": typeof ApiFilesIdRoute;
-  "/api/invites/redeem": typeof ApiInvitesRedeemRoute;
-  "/api/project-updates/$id": typeof ApiProjectUpdatesIdRoute;
-  "/api/projects/$id": typeof ApiProjectsIdRouteWithChildren;
-  "/api/users/$id": typeof ApiUsersIdRoute;
-  "/portal/projects/$id": typeof PortalProjectsIdRoute;
-  "/projects/$clientSlug/$projectSlug": typeof ProjectsClientSlugProjectSlugRoute;
-  "/portal/projects/": typeof PortalProjectsIndexRoute;
-  "/api/clients/$id/invites": typeof ApiClientsIdInvitesRoute;
-  "/api/projects/$id/collaboration": typeof ApiProjectsIdCollaborationRoute;
-  "/api/projects/$id/files": typeof ApiProjectsIdFilesRoute;
-  "/api/projects/$id/updates": typeof ApiProjectsIdUpdatesRoute;
-  "/portal/projects/$clientSlug/$projectSlug": typeof PortalProjectsClientSlugProjectSlugRoute;
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
+  '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/notes': typeof ApiNotesRoute
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/search': typeof ApiSearchRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
+  '/clients/$id': typeof ClientsIdRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/projects/$id': typeof ProjectsIdRoute
+  '/clients/': typeof ClientsIndexRoute
+  '/portal/': typeof PortalIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
+  '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
+  '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
+  '/api/users/$id': typeof ApiUsersIdRoute
+  '/portal/projects/$id': typeof PortalProjectsIdRoute
+  '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
+  '/portal/projects/': typeof PortalProjectsIndexRoute
+  '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
+  '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
+  '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/settings": typeof SettingsRoute;
-  "/signup": typeof SignupRoute;
-  "/unauthorized": typeof UnauthorizedRoute;
-  "/users": typeof UsersRoute;
-  "/api/clients": typeof ApiClientsRouteWithChildren;
-  "/api/health": typeof ApiHealthRoute;
-  "/api/invites": typeof ApiInvitesRouteWithChildren;
-  "/api/notes": typeof ApiNotesRoute;
-  "/api/projects": typeof ApiProjectsRouteWithChildren;
-  "/api/search": typeof ApiSearchRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
-  "/api/users": typeof ApiUsersRouteWithChildren;
-  "/clients/$id": typeof ClientsIdRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/projects/$id": typeof ProjectsIdRoute;
-  "/clients": typeof ClientsIndexRoute;
-  "/portal": typeof PortalIndexRoute;
-  "/projects": typeof ProjectsIndexRoute;
-  "/api/auth/$": typeof ApiAuthSplatRoute;
-  "/api/auth/admin-signup": typeof ApiAuthAdminSignupRoute;
-  "/api/clients/$id": typeof ApiClientsIdRouteWithChildren;
-  "/api/dashboard/activity": typeof ApiDashboardActivityRoute;
-  "/api/files/$id": typeof ApiFilesIdRoute;
-  "/api/invites/redeem": typeof ApiInvitesRedeemRoute;
-  "/api/project-updates/$id": typeof ApiProjectUpdatesIdRoute;
-  "/api/projects/$id": typeof ApiProjectsIdRouteWithChildren;
-  "/api/users/$id": typeof ApiUsersIdRoute;
-  "/portal/projects/$id": typeof PortalProjectsIdRoute;
-  "/projects/$clientSlug/$projectSlug": typeof ProjectsClientSlugProjectSlugRoute;
-  "/portal/projects": typeof PortalProjectsIndexRoute;
-  "/api/clients/$id/invites": typeof ApiClientsIdInvitesRoute;
-  "/api/projects/$id/collaboration": typeof ApiProjectsIdCollaborationRoute;
-  "/api/projects/$id/files": typeof ApiProjectsIdFilesRoute;
-  "/api/projects/$id/updates": typeof ApiProjectsIdUpdatesRoute;
-  "/portal/projects/$clientSlug/$projectSlug": typeof PortalProjectsClientSlugProjectSlugRoute;
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
+  '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/notes': typeof ApiNotesRoute
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/search': typeof ApiSearchRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
+  '/clients/$id': typeof ClientsIdRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/projects/$id': typeof ProjectsIdRoute
+  '/clients': typeof ClientsIndexRoute
+  '/portal': typeof PortalIndexRoute
+  '/projects': typeof ProjectsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
+  '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
+  '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
+  '/api/users/$id': typeof ApiUsersIdRoute
+  '/portal/projects/$id': typeof PortalProjectsIdRoute
+  '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
+  '/portal/projects': typeof PortalProjectsIndexRoute
+  '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
+  '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
+  '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/dashboard": typeof DashboardRoute;
-  "/login": typeof LoginRoute;
-  "/settings": typeof SettingsRoute;
-  "/signup": typeof SignupRoute;
-  "/unauthorized": typeof UnauthorizedRoute;
-  "/users": typeof UsersRoute;
-  "/api/clients": typeof ApiClientsRouteWithChildren;
-  "/api/health": typeof ApiHealthRoute;
-  "/api/invites": typeof ApiInvitesRouteWithChildren;
-  "/api/notes": typeof ApiNotesRoute;
-  "/api/projects": typeof ApiProjectsRouteWithChildren;
-  "/api/search": typeof ApiSearchRoute;
-  "/api/uploadthing": typeof ApiUploadthingRoute;
-  "/api/users": typeof ApiUsersRouteWithChildren;
-  "/clients/$id": typeof ClientsIdRoute;
-  "/invite/$token": typeof InviteTokenRoute;
-  "/projects/$id": typeof ProjectsIdRoute;
-  "/clients/": typeof ClientsIndexRoute;
-  "/portal/": typeof PortalIndexRoute;
-  "/projects/": typeof ProjectsIndexRoute;
-  "/api/auth/$": typeof ApiAuthSplatRoute;
-  "/api/auth/admin-signup": typeof ApiAuthAdminSignupRoute;
-  "/api/clients/$id": typeof ApiClientsIdRouteWithChildren;
-  "/api/dashboard/activity": typeof ApiDashboardActivityRoute;
-  "/api/files/$id": typeof ApiFilesIdRoute;
-  "/api/invites/redeem": typeof ApiInvitesRedeemRoute;
-  "/api/project-updates/$id": typeof ApiProjectUpdatesIdRoute;
-  "/api/projects/$id": typeof ApiProjectsIdRouteWithChildren;
-  "/api/users/$id": typeof ApiUsersIdRoute;
-  "/portal/projects/$id": typeof PortalProjectsIdRoute;
-  "/projects/$clientSlug/$projectSlug": typeof ProjectsClientSlugProjectSlugRoute;
-  "/portal/projects/": typeof PortalProjectsIndexRoute;
-  "/api/clients/$id/invites": typeof ApiClientsIdInvitesRoute;
-  "/api/projects/$id/collaboration": typeof ApiProjectsIdCollaborationRoute;
-  "/api/projects/$id/files": typeof ApiProjectsIdFilesRoute;
-  "/api/projects/$id/updates": typeof ApiProjectsIdUpdatesRoute;
-  "/portal/projects/$clientSlug/$projectSlug": typeof PortalProjectsClientSlugProjectSlugRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/unauthorized': typeof UnauthorizedRoute
+  '/users': typeof UsersRoute
+  '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
+  '/api/invites': typeof ApiInvitesRouteWithChildren
+  '/api/notes': typeof ApiNotesRoute
+  '/api/projects': typeof ApiProjectsRouteWithChildren
+  '/api/search': typeof ApiSearchRoute
+  '/api/uploadthing': typeof ApiUploadthingRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
+  '/clients/$id': typeof ClientsIdRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/projects/$id': typeof ProjectsIdRoute
+  '/clients/': typeof ClientsIndexRoute
+  '/portal/': typeof PortalIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
+  '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
+  '/api/dashboard/activity': typeof ApiDashboardActivityRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
+  '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
+  '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
+  '/api/users/$id': typeof ApiUsersIdRoute
+  '/portal/projects/$id': typeof PortalProjectsIdRoute
+  '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
+  '/portal/projects/': typeof PortalProjectsIndexRoute
+  '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
+  '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
+  '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/dashboard"
-    | "/login"
-    | "/settings"
-    | "/signup"
-    | "/unauthorized"
-    | "/users"
-    | "/api/clients"
-    | "/api/health"
-    | "/api/invites"
-    | "/api/notes"
-    | "/api/projects"
-    | "/api/search"
-    | "/api/uploadthing"
-    | "/api/users"
-    | "/clients/$id"
-    | "/invite/$token"
-    | "/projects/$id"
-    | "/clients/"
-    | "/portal/"
-    | "/projects/"
-    | "/api/auth/$"
-    | "/api/auth/admin-signup"
-    | "/api/clients/$id"
-    | "/api/dashboard/activity"
-    | "/api/files/$id"
-    | "/api/invites/redeem"
-    | "/api/project-updates/$id"
-    | "/api/projects/$id"
-    | "/api/users/$id"
-    | "/portal/projects/$id"
-    | "/projects/$clientSlug/$projectSlug"
-    | "/portal/projects/"
-    | "/api/clients/$id/invites"
-    | "/api/projects/$id/collaboration"
-    | "/api/projects/$id/files"
-    | "/api/projects/$id/updates"
-    | "/portal/projects/$clientSlug/$projectSlug";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/settings'
+    | '/signup'
+    | '/unauthorized'
+    | '/users'
+    | '/api/clients'
+    | '/api/health'
+    | '/api/invites'
+    | '/api/notes'
+    | '/api/projects'
+    | '/api/search'
+    | '/api/uploadthing'
+    | '/api/users'
+    | '/clients/$id'
+    | '/invite/$token'
+    | '/projects/$id'
+    | '/clients/'
+    | '/portal/'
+    | '/projects/'
+    | '/api/auth/$'
+    | '/api/auth/admin-signup'
+    | '/api/clients/$id'
+    | '/api/dashboard/activity'
+    | '/api/files/$id'
+    | '/api/invites/redeem'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
+    | '/api/projects/$id'
+    | '/api/users/$id'
+    | '/portal/projects/$id'
+    | '/projects/$clientSlug/$projectSlug'
+    | '/portal/projects/'
+    | '/api/clients/$id/invites'
+    | '/api/projects/$id/collaboration'
+    | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
+    | '/portal/projects/$clientSlug/$projectSlug'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/dashboard"
-    | "/login"
-    | "/settings"
-    | "/signup"
-    | "/unauthorized"
-    | "/users"
-    | "/api/clients"
-    | "/api/health"
-    | "/api/invites"
-    | "/api/notes"
-    | "/api/projects"
-    | "/api/search"
-    | "/api/uploadthing"
-    | "/api/users"
-    | "/clients/$id"
-    | "/invite/$token"
-    | "/projects/$id"
-    | "/clients"
-    | "/portal"
-    | "/projects"
-    | "/api/auth/$"
-    | "/api/auth/admin-signup"
-    | "/api/clients/$id"
-    | "/api/dashboard/activity"
-    | "/api/files/$id"
-    | "/api/invites/redeem"
-    | "/api/project-updates/$id"
-    | "/api/projects/$id"
-    | "/api/users/$id"
-    | "/portal/projects/$id"
-    | "/projects/$clientSlug/$projectSlug"
-    | "/portal/projects"
-    | "/api/clients/$id/invites"
-    | "/api/projects/$id/collaboration"
-    | "/api/projects/$id/files"
-    | "/api/projects/$id/updates"
-    | "/portal/projects/$clientSlug/$projectSlug";
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/settings'
+    | '/signup'
+    | '/unauthorized'
+    | '/users'
+    | '/api/clients'
+    | '/api/health'
+    | '/api/invites'
+    | '/api/notes'
+    | '/api/projects'
+    | '/api/search'
+    | '/api/uploadthing'
+    | '/api/users'
+    | '/clients/$id'
+    | '/invite/$token'
+    | '/projects/$id'
+    | '/clients'
+    | '/portal'
+    | '/projects'
+    | '/api/auth/$'
+    | '/api/auth/admin-signup'
+    | '/api/clients/$id'
+    | '/api/dashboard/activity'
+    | '/api/files/$id'
+    | '/api/invites/redeem'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
+    | '/api/projects/$id'
+    | '/api/users/$id'
+    | '/portal/projects/$id'
+    | '/projects/$clientSlug/$projectSlug'
+    | '/portal/projects'
+    | '/api/clients/$id/invites'
+    | '/api/projects/$id/collaboration'
+    | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
+    | '/portal/projects/$clientSlug/$projectSlug'
   id:
-    | "__root__"
-    | "/"
-    | "/dashboard"
-    | "/login"
-    | "/settings"
-    | "/signup"
-    | "/unauthorized"
-    | "/users"
-    | "/api/clients"
-    | "/api/health"
-    | "/api/invites"
-    | "/api/notes"
-    | "/api/projects"
-    | "/api/search"
-    | "/api/uploadthing"
-    | "/api/users"
-    | "/clients/$id"
-    | "/invite/$token"
-    | "/projects/$id"
-    | "/clients/"
-    | "/portal/"
-    | "/projects/"
-    | "/api/auth/$"
-    | "/api/auth/admin-signup"
-    | "/api/clients/$id"
-    | "/api/dashboard/activity"
-    | "/api/files/$id"
-    | "/api/invites/redeem"
-    | "/api/project-updates/$id"
-    | "/api/projects/$id"
-    | "/api/users/$id"
-    | "/portal/projects/$id"
-    | "/projects/$clientSlug/$projectSlug"
-    | "/portal/projects/"
-    | "/api/clients/$id/invites"
-    | "/api/projects/$id/collaboration"
-    | "/api/projects/$id/files"
-    | "/api/projects/$id/updates"
-    | "/portal/projects/$clientSlug/$projectSlug";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/settings'
+    | '/signup'
+    | '/unauthorized'
+    | '/users'
+    | '/api/clients'
+    | '/api/health'
+    | '/api/invites'
+    | '/api/notes'
+    | '/api/projects'
+    | '/api/search'
+    | '/api/uploadthing'
+    | '/api/users'
+    | '/clients/$id'
+    | '/invite/$token'
+    | '/projects/$id'
+    | '/clients/'
+    | '/portal/'
+    | '/projects/'
+    | '/api/auth/$'
+    | '/api/auth/admin-signup'
+    | '/api/clients/$id'
+    | '/api/dashboard/activity'
+    | '/api/files/$id'
+    | '/api/invites/redeem'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
+    | '/api/projects/$id'
+    | '/api/users/$id'
+    | '/portal/projects/$id'
+    | '/projects/$clientSlug/$projectSlug'
+    | '/portal/projects/'
+    | '/api/clients/$id/invites'
+    | '/api/projects/$id/collaboration'
+    | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
+    | '/portal/projects/$clientSlug/$projectSlug'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  DashboardRoute: typeof DashboardRoute;
-  LoginRoute: typeof LoginRoute;
-  SettingsRoute: typeof SettingsRoute;
-  SignupRoute: typeof SignupRoute;
-  UnauthorizedRoute: typeof UnauthorizedRoute;
-  UsersRoute: typeof UsersRoute;
-  ApiClientsRoute: typeof ApiClientsRouteWithChildren;
-  ApiHealthRoute: typeof ApiHealthRoute;
-  ApiInvitesRoute: typeof ApiInvitesRouteWithChildren;
-  ApiNotesRoute: typeof ApiNotesRoute;
-  ApiProjectsRoute: typeof ApiProjectsRouteWithChildren;
-  ApiSearchRoute: typeof ApiSearchRoute;
-  ApiUploadthingRoute: typeof ApiUploadthingRoute;
-  ApiUsersRoute: typeof ApiUsersRouteWithChildren;
-  ClientsIdRoute: typeof ClientsIdRoute;
-  InviteTokenRoute: typeof InviteTokenRoute;
-  ProjectsIdRoute: typeof ProjectsIdRoute;
-  ClientsIndexRoute: typeof ClientsIndexRoute;
-  PortalIndexRoute: typeof PortalIndexRoute;
-  ProjectsIndexRoute: typeof ProjectsIndexRoute;
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
-  ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute;
-  ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute;
-  ApiFilesIdRoute: typeof ApiFilesIdRoute;
-  ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute;
-  PortalProjectsIdRoute: typeof PortalProjectsIdRoute;
-  ProjectsClientSlugProjectSlugRoute: typeof ProjectsClientSlugProjectSlugRoute;
-  PortalProjectsIndexRoute: typeof PortalProjectsIndexRoute;
-  PortalProjectsClientSlugProjectSlugRoute: typeof PortalProjectsClientSlugProjectSlugRoute;
+  IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
+  SettingsRoute: typeof SettingsRoute
+  SignupRoute: typeof SignupRoute
+  UnauthorizedRoute: typeof UnauthorizedRoute
+  UsersRoute: typeof UsersRoute
+  ApiClientsRoute: typeof ApiClientsRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
+  ApiNotesRoute: typeof ApiNotesRoute
+  ApiProjectsRoute: typeof ApiProjectsRouteWithChildren
+  ApiSearchRoute: typeof ApiSearchRoute
+  ApiUploadthingRoute: typeof ApiUploadthingRoute
+  ApiUsersRoute: typeof ApiUsersRouteWithChildren
+  ClientsIdRoute: typeof ClientsIdRoute
+  InviteTokenRoute: typeof InviteTokenRoute
+  ProjectsIdRoute: typeof ProjectsIdRoute
+  ClientsIndexRoute: typeof ClientsIndexRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
+  ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
+  ApiFilesIdRoute: typeof ApiFilesIdRoute
+  ApiProjectMilestonesIdRoute: typeof ApiProjectMilestonesIdRoute
+  ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute
+  PortalProjectsIdRoute: typeof PortalProjectsIdRoute
+  ProjectsClientSlugProjectSlugRoute: typeof ProjectsClientSlugProjectSlugRoute
+  PortalProjectsIndexRoute: typeof PortalProjectsIndexRoute
+  PortalProjectsClientSlugProjectSlugRoute: typeof PortalProjectsClientSlugProjectSlugRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/users": {
-      id: "/users";
-      path: "/users";
-      fullPath: "/users";
-      preLoaderRoute: typeof UsersRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/unauthorized": {
-      id: "/unauthorized";
-      path: "/unauthorized";
-      fullPath: "/unauthorized";
-      preLoaderRoute: typeof UnauthorizedRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/signup": {
-      id: "/signup";
-      path: "/signup";
-      fullPath: "/signup";
-      preLoaderRoute: typeof SignupRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/settings": {
-      id: "/settings";
-      path: "/settings";
-      fullPath: "/settings";
-      preLoaderRoute: typeof SettingsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/login": {
-      id: "/login";
-      path: "/login";
-      fullPath: "/login";
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/dashboard": {
-      id: "/dashboard";
-      path: "/dashboard";
-      fullPath: "/dashboard";
-      preLoaderRoute: typeof DashboardRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/projects/": {
-      id: "/projects/";
-      path: "/projects";
-      fullPath: "/projects/";
-      preLoaderRoute: typeof ProjectsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/portal/": {
-      id: "/portal/";
-      path: "/portal";
-      fullPath: "/portal/";
-      preLoaderRoute: typeof PortalIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/clients/": {
-      id: "/clients/";
-      path: "/clients";
-      fullPath: "/clients/";
-      preLoaderRoute: typeof ClientsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/projects/$id": {
-      id: "/projects/$id";
-      path: "/projects/$id";
-      fullPath: "/projects/$id";
-      preLoaderRoute: typeof ProjectsIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/invite/$token": {
-      id: "/invite/$token";
-      path: "/invite/$token";
-      fullPath: "/invite/$token";
-      preLoaderRoute: typeof InviteTokenRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/clients/$id": {
-      id: "/clients/$id";
-      path: "/clients/$id";
-      fullPath: "/clients/$id";
-      preLoaderRoute: typeof ClientsIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/users": {
-      id: "/api/users";
-      path: "/api/users";
-      fullPath: "/api/users";
-      preLoaderRoute: typeof ApiUsersRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/uploadthing": {
-      id: "/api/uploadthing";
-      path: "/api/uploadthing";
-      fullPath: "/api/uploadthing";
-      preLoaderRoute: typeof ApiUploadthingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/search": {
-      id: "/api/search";
-      path: "/api/search";
-      fullPath: "/api/search";
-      preLoaderRoute: typeof ApiSearchRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/projects": {
-      id: "/api/projects";
-      path: "/api/projects";
-      fullPath: "/api/projects";
-      preLoaderRoute: typeof ApiProjectsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/notes": {
-      id: "/api/notes";
-      path: "/api/notes";
-      fullPath: "/api/notes";
-      preLoaderRoute: typeof ApiNotesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/invites": {
-      id: "/api/invites";
-      path: "/api/invites";
-      fullPath: "/api/invites";
-      preLoaderRoute: typeof ApiInvitesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/health": {
-      id: "/api/health";
-      path: "/api/health";
-      fullPath: "/api/health";
-      preLoaderRoute: typeof ApiHealthRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/clients": {
-      id: "/api/clients";
-      path: "/api/clients";
-      fullPath: "/api/clients";
-      preLoaderRoute: typeof ApiClientsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/portal/projects/": {
-      id: "/portal/projects/";
-      path: "/portal/projects";
-      fullPath: "/portal/projects/";
-      preLoaderRoute: typeof PortalProjectsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/projects/$clientSlug/$projectSlug": {
-      id: "/projects/$clientSlug/$projectSlug";
-      path: "/projects/$clientSlug/$projectSlug";
-      fullPath: "/projects/$clientSlug/$projectSlug";
-      preLoaderRoute: typeof ProjectsClientSlugProjectSlugRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/portal/projects/$id": {
-      id: "/portal/projects/$id";
-      path: "/portal/projects/$id";
-      fullPath: "/portal/projects/$id";
-      preLoaderRoute: typeof PortalProjectsIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/users/$id": {
-      id: "/api/users/$id";
-      path: "/$id";
-      fullPath: "/api/users/$id";
-      preLoaderRoute: typeof ApiUsersIdRouteImport;
-      parentRoute: typeof ApiUsersRoute;
-    };
-    "/api/projects/$id": {
-      id: "/api/projects/$id";
-      path: "/$id";
-      fullPath: "/api/projects/$id";
-      preLoaderRoute: typeof ApiProjectsIdRouteImport;
-      parentRoute: typeof ApiProjectsRoute;
-    };
-    "/api/project-updates/$id": {
-      id: "/api/project-updates/$id";
-      path: "/api/project-updates/$id";
-      fullPath: "/api/project-updates/$id";
-      preLoaderRoute: typeof ApiProjectUpdatesIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/invites/redeem": {
-      id: "/api/invites/redeem";
-      path: "/redeem";
-      fullPath: "/api/invites/redeem";
-      preLoaderRoute: typeof ApiInvitesRedeemRouteImport;
-      parentRoute: typeof ApiInvitesRoute;
-    };
-    "/api/files/$id": {
-      id: "/api/files/$id";
-      path: "/api/files/$id";
-      fullPath: "/api/files/$id";
-      preLoaderRoute: typeof ApiFilesIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/dashboard/activity": {
-      id: "/api/dashboard/activity";
-      path: "/api/dashboard/activity";
-      fullPath: "/api/dashboard/activity";
-      preLoaderRoute: typeof ApiDashboardActivityRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/clients/$id": {
-      id: "/api/clients/$id";
-      path: "/$id";
-      fullPath: "/api/clients/$id";
-      preLoaderRoute: typeof ApiClientsIdRouteImport;
-      parentRoute: typeof ApiClientsRoute;
-    };
-    "/api/auth/admin-signup": {
-      id: "/api/auth/admin-signup";
-      path: "/api/auth/admin-signup";
-      fullPath: "/api/auth/admin-signup";
-      preLoaderRoute: typeof ApiAuthAdminSignupRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/auth/$": {
-      id: "/api/auth/$";
-      path: "/api/auth/$";
-      fullPath: "/api/auth/$";
-      preLoaderRoute: typeof ApiAuthSplatRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/portal/projects/$clientSlug/$projectSlug": {
-      id: "/portal/projects/$clientSlug/$projectSlug";
-      path: "/portal/projects/$clientSlug/$projectSlug";
-      fullPath: "/portal/projects/$clientSlug/$projectSlug";
-      preLoaderRoute: typeof PortalProjectsClientSlugProjectSlugRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/projects/$id/updates": {
-      id: "/api/projects/$id/updates";
-      path: "/updates";
-      fullPath: "/api/projects/$id/updates";
-      preLoaderRoute: typeof ApiProjectsIdUpdatesRouteImport;
-      parentRoute: typeof ApiProjectsIdRoute;
-    };
-    "/api/projects/$id/files": {
-      id: "/api/projects/$id/files";
-      path: "/files";
-      fullPath: "/api/projects/$id/files";
-      preLoaderRoute: typeof ApiProjectsIdFilesRouteImport;
-      parentRoute: typeof ApiProjectsIdRoute;
-    };
-    "/api/projects/$id/collaboration": {
-      id: "/api/projects/$id/collaboration";
-      path: "/collaboration";
-      fullPath: "/api/projects/$id/collaboration";
-      preLoaderRoute: typeof ApiProjectsIdCollaborationRouteImport;
-      parentRoute: typeof ApiProjectsIdRoute;
-    };
-    "/api/clients/$id/invites": {
-      id: "/api/clients/$id/invites";
-      path: "/invites";
-      fullPath: "/api/clients/$id/invites";
-      preLoaderRoute: typeof ApiClientsIdInvitesRouteImport;
-      parentRoute: typeof ApiClientsIdRoute;
-    };
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unauthorized': {
+      id: '/unauthorized'
+      path: '/unauthorized'
+      fullPath: '/unauthorized'
+      preLoaderRoute: typeof UnauthorizedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/': {
+      id: '/portal/'
+      path: '/portal'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients/': {
+      id: '/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof ClientsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$id': {
+      id: '/projects/$id'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof ProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients/$id': {
+      id: '/clients/$id'
+      path: '/clients/$id'
+      fullPath: '/clients/$id'
+      preLoaderRoute: typeof ClientsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/uploadthing': {
+      id: '/api/uploadthing'
+      path: '/api/uploadthing'
+      fullPath: '/api/uploadthing'
+      preLoaderRoute: typeof ApiUploadthingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/search': {
+      id: '/api/search'
+      path: '/api/search'
+      fullPath: '/api/search'
+      preLoaderRoute: typeof ApiSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/projects': {
+      id: '/api/projects'
+      path: '/api/projects'
+      fullPath: '/api/projects'
+      preLoaderRoute: typeof ApiProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notes': {
+      id: '/api/notes'
+      path: '/api/notes'
+      fullPath: '/api/notes'
+      preLoaderRoute: typeof ApiNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/invites': {
+      id: '/api/invites'
+      path: '/api/invites'
+      fullPath: '/api/invites'
+      preLoaderRoute: typeof ApiInvitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/clients': {
+      id: '/api/clients'
+      path: '/api/clients'
+      fullPath: '/api/clients'
+      preLoaderRoute: typeof ApiClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/projects/': {
+      id: '/portal/projects/'
+      path: '/portal/projects'
+      fullPath: '/portal/projects/'
+      preLoaderRoute: typeof PortalProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$clientSlug/$projectSlug': {
+      id: '/projects/$clientSlug/$projectSlug'
+      path: '/projects/$clientSlug/$projectSlug'
+      fullPath: '/projects/$clientSlug/$projectSlug'
+      preLoaderRoute: typeof ProjectsClientSlugProjectSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/projects/$id': {
+      id: '/portal/projects/$id'
+      path: '/portal/projects/$id'
+      fullPath: '/portal/projects/$id'
+      preLoaderRoute: typeof PortalProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/users/$id': {
+      id: '/api/users/$id'
+      path: '/$id'
+      fullPath: '/api/users/$id'
+      preLoaderRoute: typeof ApiUsersIdRouteImport
+      parentRoute: typeof ApiUsersRoute
+    }
+    '/api/projects/$id': {
+      id: '/api/projects/$id'
+      path: '/$id'
+      fullPath: '/api/projects/$id'
+      preLoaderRoute: typeof ApiProjectsIdRouteImport
+      parentRoute: typeof ApiProjectsRoute
+    }
+    '/api/project-updates/$id': {
+      id: '/api/project-updates/$id'
+      path: '/api/project-updates/$id'
+      fullPath: '/api/project-updates/$id'
+      preLoaderRoute: typeof ApiProjectUpdatesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/project-milestones/$id': {
+      id: '/api/project-milestones/$id'
+      path: '/api/project-milestones/$id'
+      fullPath: '/api/project-milestones/$id'
+      preLoaderRoute: typeof ApiProjectMilestonesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/invites/redeem': {
+      id: '/api/invites/redeem'
+      path: '/redeem'
+      fullPath: '/api/invites/redeem'
+      preLoaderRoute: typeof ApiInvitesRedeemRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
+    '/api/files/$id': {
+      id: '/api/files/$id'
+      path: '/api/files/$id'
+      fullPath: '/api/files/$id'
+      preLoaderRoute: typeof ApiFilesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dashboard/activity': {
+      id: '/api/dashboard/activity'
+      path: '/api/dashboard/activity'
+      fullPath: '/api/dashboard/activity'
+      preLoaderRoute: typeof ApiDashboardActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/clients/$id': {
+      id: '/api/clients/$id'
+      path: '/$id'
+      fullPath: '/api/clients/$id'
+      preLoaderRoute: typeof ApiClientsIdRouteImport
+      parentRoute: typeof ApiClientsRoute
+    }
+    '/api/auth/admin-signup': {
+      id: '/api/auth/admin-signup'
+      path: '/api/auth/admin-signup'
+      fullPath: '/api/auth/admin-signup'
+      preLoaderRoute: typeof ApiAuthAdminSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/projects/$clientSlug/$projectSlug': {
+      id: '/portal/projects/$clientSlug/$projectSlug'
+      path: '/portal/projects/$clientSlug/$projectSlug'
+      fullPath: '/portal/projects/$clientSlug/$projectSlug'
+      preLoaderRoute: typeof PortalProjectsClientSlugProjectSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/projects/$id/updates': {
+      id: '/api/projects/$id/updates'
+      path: '/updates'
+      fullPath: '/api/projects/$id/updates'
+      preLoaderRoute: typeof ApiProjectsIdUpdatesRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
+    '/api/projects/$id/milestones': {
+      id: '/api/projects/$id/milestones'
+      path: '/milestones'
+      fullPath: '/api/projects/$id/milestones'
+      preLoaderRoute: typeof ApiProjectsIdMilestonesRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
+    '/api/projects/$id/files': {
+      id: '/api/projects/$id/files'
+      path: '/files'
+      fullPath: '/api/projects/$id/files'
+      preLoaderRoute: typeof ApiProjectsIdFilesRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
+    '/api/projects/$id/collaboration': {
+      id: '/api/projects/$id/collaboration'
+      path: '/collaboration'
+      fullPath: '/api/projects/$id/collaboration'
+      preLoaderRoute: typeof ApiProjectsIdCollaborationRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
+    '/api/clients/$id/invites': {
+      id: '/api/clients/$id/invites'
+      path: '/invites'
+      fullPath: '/api/clients/$id/invites'
+      preLoaderRoute: typeof ApiClientsIdInvitesRouteImport
+      parentRoute: typeof ApiClientsIdRoute
+    }
   }
 }
 
 interface ApiClientsIdRouteChildren {
-  ApiClientsIdInvitesRoute: typeof ApiClientsIdInvitesRoute;
+  ApiClientsIdInvitesRoute: typeof ApiClientsIdInvitesRoute
 }
 
 const ApiClientsIdRouteChildren: ApiClientsIdRouteChildren = {
   ApiClientsIdInvitesRoute: ApiClientsIdInvitesRoute,
-};
+}
 
 const ApiClientsIdRouteWithChildren = ApiClientsIdRoute._addFileChildren(
   ApiClientsIdRouteChildren,
-);
+)
 
 interface ApiClientsRouteChildren {
-  ApiClientsIdRoute: typeof ApiClientsIdRouteWithChildren;
+  ApiClientsIdRoute: typeof ApiClientsIdRouteWithChildren
 }
 
 const ApiClientsRouteChildren: ApiClientsRouteChildren = {
   ApiClientsIdRoute: ApiClientsIdRouteWithChildren,
-};
+}
 
 const ApiClientsRouteWithChildren = ApiClientsRoute._addFileChildren(
   ApiClientsRouteChildren,
-);
+)
 
 interface ApiInvitesRouteChildren {
-  ApiInvitesRedeemRoute: typeof ApiInvitesRedeemRoute;
+  ApiInvitesRedeemRoute: typeof ApiInvitesRedeemRoute
 }
 
 const ApiInvitesRouteChildren: ApiInvitesRouteChildren = {
   ApiInvitesRedeemRoute: ApiInvitesRedeemRoute,
-};
+}
 
 const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(
   ApiInvitesRouteChildren,
-);
+)
 
 interface ApiProjectsIdRouteChildren {
-  ApiProjectsIdCollaborationRoute: typeof ApiProjectsIdCollaborationRoute;
-  ApiProjectsIdFilesRoute: typeof ApiProjectsIdFilesRoute;
-  ApiProjectsIdUpdatesRoute: typeof ApiProjectsIdUpdatesRoute;
+  ApiProjectsIdCollaborationRoute: typeof ApiProjectsIdCollaborationRoute
+  ApiProjectsIdFilesRoute: typeof ApiProjectsIdFilesRoute
+  ApiProjectsIdMilestonesRoute: typeof ApiProjectsIdMilestonesRoute
+  ApiProjectsIdUpdatesRoute: typeof ApiProjectsIdUpdatesRoute
 }
 
 const ApiProjectsIdRouteChildren: ApiProjectsIdRouteChildren = {
   ApiProjectsIdCollaborationRoute: ApiProjectsIdCollaborationRoute,
   ApiProjectsIdFilesRoute: ApiProjectsIdFilesRoute,
+  ApiProjectsIdMilestonesRoute: ApiProjectsIdMilestonesRoute,
   ApiProjectsIdUpdatesRoute: ApiProjectsIdUpdatesRoute,
-};
+}
 
 const ApiProjectsIdRouteWithChildren = ApiProjectsIdRoute._addFileChildren(
   ApiProjectsIdRouteChildren,
-);
+)
 
 interface ApiProjectsRouteChildren {
-  ApiProjectsIdRoute: typeof ApiProjectsIdRouteWithChildren;
+  ApiProjectsIdRoute: typeof ApiProjectsIdRouteWithChildren
 }
 
 const ApiProjectsRouteChildren: ApiProjectsRouteChildren = {
   ApiProjectsIdRoute: ApiProjectsIdRouteWithChildren,
-};
+}
 
 const ApiProjectsRouteWithChildren = ApiProjectsRoute._addFileChildren(
   ApiProjectsRouteChildren,
-);
+)
 
 interface ApiUsersRouteChildren {
-  ApiUsersIdRoute: typeof ApiUsersIdRoute;
+  ApiUsersIdRoute: typeof ApiUsersIdRoute
 }
 
 const ApiUsersRouteChildren: ApiUsersRouteChildren = {
   ApiUsersIdRoute: ApiUsersIdRoute,
-};
+}
 
 const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
   ApiUsersRouteChildren,
-);
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -892,13 +933,23 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
   ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
+  ApiProjectMilestonesIdRoute: ApiProjectMilestonesIdRoute,
   ApiProjectUpdatesIdRoute: ApiProjectUpdatesIdRoute,
   PortalProjectsIdRoute: PortalProjectsIdRoute,
   ProjectsClientSlugProjectSlugRoute: ProjectsClientSlugProjectSlugRoute,
   PortalProjectsIndexRoute: PortalProjectsIndexRoute,
   PortalProjectsClientSlugProjectSlugRoute:
     PortalProjectsClientSlugProjectSlugRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

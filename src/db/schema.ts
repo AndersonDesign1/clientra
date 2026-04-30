@@ -167,6 +167,24 @@ export const projectUpdates = sqliteTable("project_updates", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+export const projectMilestones = sqliteTable("project_milestones", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status", {
+    enum: ["todo", "in_progress", "done"],
+  })
+    .notNull()
+    .default("todo"),
+  dueDate: text("due_date"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
 export const files = sqliteTable("files", {
   id: text("id").primaryKey(),
   projectId: text("project_id")

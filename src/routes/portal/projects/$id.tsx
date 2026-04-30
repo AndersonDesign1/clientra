@@ -5,6 +5,7 @@ import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
+import { ProjectMilestonesPanel } from "@/components/projects/project-milestones-panel";
 import { ProjectUpdatesPanel } from "@/components/projects/project-updates-panel";
 import {
   ensureClientsData,
@@ -89,6 +90,9 @@ export function PortalProjectDetailPage({
       <p className="mb-4 text-slate-600 text-sm">{project.description}</p>
       <div className="mb-4">
         <ProjectUpdatesPanel canManage={false} projectId={project.id} />
+      </div>
+      <div className="mb-4">
+        <ProjectMilestonesPanel canManage={false} projectId={project.id} />
       </div>
       <div className="mb-4">
         <ProjectCollaborationPanel projectId={project.id} />
