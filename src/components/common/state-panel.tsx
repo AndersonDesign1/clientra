@@ -1,34 +1,56 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+
 interface StatePanelProps {
   description: string;
   title: string;
-}
-
-function StatePanel({ title, description }: StatePanelProps) {
-  return (
-    <div className="rounded-xl border bg-white p-4 text-slate-600 text-sm">
-      <p className="font-medium text-slate-900">{title}</p>
-      <p className="mt-1">{description}</p>
-    </div>
-  );
 }
 
 export function LoadingPanel({
   title = "Loading data",
   description = "Please wait while we fetch the latest records.",
 }: Partial<StatePanelProps>) {
-  return <StatePanel description={description} title={title} />;
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-full max-w-sm" />
+      </div>
+      <span className="sr-only">
+        {title}. {description}
+      </span>
+    </div>
+  );
 }
 
 export function ErrorPanel({
   title = "Unable to load data",
   description = "Try refreshing the page in a moment.",
 }: Partial<StatePanelProps>) {
-  return <StatePanel description={description} title={title} />;
+  return (
+    <Alert variant="destructive">
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
+  );
 }
 
 export function EmptyPanel({
   title = "Nothing to show yet",
   description = "There are no records available right now.",
 }: Partial<StatePanelProps>) {
-  return <StatePanel description={description} title={title} />;
+  return (
+    <Empty className="border">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
 }

@@ -2,6 +2,19 @@
 
 import { Link } from "@tanstack/react-router";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
 const portalNav = [
@@ -14,40 +27,65 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   const user = session.data?.user;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-slate-200 border-b bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-semibold text-lg">Clientra Portal</p>
-            <p className="text-slate-500 text-sm">
-              {user?.name
-                ? `Signed in as ${user.name}`
-                : "Secure client access"}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-2 rounded-full border bg-slate-50 p-1">
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <p className="font-semibold text-lg">Clientra Portal</p>
+          <p className="text-muted-foreground text-sm">
+            {user?.name ? `Signed in as ${user.name}` : "Secure client access"}
+          </p>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Portal</SidebarGroupLabel>
+            <SidebarMenu>
               {portalNav.map((item) => (
-                <Link
-                  activeOptions={
-                    item.href === "/portal" ? { exact: true } : undefined
-                  }
-                  activeProps={{
-                    className: "bg-slate-900 text-white hover:bg-slate-900",
-                  }}
-                  className="rounded-full px-3 py-2 text-slate-600 text-sm hover:bg-white"
-                  key={item.href}
-                  to={item.href}
-                >
-                  {item.label}
-                </Link>
+                <SidebarMenuItem key={item.href}>
+                  <Link
+                    activeOptions={
+                      item.href === "/portal" ? { exact: true } : undefined
+                    }
+                    className="block"
+                    to={item.href}
+                  >
+                    {({ isActive }) => (
+                      <SidebarMenuButton active={isActive}>
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    )}
+                  </Link>
+                </SidebarMenuItem>
               ))}
-            </nav>
-            <SignOutButton />
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
-    </div>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SignOutButton className="w-full" />
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="border-b bg-background px-4 py-3 md:hidden">
+          <p className="font-semibold">Clientra Portal</p>
+          <nav className="mt-3 flex flex-wrap gap-2">
+            {portalNav.map((item) => (
+              <Link
+                activeOptions={
+                  item.href === "/portal" ? { exact: true } : undefined
+                }
+                activeProps={{
+                  className: "bg-primary text-primary-foreground",
+                }}
+                className="rounded-md border px-2 py-1 text-sm"
+                key={item.href}
+                to={item.href}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
