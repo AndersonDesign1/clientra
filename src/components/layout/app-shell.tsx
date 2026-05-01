@@ -75,7 +75,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <header className="border-b bg-background px-4 py-3 md:hidden">
-          <p className="font-semibold">Clientra</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold">Clientra</p>
+            <SignOutButton />
+          </div>
           <nav className="mt-3 flex flex-wrap gap-2">
             {adminNav.map((item) => (
               <Link

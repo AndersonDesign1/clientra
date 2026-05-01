@@ -65,7 +65,10 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <header className="border-b bg-background px-4 py-3 md:hidden">
-          <p className="font-semibold">Clientra Portal</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold">Clientra Portal</p>
+            <SignOutButton />
+          </div>
           <nav className="mt-3 flex flex-wrap gap-2">
             {portalNav.map((item) => (
               <Link
@@ -84,7 +87,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
         </header>
-        <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
+        <div className="mx-auto max-w-5xl px-6 py-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
