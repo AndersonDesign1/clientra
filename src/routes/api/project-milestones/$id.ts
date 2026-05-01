@@ -1,48 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  notFoundError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { projectMilestoneSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   deleteProjectMilestoneRecord,
   serializeProjectMilestone,
   updateProjectMilestoneRecord,
 } from "@/db/records";
-
-async function requireAdminRequest(request: Request) {
-  const sameOrigin = requireSameOrigin(request);
-
-  if (!sameOrigin.ok) {
-    return { error: sameOrigin.error, user: null };
-  }
-
-  const user = await getSessionUserFromHeaders(request.headers);
-
-  if (!user) {
-    return { error: unauthorizedError(), user: null };
-  }
-
-  if (user.role !== ROLES.ADMIN) {
-    return {
-      error: forbiddenError("Only admins can manage project milestones."),
-      user: null,
-    };
-  }
-
-  return { error: null, user };
-}
+import {
+  notFoundError,
+  parseJsonBody,
+  requireAdminMutationRequest,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/project-milestones/$id")({
   server: {
     handlers: {
       PATCH: async ({ params, request }) => {
-        const auth = await requireAdminRequest(request);
+        const auth = await requireAdminMutationRequest(
+          request,
+          "Only admins can manage project milestones."
+        );
 
         if (auth.error) {
           return auth.error;
@@ -66,7 +42,10 @@ export const Route = createFileRoute("/api/project-milestones/$id")({
         return Response.json(serializeProjectMilestone(updated));
       },
       DELETE: async ({ params, request }) => {
-        const auth = await requireAdminRequest(request);
+        const auth = await requireAdminMutationRequest(
+          request,
+          "Only admins can manage project milestones."
+        );
 
         if (auth.error) {
           return auth.error;

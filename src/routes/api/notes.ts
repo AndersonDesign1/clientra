@@ -1,33 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  internalServerError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { createNoteSchema } from "@/api/validation";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   canAccessProject,
   createProjectNoteRecord,
   serializeProjectComment,
 } from "@/db/records";
+import {
+  forbiddenError,
+  internalServerError,
+  parseJsonBody,
+  requireMutationSessionRequest,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/notes")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireMutationSessionRequest(request);
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const sessionUser = await getSessionUserFromHeaders(request.headers);
-
-        if (!sessionUser) {
-          return unauthorizedError();
+        if (auth.error) {
+          return auth.error;
         }
 
         const parsed = await parseJsonBody(request, createNoteSchema);
@@ -37,7 +29,7 @@ export const Route = createFileRoute("/api/notes")({
         }
 
         const canAccess = await canAccessProject(
-          sessionUser,
+          auth.user,
           parsed.data.projectId
         );
 
@@ -48,7 +40,7 @@ export const Route = createFileRoute("/api/notes")({
         const created = await createProjectNoteRecord({
           ...parsed.data,
           id: crypto.randomUUID(),
-          userId: sessionUser.id,
+          userId: auth.user.id,
         });
 
         if (!created) {

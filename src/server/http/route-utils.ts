@@ -1,4 +1,6 @@
 import { ZodError, type ZodType } from "zod";
+import { ROLES, type SessionUser } from "@/auth/roles";
+import { getSessionUserFromHeaders } from "@/auth/session.server";
 
 interface ErrorBody {
   details?: unknown;
@@ -32,10 +34,7 @@ export async function parseJsonBody<TSchema extends ZodType>(
   } catch (error) {
     if (error instanceof ZodError) {
       return {
-        error: jsonError(422, {
-          details: error.flatten(),
-          error: "Request validation failed.",
-        }),
+        error: validationError(error),
         ok: false as const,
       };
     }
@@ -110,6 +109,13 @@ export function requireSameOrigin(request: Request) {
     };
   }
 
+  if (fetchSite === "none" && !originHeader) {
+    return {
+      error: forbiddenError("Missing origin information."),
+      ok: false as const,
+    };
+  }
+
   if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
     return {
       error: forbiddenError("Cross-site requests are not allowed."),
@@ -134,4 +140,53 @@ export function getClientAddress(request: Request) {
     request.headers.get("x-real-ip") ||
     "unknown"
   );
+}
+
+export async function requireSessionRequest(request: Request) {
+  const user = await getSessionUserFromHeaders(request.headers);
+
+  if (!user) {
+    return { error: unauthorizedError(), user: null };
+  }
+
+  return { error: null, user };
+}
+
+export async function requireMutationSessionRequest(request: Request) {
+  const sameOrigin = requireSameOrigin(request);
+
+  if (!sameOrigin.ok) {
+    return { error: sameOrigin.error, user: null };
+  }
+
+  return await requireSessionRequest(request);
+}
+
+export async function requireAdminMutationRequest(
+  request: Request,
+  forbiddenMessage?: string
+): Promise<
+  | {
+      error: null;
+      user: SessionUser;
+    }
+  | {
+      error: Response;
+      user: null;
+    }
+> {
+  const auth = await requireMutationSessionRequest(request);
+
+  if (auth.error) {
+    return auth;
+  }
+
+  if (auth.user.role !== ROLES.ADMIN) {
+    return {
+      error: forbiddenError(forbiddenMessage),
+      user: null,
+    };
+  }
+
+  return auth;
 }

@@ -1,19 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  internalServerError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { createClientSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   createClientRecord,
   listClientsForUser,
   seedIfEmpty,
 } from "@/db/records";
+import {
+  internalServerError,
+  parseJsonBody,
+  requireAdminMutationRequest,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/clients")({
   server: {
@@ -30,20 +28,10 @@ export const Route = createFileRoute("/api/clients")({
         return Response.json(await listClientsForUser(user));
       },
       POST: async ({ request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(request);
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError();
+        if (auth.error) {
+          return auth.error;
         }
 
         const parsed = await parseJsonBody(request, createClientSchema);

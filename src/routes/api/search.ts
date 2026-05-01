@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ZodError } from "zod";
-import { unauthorizedError, validationError } from "@/api/route-utils";
 import { searchSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { searchRecords, seedIfEmpty } from "@/db/records";
+import { unauthorizedError, validationError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/search")({
   server: {

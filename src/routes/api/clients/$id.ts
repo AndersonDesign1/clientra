@@ -1,42 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UTApi } from "uploadthing/server";
-import {
-  forbiddenError,
-  notFoundError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { updateClientSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   deleteClientRecord,
   listClientStorageKeys,
   updateClientRecord,
 } from "@/db/records";
+import {
+  notFoundError,
+  parseJsonBody,
+  requireAdminMutationRequest,
+} from "@/server/http/route-utils";
 
 const utapi = new UTApi();
-
-async function requireAdminRequest(request: Request) {
-  const sameOrigin = requireSameOrigin(request);
-
-  if (!sameOrigin.ok) {
-    return { error: sameOrigin.error, user: null };
-  }
-
-  const user = await getSessionUserFromHeaders(request.headers);
-
-  if (!user) {
-    return { error: unauthorizedError(), user: null };
-  }
-
-  if (user.role !== ROLES.ADMIN) {
-    return { error: forbiddenError(), user: null };
-  }
-
-  return { error: null, user };
-}
 
 async function deleteFilesFromStorage(storageKeys: string[]) {
   if (storageKeys.length === 0) {
@@ -64,7 +40,7 @@ export const Route = createFileRoute("/api/clients/$id")({
   server: {
     handlers: {
       PATCH: async ({ params, request }) => {
-        const auth = await requireAdminRequest(request);
+        const auth = await requireAdminMutationRequest(request);
 
         if (auth.error) {
           return auth.error;
@@ -88,7 +64,7 @@ export const Route = createFileRoute("/api/clients/$id")({
         return Response.json(updated);
       },
       DELETE: async ({ params, request }) => {
-        const auth = await requireAdminRequest(request);
+        const auth = await requireAdminMutationRequest(request);
 
         if (auth.error) {
           return auth.error;

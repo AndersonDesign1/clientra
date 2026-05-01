@@ -4,7 +4,7 @@
 `phases.md` is the single source of truth for product progress and next actions. Keep updates feature-level, use the status labels `Done`, `Current`, `Next`, `Not started`, and `Blocked`, and move the `Current` marker to the next shippable slice as work progresses.
 
 ## Current Focus
-Phase 3 is current. The next shippable slice is expanding admin operations with focused UI coverage for client and project management flows.
+Phase 6 is current. The next shippable slice is production-readiness hardening across security, performance, folder structure, shadcn UI consistency, Vercel runtime configuration, and browser QA before Phase 5 expands invites and notifications.
 
 ## Phase 1 - Frontend Foundation
 Status: Done
@@ -25,7 +25,7 @@ Status: Done
 - Done: Mount Better Auth and enable session-backed route protection.
 
 ## Phase 3 - Core Admin Operations
-Status: Current
+Status: Done
 
 - Done: Connect dashboard, clients, projects, and portal views to real API data.
 - Done: Add invite generation and invite redemption flows.
@@ -64,12 +64,16 @@ Status: Not started
 - Not started: Add notification safeguards so Clientra stays lightweight and avoids complex automation workflows.
 
 ## Phase 6 - QA, Production Readiness, and Launch
-Status: Not started
+Status: Current
 
 - Done: Write PRD (`PRD.md`).
 - Done: Update README with setup and stack notes.
 - Done: Establish repeatable verification with `lint`, `typecheck`, `check`, and `build`.
 - Done: Add automated tests for protected-route pending-state navigation.
+- Done: Start tracked production-readiness audit (`docs/audits/production-readiness-audit.md`).
+- Done: Centralize server request guards and add same-origin regression coverage.
+- Done: Adopt shadcn-style admin and portal sidebar shells plus shared shadcn feedback states.
+- Current: Complete production verification, Vercel readiness checks, and browser QA before Phase 5.
 - Not started: Add automated tests for auth and invite flows.
 - Not started: Add end-to-end coverage for core admin and client portal flows.
 - Not started: Add deployment/runtime validation for production auth callbacks, cookies, Turso, UploadThing, and OAuth configuration.

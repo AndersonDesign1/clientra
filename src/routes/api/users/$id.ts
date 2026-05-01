@@ -1,37 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { updateUserRoleSchema } from "@/api/validation";
+import { deleteUserById, setUserRole } from "@/db/records";
 import {
   forbiddenError,
   notFoundError,
   parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
-import { updateUserRoleSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { deleteUserById, setUserRole } from "@/db/records";
+  requireAdminMutationRequest,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/users/$id")({
   server: {
     handlers: {
       PATCH: async ({ params, request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(request);
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
+        if (auth.error) {
+          return auth.error;
         }
 
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError();
-        }
-
-        if (user.id === params.id) {
+        if (auth.user.id === params.id) {
           return forbiddenError("You cannot change your own role.");
         }
 
@@ -50,23 +37,13 @@ export const Route = createFileRoute("/api/users/$id")({
         return Response.json(updated);
       },
       DELETE: async ({ params, request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(request);
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
+        if (auth.error) {
+          return auth.error;
         }
 
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError();
-        }
-
-        if (user.id === params.id) {
+        if (auth.user.id === params.id) {
           return forbiddenError("You cannot delete your own account.");
         }
 

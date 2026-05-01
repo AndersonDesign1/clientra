@@ -11,6 +11,8 @@ A lightweight client management system for freelancers and small agencies.
 - Bun
 
 ## Getting Started
+Copy `.env.example` to `.env.local` and fill in the values needed for your environment.
+
 ```bash
 bun install
 bun dev
@@ -35,3 +37,4 @@ bun run build
 ## Planning Docs
 - `PRD.md`
 - `phases.md`
+- `docs/audits/production-readiness-audit.md`

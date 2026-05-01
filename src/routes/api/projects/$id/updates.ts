@@ -1,22 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  internalServerError,
-  notFoundError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { projectUpdateSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
-  canAccessProject,
   createProjectUpdateRecord,
   getProjectById,
   listProjectUpdatesForUser,
   serializeProjectUpdate,
 } from "@/db/records";
+import {
+  forbiddenError,
+  internalServerError,
+  notFoundError,
+  parseJsonBody,
+  requireAdminMutationRequest,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/projects/$id/updates")({
   server: {
@@ -37,32 +35,19 @@ export const Route = createFileRoute("/api/projects/$id/updates")({
         return Response.json(updates.map(serializeProjectUpdate));
       },
       POST: async ({ params, request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(
+          request,
+          "Only admins can publish project updates."
+        );
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError("Only admins can publish project updates.");
+        if (auth.error) {
+          return auth.error;
         }
 
         const project = await getProjectById(params.id);
 
         if (!project) {
           return notFoundError("We could not find a project with that id.");
-        }
-
-        const hasAccess = await canAccessProject(user, params.id);
-
-        if (!hasAccess) {
-          return forbiddenError("You do not have access to this project.");
         }
 
         const parsed = await parseJsonBody(request, projectUpdateSchema);
@@ -73,7 +58,7 @@ export const Route = createFileRoute("/api/projects/$id/updates")({
 
         const created = await createProjectUpdateRecord({
           ...parsed.data,
-          authorId: user.id,
+          authorId: auth.user.id,
           id: crypto.randomUUID(),
           projectId: params.id,
         });

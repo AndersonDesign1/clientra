@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { forbiddenError, unauthorizedError } from "@/api/route-utils";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { listProjectFilesForUser, serializeProjectFile } from "@/db/records";
+import { forbiddenError, unauthorizedError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/projects/$id/files")({
   server: {
