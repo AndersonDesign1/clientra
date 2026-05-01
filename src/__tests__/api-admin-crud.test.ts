@@ -143,6 +143,26 @@ describe("admin CRUD API routes", () => {
     expect(updateClientRecord).not.toHaveBeenCalled();
   });
 
+  it("rejects navigation-style client mutations without an origin", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+
+    const response = await clientHandlers.PATCH({
+      params: { id: "client_1" },
+      request: new Request("https://clientra.test/api/clients/client_1", {
+        body: JSON.stringify(validClientPayload),
+        headers: {
+          "content-type": "application/json",
+          "sec-fetch-site": "none",
+        },
+        method: "PATCH",
+      }),
+    } as never);
+
+    expect(response.status).toBe(403);
+    expect(getSessionUserFromHeaders).not.toHaveBeenCalled();
+    expect(updateClientRecord).not.toHaveBeenCalled();
+  });
+
   it("rejects non-admin project deletes", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
       email: "client@example.com",

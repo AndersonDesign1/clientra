@@ -109,6 +109,13 @@ export function requireSameOrigin(request: Request) {
     };
   }
 
+  if (fetchSite === "none" && !originHeader) {
+    return {
+      error: forbiddenError("Missing origin information."),
+      ok: false as const,
+    };
+  }
+
   if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
     return {
       error: forbiddenError("Cross-site requests are not allowed."),

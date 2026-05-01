@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { projectUpdateSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
-  canAccessProject,
   createProjectUpdateRecord,
   getProjectById,
   listProjectUpdatesForUser,
@@ -49,12 +48,6 @@ export const Route = createFileRoute("/api/projects/$id/updates")({
 
         if (!project) {
           return notFoundError("We could not find a project with that id.");
-        }
-
-        const hasAccess = await canAccessProject(auth.user, params.id);
-
-        if (!hasAccess) {
-          return forbiddenError("You do not have access to this project.");
         }
 
         const parsed = await parseJsonBody(request, projectUpdateSchema);
