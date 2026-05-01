@@ -71,7 +71,9 @@ Status: Current
 - Done: Establish repeatable verification with `lint`, `typecheck`, `check`, and `build`.
 - Done: Add automated tests for protected-route pending-state navigation.
 - Done: Start tracked production-readiness audit (`docs/audits/production-readiness-audit.md`).
-- Current: Harden security, performance, folder structure, shadcn consistency, and Vercel readiness before Phase 5.
+- Done: Centralize server request guards and add same-origin regression coverage.
+- Done: Adopt shadcn-style admin and portal sidebar shells plus shared shadcn feedback states.
+- Current: Complete production verification, Vercel readiness checks, and browser QA before Phase 5.
 - Not started: Add automated tests for auth and invite flows.
 - Not started: Add end-to-end coverage for core admin and client portal flows.
 - Not started: Add deployment/runtime validation for production auth callbacks, cookies, Turso, UploadThing, and OAuth configuration.

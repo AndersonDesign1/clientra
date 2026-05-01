@@ -147,6 +147,35 @@ describe("collaboration API routes", () => {
     });
   });
 
+  it("rejects cross-site comment mutations before project access checks", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
+      email: "admin@example.com",
+      id: "admin_1",
+      name: "Admin User",
+      role: ROLES.ADMIN,
+    });
+
+    const response = await notesHandlers.POST({
+      request: new Request("https://clientra.test/api/notes", {
+        body: JSON.stringify({
+          content: "Admin update",
+          projectId: "project_1",
+        }),
+        headers: {
+          "content-type": "application/json",
+          origin: "https://attacker.test",
+          "sec-fetch-site": "cross-site",
+        },
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(403);
+    expect(getSessionUserFromHeaders).not.toHaveBeenCalled();
+    expect(canAccessProject).not.toHaveBeenCalled();
+    expect(createProjectNoteRecord).not.toHaveBeenCalled();
+  });
+
   it("allows a linked client to post and blocks a client without access", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
       email: "client@example.com",

@@ -123,6 +123,26 @@ describe("admin CRUD API routes", () => {
     expect(response.status).toBe(401);
   });
 
+  it("rejects cross-site client mutations before reading the session", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+
+    const response = await clientHandlers.PATCH({
+      params: { id: "client_1" },
+      request: createRequest("/api/clients/client_1", {
+        body: JSON.stringify(validClientPayload),
+        headers: {
+          origin: "https://attacker.test",
+          "sec-fetch-site": "cross-site",
+        },
+        method: "PATCH",
+      }),
+    } as never);
+
+    expect(response.status).toBe(403);
+    expect(getSessionUserFromHeaders).not.toHaveBeenCalled();
+    expect(updateClientRecord).not.toHaveBeenCalled();
+  });
+
   it("rejects non-admin project deletes", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
       email: "client@example.com",

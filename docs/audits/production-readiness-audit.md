@@ -41,21 +41,24 @@ Baseline before fixes:
 - Normalized formatting across the repo so Biome can be used as a reliable quality gate.
 - Added this tracked audit report.
 - Added `.env.example` for local, preview, and production configuration discovery.
+- Moved shared API response, same-origin, session, and admin mutation guards under `src/server/http`.
+- Migrated mutating client, project, invite, user, note, update, milestone, and file routes to the centralized guards.
+- Hardened Better Auth configuration for Vercel-oriented production use with secure cookies, trusted origins, and rate limiting.
+- Adopted shadcn-style sidebar shells for admin and portal navigation.
+- Added shadcn `Alert`, `Empty`, `DropdownMenu`, and `Tooltip` primitives and moved common loading/error/empty panels to shadcn components.
+- Added regression tests for same-origin rejection before session/project access work.
 
 ## Remaining Work
 
-- Centralize API guard helpers and migrate mutating routes to them.
-- Add focused tests for auth, authorization, invite abuse cases, UploadThing authorization, same-origin rejection, and validation failures.
-- Adopt shadcn sidebar/navigation and replace custom feedback/empty/error markup where matching shadcn components exist.
+- Add remaining focused tests for invite abuse cases and UploadThing authorization failure/rollback behavior.
 - Review Drizzle indexes and query patterns for client/project/activity/portal access paths.
 - Validate Vercel runtime configuration and document deployment-specific checks.
 - Run browser QA on desktop and mobile after UI and route cleanup.
 
 ## Verification Checklist
 
-- `bun run lint`
-- `bun run typecheck`
-- `bun run test`
-- `bun run build`
-- Browser QA: admin clients/projects, portal project detail, updates, milestones, comments, files, invite redemption, loading/error/empty states, mobile navigation.
-
+- Done: `bun run lint`
+- Done: `bun run typecheck`
+- Done: `bun run test` - 18 files, 73 tests passed. Vitest still reports a shutdown handle warning after successful completion.
+- Done: `bun run build` - build passed. Remaining warnings are the known Base UI `"use client"` bundle notices and Nitro native-module OS note.
+- Pending: Browser QA for admin clients/projects, portal project detail, updates, milestones, comments, files, invite redemption, loading/error/empty states, and mobile navigation. The in-app browser tool was unavailable in this thread and Playwright is not installed in the project.
