@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  notFoundError,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   canAccessProject,
   getProjectCollaboration,
   seedIfEmpty,
 } from "@/db/records";
+import {
+  forbiddenError,
+  notFoundError,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/projects/$id/collaboration")({
   server: {

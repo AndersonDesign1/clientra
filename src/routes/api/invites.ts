@@ -1,34 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { inviteSchema } from "@/api/validation";
+import { createInviteRecord, getInviteRecordById } from "@/db/records";
 import {
-  forbiddenError,
   internalServerError,
   parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
-import { inviteSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { createInviteRecord, getInviteRecordById } from "@/db/records";
+  requireAdminMutationRequest,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/invites")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(request);
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError();
+        if (auth.error) {
+          return auth.error;
         }
 
         const parsed = await parseJsonBody(request, inviteSchema);

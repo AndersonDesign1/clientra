@@ -1,15 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createRateLimiter } from "@/api/rate-limit";
-import {
-  forbiddenError,
-  getClientAddress,
-  internalServerError,
-  notFoundError,
-  parseJsonBody,
-  requireSameOrigin,
-  tooManyRequestsError,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { inviteRedeemSchema } from "@/api/validation";
 import { auth } from "@/auth/better-auth";
 import { ROLES } from "@/auth/roles";
@@ -22,6 +12,16 @@ import {
   updateUserRole,
 } from "@/db/records";
 import { serializeInvitePreview } from "@/lib/invite-preview";
+import {
+  forbiddenError,
+  getClientAddress,
+  internalServerError,
+  notFoundError,
+  parseJsonBody,
+  requireSameOrigin,
+  tooManyRequestsError,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 const invitePreviewRateLimiter = createRateLimiter({
   maxAttempts: 20,

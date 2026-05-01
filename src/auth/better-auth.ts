@@ -12,6 +12,15 @@ function normalizeCredential(value: string | undefined) {
   return normalized ? normalized : undefined;
 }
 
+function getTrustedOrigins() {
+  return [
+    process.env.BETTER_AUTH_URL,
+    ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []),
+  ]
+    .map((origin) => origin?.trim())
+    .filter((origin): origin is string => Boolean(origin));
+}
+
 function getSocialProviderConfig({
   clientId,
   clientSecret,
@@ -57,6 +66,9 @@ const googleProvider = getSocialProviderConfig({
 });
 
 export const auth = betterAuth({
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
   baseURL: process.env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -70,6 +82,11 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
+  },
+  rateLimit: {
+    enabled: true,
+    max: 100,
+    window: 60,
   },
   socialProviders: {
     ...(githubProvider ? { github: githubProvider } : {}),
@@ -89,4 +106,5 @@ export const auth = betterAuth({
     },
   },
   plugins: [tanstackStartCookies()],
+  trustedOrigins: getTrustedOrigins(),
 });

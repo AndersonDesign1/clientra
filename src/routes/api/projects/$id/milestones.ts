@@ -1,14 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  forbiddenError,
-  internalServerError,
-  notFoundError,
-  parseJsonBody,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { projectMilestoneSchema } from "@/api/validation";
-import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   canAccessProject,
@@ -17,6 +8,14 @@ import {
   listProjectMilestonesForUser,
   serializeProjectMilestone,
 } from "@/db/records";
+import {
+  forbiddenError,
+  internalServerError,
+  notFoundError,
+  parseJsonBody,
+  requireAdminMutationRequest,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/projects/$id/milestones")({
   server: {
@@ -37,20 +36,13 @@ export const Route = createFileRoute("/api/projects/$id/milestones")({
         return Response.json(milestones.map(serializeProjectMilestone));
       },
       POST: async ({ params, request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(
+          request,
+          "Only admins can manage project milestones."
+        );
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError("Only admins can manage project milestones.");
+        if (auth.error) {
+          return auth.error;
         }
 
         const project = await getProjectById(params.id);
@@ -59,7 +51,7 @@ export const Route = createFileRoute("/api/projects/$id/milestones")({
           return notFoundError("We could not find a project with that id.");
         }
 
-        const hasAccess = await canAccessProject(user, params.id);
+        const hasAccess = await canAccessProject(auth.user, params.id);
 
         if (!hasAccess) {
           return forbiddenError("You do not have access to this project.");

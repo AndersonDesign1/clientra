@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { unauthorizedError } from "@/api/route-utils";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { getPortalSummary, seedIfEmpty } from "@/db/records";
+import { unauthorizedError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/portal/summary")({
   server: {

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { forbiddenError, unauthorizedError } from "@/api/route-utils";
 import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { listDashboardActivity } from "@/db/records";
+import { forbiddenError, unauthorizedError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/dashboard/activity")({
   server: {

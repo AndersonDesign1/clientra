@@ -1,20 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UTApi } from "uploadthing/server";
 import {
-  forbiddenError,
-  internalServerError,
-  notFoundError,
-  requireSameOrigin,
-  unauthorizedError,
-} from "@/api/route-utils";
-import { ROLES } from "@/auth/roles";
-import { getSessionUserFromHeaders } from "@/auth/session.server";
-import {
   canAccessProject,
   deleteProjectFileRecord,
   getProjectFileById,
   restoreProjectFileRecord,
 } from "@/db/records";
+import {
+  forbiddenError,
+  internalServerError,
+  notFoundError,
+  requireAdminMutationRequest,
+} from "@/server/http/route-utils";
 
 const utapi = new UTApi();
 
@@ -22,20 +19,13 @@ export const Route = createFileRoute("/api/files/$id")({
   server: {
     handlers: {
       DELETE: async ({ params, request }) => {
-        const sameOrigin = requireSameOrigin(request);
+        const auth = await requireAdminMutationRequest(
+          request,
+          "Only admins can delete uploaded files."
+        );
 
-        if (!sameOrigin.ok) {
-          return sameOrigin.error;
-        }
-
-        const user = await getSessionUserFromHeaders(request.headers);
-
-        if (!user) {
-          return unauthorizedError();
-        }
-
-        if (user.role !== ROLES.ADMIN) {
-          return forbiddenError("Only admins can delete uploaded files.");
+        if (auth.error) {
+          return auth.error;
         }
 
         const existing = await getProjectFileById(params.id);
@@ -45,7 +35,7 @@ export const Route = createFileRoute("/api/files/$id")({
         }
 
         const hasProjectAccess = await canAccessProject(
-          user,
+          auth.user,
           existing.projectId
         );
 

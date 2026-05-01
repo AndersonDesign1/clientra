@@ -1,14 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createRateLimiter } from "@/api/rate-limit";
-import {
-  forbiddenError,
-  getClientAddress,
-  internalServerError,
-  parseJsonBody,
-  requireSameOrigin,
-  tooManyRequestsError,
-  unauthorizedError,
-} from "@/api/route-utils";
 import { adminSignupSchema } from "@/api/validation";
 import { auth } from "@/auth/better-auth";
 import { ROLES } from "@/auth/roles";
@@ -18,6 +9,15 @@ import {
   hasWorkspaceAdmin,
   promoteUserToInitialAdmin,
 } from "@/db/records";
+import {
+  forbiddenError,
+  getClientAddress,
+  internalServerError,
+  parseJsonBody,
+  requireSameOrigin,
+  tooManyRequestsError,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 const adminSignupRateLimiter = createRateLimiter({
   maxAttempts: 3,
