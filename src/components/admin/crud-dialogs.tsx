@@ -94,7 +94,7 @@ interface ProjectFormState {
   title: string;
 }
 
-function getClientFormState(client?: Client): ClientFormState {
+export function getClientFormState(client?: Client): ClientFormState {
   return {
     company: client?.company ?? "",
     email: client?.email ?? "",
@@ -107,7 +107,7 @@ function getClientFormState(client?: Client): ClientFormState {
   };
 }
 
-function getProjectFormState(
+export function getProjectFormState(
   clients: Client[],
   project?: Project
 ): ProjectFormState {
@@ -121,7 +121,7 @@ function getProjectFormState(
   };
 }
 
-function toClientPayload(state: ClientFormState): ClientPayload {
+export function toClientPayload(state: ClientFormState): ClientPayload {
   return {
     company: state.company.trim(),
     email: state.email.trim(),
@@ -137,7 +137,7 @@ function toClientPayload(state: ClientFormState): ClientPayload {
   };
 }
 
-function toProjectPayload(state: ProjectFormState): ProjectPayload {
+export function toProjectPayload(state: ProjectFormState): ProjectPayload {
   const budget = Number(state.budget);
 
   return {

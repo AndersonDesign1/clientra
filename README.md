@@ -18,9 +18,10 @@ bun dev
 
 ## Quality Checks
 ```bash
+bun run test
 bun run lint
-bun run format
 bun run typecheck
+bun run build
 ```
 
 ## Project Structure

@@ -14,6 +14,8 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
+import { ProjectMilestonesPanel } from "@/components/projects/project-milestones-panel";
+import { ProjectUpdatesPanel } from "@/components/projects/project-updates-panel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -233,6 +235,12 @@ export function AdminProjectDetailPage({
           Budget: ${project.budget.toLocaleString()} · Deadline:{" "}
           {project.deadline || "No deadline yet"}
         </p>
+      </div>
+      <div className="mb-4">
+        <ProjectUpdatesPanel canManage projectId={project.id} />
+      </div>
+      <div className="mb-4">
+        <ProjectMilestonesPanel canManage projectId={project.id} />
       </div>
       <div className="mb-4">
         <ProjectCollaborationPanel projectId={project.id} />

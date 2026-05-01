@@ -40,19 +40,20 @@ Status: Current
 - Done: Improve client detail with linked projects and primary admin actions.
 - Done: Add focused API coverage for admin client and project update/delete flows.
 - Done: Add pending invite visibility on client detail pages.
-- Next: Add focused UI coverage for admin client and project management flows.
+- Done: Add focused UI coverage for admin client and project management flows.
 
 ## Phase 4 - Client Delivery Experience
-Status: Next
+Status: Current
 
 - Done: Add real file uploads, downloads, and admin delete flows for project files across admin and portal project views.
 - Done: Add comments/discussion flows for client collaboration.
 - Done: Replace dashboard recent activity and project timeline sections with DB-backed collaboration history.
 - Done: Add non-blocking route loading with shared pending skeletons for authenticated data routes.
-- Next: Add project updates or status reports as a first-class progress surface.
-- Next: Add lightweight milestones or deliverables for project planning and client visibility.
-- Next: Improve the portal dashboard and project detail pages so clients can quickly see active work, latest updates, key dates, files, and discussion.
-- Next: Keep comments and files as collaboration support, not the only way to communicate project progress.
+- Done: Add project updates or status reports as a first-class progress surface.
+- Done: Add lightweight milestones or deliverables for project planning and client visibility.
+- Done: Improve the portal dashboard and project detail pages so clients can quickly see active work, latest updates, key dates, files, and discussion.
+- Done: Keep comments and files as collaboration support, not the only way to communicate project progress.
+- Next: Run browser QA across admin and portal delivery workflows before launch.
 
 ## Phase 5 - Access, Invites, and Notifications
 Status: Not started

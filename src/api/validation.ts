@@ -4,6 +4,17 @@ export const roleSchema = z.enum(["admin", "client"]);
 const trimmedOptionalString = z.string().trim().max(2000).optional();
 const emailSchema = z.string().trim().email().max(320);
 const idSchema = z.string().trim().min(1).max(128);
+const isoDateSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a YYYY-MM-DD date.")
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+
+    return (
+      !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+    );
+  }, "Use a valid calendar date.");
 
 export const createClientSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -32,6 +43,20 @@ export const updateProjectSchema = createProjectSchema;
 export const createNoteSchema = z.object({
   projectId: idSchema,
   content: z.string().trim().min(1).max(10_000),
+});
+
+export const projectUpdateSchema = z.object({
+  body: z.string().trim().min(1).max(10_000),
+  status: z.enum(["on_track", "at_risk", "blocked", "complete"]),
+  title: z.string().trim().min(1).max(160),
+});
+
+export const projectMilestoneSchema = z.object({
+  description: trimmedOptionalString,
+  dueDate: isoDateSchema.optional(),
+  sortOrder: z.number().int().min(0).max(10_000).default(0),
+  status: z.enum(["todo", "in_progress", "done"]),
+  title: z.string().trim().min(1).max(160),
 });
 
 export const inviteSchema = z.object({

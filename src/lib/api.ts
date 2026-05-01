@@ -71,6 +71,78 @@ export interface ProjectComment {
   projectId: string;
 }
 
+export type ProjectUpdateStatus =
+  | "on_track"
+  | "at_risk"
+  | "blocked"
+  | "complete";
+
+export interface ProjectUpdate {
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  id: string;
+  projectId: string;
+  status: ProjectUpdateStatus;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ProjectUpdatePayload {
+  body: string;
+  status: ProjectUpdateStatus;
+  title: string;
+}
+
+export type ProjectMilestoneStatus = "todo" | "in_progress" | "done";
+
+export interface ProjectMilestone {
+  createdAt: string;
+  description: string;
+  dueDate: string;
+  id: string;
+  projectId: string;
+  sortOrder: number;
+  status: ProjectMilestoneStatus;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ProjectMilestonePayload {
+  description?: string;
+  dueDate?: string;
+  sortOrder: number;
+  status: ProjectMilestoneStatus;
+  title: string;
+}
+
+export interface PortalProjectUpdate extends ProjectUpdate {
+  projectTitle: string;
+}
+
+export interface PortalProjectMilestone extends ProjectMilestone {
+  projectTitle: string;
+}
+
+export interface PortalProjectFile extends ProjectFile {
+  projectTitle: string;
+}
+
+export interface PortalSummaryProject extends Project {
+  clientCompany: string;
+  clientName: string;
+  clientSlug: string;
+}
+
+export interface PortalSummary {
+  activeProjects: PortalSummaryProject[];
+  latestUpdates: PortalProjectUpdate[];
+  projectCount: number;
+  recentFiles: PortalProjectFile[];
+  upcomingMilestones: PortalProjectMilestone[];
+}
+
 export interface PendingInvite {
   clientId: string;
   createdAt: string;
@@ -102,6 +174,15 @@ export type ProjectActivityEvent =
       fileName: string;
       id: string;
       type: "file_uploaded";
+    }
+  | {
+      authorId: string;
+      authorName: string;
+      createdAt: string;
+      id: string;
+      status: ProjectUpdateStatus;
+      title: string;
+      type: "project_update";
     };
 
 export interface ProjectCollaborationPayload {
@@ -159,8 +240,13 @@ export const queryKeys = {
   projectCollaboration: (projectId: string) =>
     ["project-collaboration", projectId] as const,
   projectFiles: (projectId: string) => ["project-files", projectId] as const,
+  projectMilestones: (projectId: string) =>
+    ["project-milestones", projectId] as const,
+  projectUpdates: (projectId: string) =>
+    ["project-updates", projectId] as const,
   pendingInvites: (clientId: string) =>
     [...queryKeys.allPendingInvites, clientId] as const,
+  portalSummary: ["portal-summary"] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
@@ -471,6 +557,122 @@ async function createProjectCommentRequest({
   return candidate as ProjectComment;
 }
 
+async function createProjectUpdateRequest({
+  input,
+  projectId,
+}: {
+  input: ProjectUpdatePayload;
+  projectId: string;
+}): Promise<ProjectUpdate> {
+  const response = await createApiRequest(
+    `/api/projects/${projectId}/updates`,
+    {
+      body: JSON.stringify(input),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  return parseMutationResponse<ProjectUpdate>(response, "project update");
+}
+
+async function updateProjectUpdateRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ProjectUpdatePayload;
+}): Promise<ProjectUpdate> {
+  const response = await createApiRequest(`/api/project-updates/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<ProjectUpdate>(response, "project update");
+}
+
+async function deleteProjectUpdateRequest(id: string) {
+  const response = await createApiRequest(`/api/project-updates/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+async function createProjectMilestoneRequest({
+  input,
+  projectId,
+}: {
+  input: ProjectMilestonePayload;
+  projectId: string;
+}): Promise<ProjectMilestone> {
+  const response = await createApiRequest(
+    `/api/projects/${projectId}/milestones`,
+    {
+      body: JSON.stringify(input),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    }
+  );
+
+  return parseMutationResponse<ProjectMilestone>(response, "milestone");
+}
+
+async function updateProjectMilestoneRequest({
+  id,
+  input,
+}: {
+  id: string;
+  input: ProjectMilestonePayload;
+}): Promise<ProjectMilestone> {
+  const response = await createApiRequest(`/api/project-milestones/${id}`, {
+    body: JSON.stringify(input),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<ProjectMilestone>(response, "milestone");
+}
+
+async function deleteProjectMilestoneRequest(id: string) {
+  const response = await createApiRequest(`/api/project-milestones/${id}`, {
+    method: "DELETE",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
 export function clientsQueryOptions() {
   return queryOptions({
     queryFn: () => fetchJson<Client[]>("/api/clients"),
@@ -500,6 +702,13 @@ export function dashboardActivityQueryOptions() {
   });
 }
 
+export function portalSummaryQueryOptions() {
+  return queryOptions({
+    queryFn: () => fetchJson<PortalSummary>("/api/portal/summary"),
+    queryKey: queryKeys.portalSummary,
+  });
+}
+
 export function projectFilesQueryOptions(projectId: string) {
   return queryOptions({
     queryFn: () => fetchJson<ProjectFile[]>(`/api/projects/${projectId}/files`),
@@ -514,6 +723,22 @@ export function projectCollaborationQueryOptions(projectId: string) {
         `/api/projects/${projectId}/collaboration`
       ),
     queryKey: queryKeys.projectCollaboration(projectId),
+  });
+}
+
+export function projectUpdatesQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<ProjectUpdate[]>(`/api/projects/${projectId}/updates`),
+    queryKey: queryKeys.projectUpdates(projectId),
+  });
+}
+
+export function projectMilestonesQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<ProjectMilestone[]>(`/api/projects/${projectId}/milestones`),
+    queryKey: queryKeys.projectMilestones(projectId),
   });
 }
 
@@ -555,6 +780,10 @@ export function ensureDashboardActivityData(queryClient: QueryClient) {
   return queryClient.ensureQueryData(dashboardActivityQueryOptions());
 }
 
+export function ensurePortalSummaryData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(portalSummaryQueryOptions());
+}
+
 export function ensureProjectFilesData(
   queryClient: QueryClient,
   projectId: string
@@ -569,6 +798,20 @@ export function ensureProjectCollaborationData(
   return queryClient.ensureQueryData(
     projectCollaborationQueryOptions(projectId)
   );
+}
+
+export function ensureProjectUpdatesData(
+  queryClient: QueryClient,
+  projectId: string
+) {
+  return queryClient.ensureQueryData(projectUpdatesQueryOptions(projectId));
+}
+
+export function ensureProjectMilestonesData(
+  queryClient: QueryClient,
+  projectId: string
+) {
+  return queryClient.ensureQueryData(projectMilestonesQueryOptions(projectId));
 }
 
 export function ensurePendingInvitesData(
@@ -596,6 +839,10 @@ export function useDashboardActivityData(): LoadableData<
   return mapQueryState(useQuery(dashboardActivityQueryOptions()));
 }
 
+export function usePortalSummaryData(): LoadableData<PortalSummary> {
+  return mapQueryState(useQuery(portalSummaryQueryOptions()));
+}
+
 export function useProjectFilesData(
   projectId: string
 ): LoadableData<ProjectFile[]> {
@@ -606,6 +853,18 @@ export function useProjectCollaborationData(
   projectId: string
 ): LoadableData<ProjectCollaborationPayload> {
   return mapQueryState(useQuery(projectCollaborationQueryOptions(projectId)));
+}
+
+export function useProjectUpdatesData(
+  projectId: string
+): LoadableData<ProjectUpdate[]> {
+  return mapQueryState(useQuery(projectUpdatesQueryOptions(projectId)));
+}
+
+export function useProjectMilestonesData(
+  projectId: string
+): LoadableData<ProjectMilestone[]> {
+  return mapQueryState(useQuery(projectMilestonesQueryOptions(projectId)));
 }
 
 export function usePendingInvitesData(
@@ -770,6 +1029,12 @@ export function useDeleteProjectMutation() {
       queryClient.removeQueries({
         queryKey: queryKeys.projectFiles(variables.id),
       });
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectUpdates(variables.id),
+      });
+      queryClient.removeQueries({
+        queryKey: queryKeys.projectMilestones(variables.id),
+      });
       invalidateAdminData(queryClient);
     },
   });
@@ -857,6 +1122,145 @@ export function useCreateProjectCommentMutation() {
             comments: nextComments,
           };
         }
+      );
+    },
+  });
+}
+
+function createProjectUpdateActivityEvent(
+  update: ProjectUpdate
+): ProjectActivityEvent {
+  return {
+    authorId: update.authorId,
+    authorName: update.authorName,
+    createdAt: update.createdAt,
+    id: `update:${update.id}`,
+    status: update.status,
+    title: update.title,
+    type: "project_update",
+  };
+}
+
+export function useCreateProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      input,
+      projectId,
+    }: {
+      input: ProjectUpdatePayload;
+      projectId: string;
+    }) => createProjectUpdateRequest({ input, projectId }),
+    onSuccess: (update) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(update.projectId),
+        (current) => [update, ...(current ?? [])]
+      );
+      queryClient.setQueryData<ProjectCollaborationPayload>(
+        queryKeys.projectCollaboration(update.projectId),
+        (current) => ({
+          activity: [
+            createProjectUpdateActivityEvent(update),
+            ...(current?.activity ?? []),
+          ].sort(
+            (left, right) =>
+              Date.parse(right.createdAt) - Date.parse(left.createdAt)
+          ),
+          comments: current?.comments ?? [],
+        })
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboardActivity });
+    },
+  });
+}
+
+export function useUpdateProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProjectUpdateRequest,
+    onSuccess: (update) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(update.projectId),
+        (current) =>
+          (current ?? []).map((item) => (item.id === update.id ? update : item))
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectCollaboration(update.projectId),
+      });
+    },
+  });
+}
+
+export function useDeleteProjectUpdateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; projectId: string }) =>
+      deleteProjectUpdateRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<ProjectUpdate[]>(
+        queryKeys.projectUpdates(variables.projectId),
+        (current) => (current ?? []).filter((item) => item.id !== variables.id)
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.projectCollaboration(variables.projectId),
+      });
+    },
+  });
+}
+
+export function useCreateProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      input,
+      projectId,
+    }: {
+      input: ProjectMilestonePayload;
+      projectId: string;
+    }) => createProjectMilestoneRequest({ input, projectId }),
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(milestone.projectId),
+        (current) =>
+          [milestone, ...(current ?? [])].sort(
+            (left, right) => left.sortOrder - right.sortOrder
+          )
+      );
+    },
+  });
+}
+
+export function useUpdateProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProjectMilestoneRequest,
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(milestone.projectId),
+        (current) =>
+          (current ?? [])
+            .map((item) => (item.id === milestone.id ? milestone : item))
+            .sort((left, right) => left.sortOrder - right.sortOrder)
+      );
+    },
+  });
+}
+
+export function useDeleteProjectMilestoneMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; projectId: string }) =>
+      deleteProjectMilestoneRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<ProjectMilestone[]>(
+        queryKeys.projectMilestones(variables.projectId),
+        (current) => (current ?? []).filter((item) => item.id !== variables.id)
       );
     },
   });

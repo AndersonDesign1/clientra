@@ -35,6 +35,9 @@ import { Route as ProjectsClientSlugProjectSlugRouteImport } from './routes/proj
 import { Route as PortalProjectsIdRouteImport } from './routes/portal/projects/$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
 import { Route as ApiProjectsIdRouteImport } from './routes/api/projects/$id'
+import { Route as ApiProjectUpdatesIdRouteImport } from './routes/api/project-updates/$id'
+import { Route as ApiProjectMilestonesIdRouteImport } from './routes/api/project-milestones/$id'
+import { Route as ApiPortalSummaryRouteImport } from './routes/api/portal/summary'
 import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
 import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
 import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
@@ -42,6 +45,8 @@ import { Route as ApiClientsIdRouteImport } from './routes/api/clients/$id'
 import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as PortalProjectsClientSlugProjectSlugRouteImport } from './routes/portal/projects/$clientSlug/$projectSlug'
+import { Route as ApiProjectsIdUpdatesRouteImport } from './routes/api/projects/$id/updates'
+import { Route as ApiProjectsIdMilestonesRouteImport } from './routes/api/projects/$id/milestones'
 import { Route as ApiProjectsIdFilesRouteImport } from './routes/api/projects/$id/files'
 import { Route as ApiProjectsIdCollaborationRouteImport } from './routes/api/projects/$id/collaboration'
 import { Route as ApiClientsIdInvitesRouteImport } from './routes/api/clients/$id/invites'
@@ -177,6 +182,21 @@ const ApiProjectsIdRoute = ApiProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiProjectsRoute,
 } as any)
+const ApiProjectUpdatesIdRoute = ApiProjectUpdatesIdRouteImport.update({
+  id: '/api/project-updates/$id',
+  path: '/api/project-updates/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProjectMilestonesIdRoute = ApiProjectMilestonesIdRouteImport.update({
+  id: '/api/project-milestones/$id',
+  path: '/api/project-milestones/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPortalSummaryRoute = ApiPortalSummaryRouteImport.update({
+  id: '/api/portal/summary',
+  path: '/api/portal/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitesRedeemRoute = ApiInvitesRedeemRouteImport.update({
   id: '/redeem',
   path: '/redeem',
@@ -213,6 +233,16 @@ const PortalProjectsClientSlugProjectSlugRoute =
     path: '/portal/projects/$clientSlug/$projectSlug',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiProjectsIdUpdatesRoute = ApiProjectsIdUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => ApiProjectsIdRoute,
+} as any)
+const ApiProjectsIdMilestonesRoute = ApiProjectsIdMilestonesRouteImport.update({
+  id: '/milestones',
+  path: '/milestones',
+  getParentRoute: () => ApiProjectsIdRoute,
+} as any)
 const ApiProjectsIdFilesRoute = ApiProjectsIdFilesRouteImport.update({
   id: '/files',
   path: '/files',
@@ -258,6 +288,9 @@ export interface FileRoutesByFullPath {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
@@ -266,6 +299,8 @@ export interface FileRoutesByFullPath {
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
   '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRoutesByTo {
@@ -296,6 +331,9 @@ export interface FileRoutesByTo {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
@@ -304,6 +342,8 @@ export interface FileRoutesByTo {
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
   '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRoutesById {
@@ -335,6 +375,9 @@ export interface FileRoutesById {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
+  '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
@@ -343,6 +386,8 @@ export interface FileRoutesById {
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
+  '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
+  '/api/projects/$id/updates': typeof ApiProjectsIdUpdatesRoute
   '/portal/projects/$clientSlug/$projectSlug': typeof PortalProjectsClientSlugProjectSlugRoute
 }
 export interface FileRouteTypes {
@@ -375,6 +420,9 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/summary'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
     | '/portal/projects/$id'
@@ -383,6 +431,8 @@ export interface FileRouteTypes {
     | '/api/clients/$id/invites'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
     | '/portal/projects/$clientSlug/$projectSlug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -413,6 +463,9 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/summary'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
     | '/portal/projects/$id'
@@ -421,6 +474,8 @@ export interface FileRouteTypes {
     | '/api/clients/$id/invites'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
     | '/portal/projects/$clientSlug/$projectSlug'
   id:
     | '__root__'
@@ -451,6 +506,9 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/summary'
+    | '/api/project-milestones/$id'
+    | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
     | '/portal/projects/$id'
@@ -459,6 +517,8 @@ export interface FileRouteTypes {
     | '/api/clients/$id/invites'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
+    | '/api/projects/$id/milestones'
+    | '/api/projects/$id/updates'
     | '/portal/projects/$clientSlug/$projectSlug'
   fileRoutesById: FileRoutesById
 }
@@ -488,6 +548,9 @@ export interface RootRouteChildren {
   ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
   ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
+  ApiPortalSummaryRoute: typeof ApiPortalSummaryRoute
+  ApiProjectMilestonesIdRoute: typeof ApiProjectMilestonesIdRoute
+  ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute
   PortalProjectsIdRoute: typeof PortalProjectsIdRoute
   ProjectsClientSlugProjectSlugRoute: typeof ProjectsClientSlugProjectSlugRoute
   PortalProjectsIndexRoute: typeof PortalProjectsIndexRoute
@@ -678,6 +741,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsIdRouteImport
       parentRoute: typeof ApiProjectsRoute
     }
+    '/api/project-updates/$id': {
+      id: '/api/project-updates/$id'
+      path: '/api/project-updates/$id'
+      fullPath: '/api/project-updates/$id'
+      preLoaderRoute: typeof ApiProjectUpdatesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/project-milestones/$id': {
+      id: '/api/project-milestones/$id'
+      path: '/api/project-milestones/$id'
+      fullPath: '/api/project-milestones/$id'
+      preLoaderRoute: typeof ApiProjectMilestonesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/portal/summary': {
+      id: '/api/portal/summary'
+      path: '/api/portal/summary'
+      fullPath: '/api/portal/summary'
+      preLoaderRoute: typeof ApiPortalSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invites/redeem': {
       id: '/api/invites/redeem'
       path: '/redeem'
@@ -726,6 +810,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/projects/$clientSlug/$projectSlug'
       preLoaderRoute: typeof PortalProjectsClientSlugProjectSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/projects/$id/updates': {
+      id: '/api/projects/$id/updates'
+      path: '/updates'
+      fullPath: '/api/projects/$id/updates'
+      preLoaderRoute: typeof ApiProjectsIdUpdatesRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
+    }
+    '/api/projects/$id/milestones': {
+      id: '/api/projects/$id/milestones'
+      path: '/milestones'
+      fullPath: '/api/projects/$id/milestones'
+      preLoaderRoute: typeof ApiProjectsIdMilestonesRouteImport
+      parentRoute: typeof ApiProjectsIdRoute
     }
     '/api/projects/$id/files': {
       id: '/api/projects/$id/files'
@@ -790,11 +888,15 @@ const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(
 interface ApiProjectsIdRouteChildren {
   ApiProjectsIdCollaborationRoute: typeof ApiProjectsIdCollaborationRoute
   ApiProjectsIdFilesRoute: typeof ApiProjectsIdFilesRoute
+  ApiProjectsIdMilestonesRoute: typeof ApiProjectsIdMilestonesRoute
+  ApiProjectsIdUpdatesRoute: typeof ApiProjectsIdUpdatesRoute
 }
 
 const ApiProjectsIdRouteChildren: ApiProjectsIdRouteChildren = {
   ApiProjectsIdCollaborationRoute: ApiProjectsIdCollaborationRoute,
   ApiProjectsIdFilesRoute: ApiProjectsIdFilesRoute,
+  ApiProjectsIdMilestonesRoute: ApiProjectsIdMilestonesRoute,
+  ApiProjectsIdUpdatesRoute: ApiProjectsIdUpdatesRoute,
 }
 
 const ApiProjectsIdRouteWithChildren = ApiProjectsIdRoute._addFileChildren(
@@ -851,6 +953,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
   ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
+  ApiPortalSummaryRoute: ApiPortalSummaryRoute,
+  ApiProjectMilestonesIdRoute: ApiProjectMilestonesIdRoute,
+  ApiProjectUpdatesIdRoute: ApiProjectUpdatesIdRoute,
   PortalProjectsIdRoute: PortalProjectsIdRoute,
   ProjectsClientSlugProjectSlugRoute: ProjectsClientSlugProjectSlugRoute,
   PortalProjectsIndexRoute: PortalProjectsIndexRoute,
