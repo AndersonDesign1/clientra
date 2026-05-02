@@ -34,11 +34,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : "Admin workspace";
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <SidebarProvider className="bg-stone-50 text-zinc-950">
+      <Sidebar className="bg-stone-100/70">
         <SidebarHeader>
-          <p className="font-semibold text-lg">Clientra</p>
-          <p className="text-muted-foreground text-sm">{workspaceLabel}</p>
+          <p className="font-semibold text-lg tracking-tight">Clientra</p>
+          <p className="text-muted-foreground text-xs">{workspaceLabel}</p>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -46,13 +46,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <SidebarMenu>
               {adminNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <Link
-                    activeProps={{ "data-active": true }}
-                    className="block"
-                    to={item.href}
-                  >
+                  <Link className="block" to={item.href}>
                     {({ isActive }) => (
-                      <SidebarMenuButton active={isActive}>
+                      <SidebarMenuButton
+                        active={isActive}
+                        className="rounded-md"
+                      >
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     )}
@@ -64,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </SidebarContent>
         <SidebarSeparator />
         <SidebarFooter>
-          <div className="rounded-md border bg-background p-3 text-sm">
+          <div className="border-slate-200 border-t pt-3 text-sm">
             <p className="font-medium">{user?.name ?? "Loading account"}</p>
             <p className="truncate text-muted-foreground text-xs">
               {user?.email ?? "Checking session..."}
@@ -73,19 +72,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <SignOutButton className="w-full" />
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="border-b bg-background px-4 py-3 md:hidden">
+      <SidebarInset className="bg-stone-50">
+        <header className="border-b bg-stone-100/80 px-4 py-3 md:hidden">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold">Clientra</p>
+            <p className="font-semibold tracking-tight">Clientra</p>
             <SignOutButton />
           </div>
           <nav className="mt-3 flex flex-wrap gap-2">
             {adminNav.map((item) => (
               <Link
                 activeProps={{
-                  className: "bg-primary text-primary-foreground",
+                  className: "border-slate-900 bg-white text-zinc-950",
                 }}
-                className="rounded-md border px-2 py-1 text-sm"
+                className="rounded-md border border-transparent px-2 py-1 text-sm"
                 key={item.href}
                 to={item.href}
               >
@@ -94,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
         </header>
-        <div className="mx-auto max-w-7xl p-6">{children}</div>
+        <div className="mx-auto max-w-7xl px-5 py-6 md:px-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

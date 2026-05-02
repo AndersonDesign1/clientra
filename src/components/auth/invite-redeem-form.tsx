@@ -127,17 +127,17 @@ export function InviteRedeemForm({
       asideEyebrow="Invite Access"
       asideTitle="Your client portal is almost ready."
     >
-      <Card className="border-white/70 bg-white/90 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-        <CardHeader className="space-y-2 text-center">
+      <Card className="rounded-lg border-slate-200 bg-white shadow-none">
+        <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Accept invite</CardTitle>
-          <CardDescription className="text-balance text-slate-600">
+          <CardDescription className="text-slate-600">
             Set your password once and we’ll connect you to the right client
             workspace.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {state.error && !invite ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-rose-700 text-sm">
+            <div className="rounded-md border border-rose-200 bg-rose-50 px-4 py-6 text-rose-700 text-sm">
               {state.error}
             </div>
           ) : null}

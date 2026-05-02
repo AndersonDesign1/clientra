@@ -65,7 +65,7 @@ export function ProjectCollaborationView({
 }: ProjectCollaborationViewProps) {
   return (
     <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-      <section className="rounded-xl border bg-white p-4">
+      <section className="border-slate-200 border-y py-4">
         <div className="mb-4">
           <h2 className="font-medium text-lg text-slate-900">
             Project discussion
@@ -78,13 +78,13 @@ export function ProjectCollaborationView({
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <textarea
-            className="min-h-28 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-slate-400"
+            className="min-h-28 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-slate-900"
             onChange={(event) => onContentChange(event.target.value)}
             placeholder="Post an update, ask a question, or leave feedback..."
             value={content}
           />
           {formError ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
+            <div className="border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
               {formError}
             </div>
           ) : null}
@@ -98,7 +98,7 @@ export function ProjectCollaborationView({
           </div>
         </form>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 divide-y divide-slate-200 border-slate-200 border-y">
           {collaboration.comments.length === 0 ? (
             <EmptyPanel
               description="Be the first person to post an update on this project."
@@ -106,15 +106,12 @@ export function ProjectCollaborationView({
             />
           ) : (
             collaboration.comments.map((comment) => (
-              <article
-                className="rounded-xl border border-slate-200 p-4"
-                key={comment.id}
-              >
+              <article className="py-4" key={comment.id}>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-slate-900">
                     {comment.authorName}
                   </p>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] uppercase tracking-[0.18em]">
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px]">
                     {comment.authorRole}
                   </span>
                   <span className="text-slate-500 text-xs">
@@ -130,7 +127,7 @@ export function ProjectCollaborationView({
         </div>
       </section>
 
-      <section className="rounded-xl border bg-white p-4">
+      <section className="border-slate-200 border-y py-4">
         <div className="mb-4">
           <h2 className="font-medium text-lg text-slate-900">
             Activity timeline
@@ -146,12 +143,9 @@ export function ProjectCollaborationView({
             title="No activity yet"
           />
         ) : (
-          <ol className="space-y-3">
+          <ol className="divide-y divide-slate-200 border-slate-200 border-y">
             {collaboration.activity.map((event) => (
-              <li
-                className="rounded-xl border border-slate-200 p-4"
-                key={event.id}
-              >
+              <li className="py-4" key={event.id}>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-slate-900">
                     {formatEventTitle(event)}
@@ -210,13 +204,13 @@ export function ProjectCollaborationPanel({
   if (collaborationQuery.isLoading && !collaborationQuery.data) {
     return (
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-xl border bg-white p-4">
+        <section className="border-slate-200 border-y py-4">
           <LoadingPanel
             description="Loading the latest discussion for this project."
             title="Loading discussion"
           />
         </section>
-        <section className="rounded-xl border bg-white p-4">
+        <section className="border-slate-200 border-y py-4">
           <LoadingPanel
             description="Loading recent project activity."
             title="Loading activity"

@@ -56,7 +56,7 @@ function TableCardSkeleton({
   );
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white">
+    <div className="overflow-hidden border-slate-200 border-y bg-white">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 text-left text-slate-500">
           <tr>
@@ -91,7 +91,7 @@ function TableCardSkeleton({
 
 function TimelineCardSkeleton() {
   return (
-    <section className="rounded-xl border bg-white p-4">
+    <section className="border-slate-200 border-y py-4">
       <Skeleton className="h-5 w-36" />
       <div className="mt-4 space-y-3">
         {["1", "2", "3", "4"].map((key) => (
@@ -104,7 +104,7 @@ function TimelineCardSkeleton() {
 
 function DetailSummarySkeleton() {
   return (
-    <div className="mb-4 rounded-xl border bg-white p-4 text-sm">
+    <div className="mb-4 border-slate-200 border-y py-4 text-sm">
       <Skeleton className="h-4 w-72 max-w-full" />
     </div>
   );
@@ -116,7 +116,7 @@ export function DashboardPendingPage() {
       <PendingHeader descriptionWidth="w-52" title="Admin Dashboard" />
       <div className="grid gap-4 md:grid-cols-3">
         {["clients", "projects", "deadlines"].map((key) => (
-          <div className="rounded-xl border bg-white p-4" key={key}>
+          <div className="border-slate-200 border-y py-4" key={key}>
             <Skeleton className="h-4 w-24" />
             <Skeleton className="mt-4 h-10 w-20" />
           </div>
@@ -132,7 +132,7 @@ export function SettingsPendingPage() {
     <AdminPendingShell testId="settings-route-pending">
       <PendingHeader descriptionWidth="w-64" title="Settings" />
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-xl border bg-white p-4">
+        <section className="border-slate-200 border-y py-4">
           <Skeleton className="h-6 w-44" />
           <Skeleton className="mt-3 h-4 w-full max-w-xl" />
           <Skeleton className="mt-2 h-4 w-full max-w-lg" />
@@ -148,7 +148,7 @@ export function SettingsPendingPage() {
             <Skeleton className="h-10 w-44" />
           </div>
         </section>
-        <section className="rounded-xl border bg-white p-4">
+        <section className="border-slate-200 border-y py-4">
           <Skeleton className="h-6 w-32" />
           <div className="mt-4 space-y-3">
             {["google-local", "google-prod", "github-local", "github-prod"].map(
@@ -205,7 +205,7 @@ export function ClientDetailPendingPage() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-6 w-20" />
       </div>
-      <section className="space-y-4 rounded-xl border bg-white p-4 text-sm">
+      <section className="space-y-4 border-slate-200 border-y py-4 text-sm">
         {["contact", "email", "phone", "website", "notes"].map((key) => (
           <Skeleton className="h-4 w-full max-w-xl" key={key} />
         ))}
@@ -220,7 +220,7 @@ export function ProjectsPendingPage() {
       <PendingHeader descriptionWidth="w-56" title="Projects" />
       <div className="grid gap-3">
         {["1", "2", "3"].map((key) => (
-          <section className="rounded-xl border bg-white p-4" key={key}>
+          <section className="border-slate-200 border-y py-4" key={key}>
             <div className="flex items-center justify-between gap-4">
               <Skeleton className="h-5 w-52" />
               <Skeleton className="h-6 w-24" />
@@ -246,7 +246,7 @@ export function ProjectDetailPendingPage() {
       </div>
       <DetailSummarySkeleton />
       <TimelineCardSkeleton />
-      <section className="rounded-xl border bg-white p-4">
+      <section className="border-slate-200 border-y py-4">
         <Skeleton className="h-5 w-28" />
         <div className="mt-4 space-y-3">
           {["1", "2", "3"].map((key) => (
@@ -263,7 +263,7 @@ export function PortalHomePendingPage() {
     <PortalPendingShell testId="portal-home-route-pending">
       <PendingHeader descriptionWidth="w-56" title="Client Portal" />
       <Skeleton className="h-4 w-32" />
-      <section className="rounded-xl border bg-white p-4">
+      <section className="border-slate-200 border-y py-4">
         <Skeleton className="h-5 w-32" />
         <Skeleton className="mt-3 h-4 w-full max-w-sm" />
       </section>
@@ -277,7 +277,7 @@ export function PortalProjectsPendingPage() {
       <PendingHeader descriptionWidth="w-60" title="Your Projects" />
       <div className="grid gap-3">
         {["1", "2", "3"].map((key) => (
-          <section className="rounded-xl border bg-white p-4" key={key}>
+          <section className="border-slate-200 border-y py-4" key={key}>
             <div className="flex items-center justify-between gap-4">
               <Skeleton className="h-5 w-44" />
               <Skeleton className="h-6 w-24" />
@@ -298,7 +298,7 @@ export function PortalProjectDetailPendingPage() {
         <Skeleton className="h-4 w-full max-w-xl" />
       </div>
       <TimelineCardSkeleton />
-      <section className="rounded-xl border bg-white p-4">
+      <section className="border-slate-200 border-y py-4">
         <Skeleton className="h-5 w-28" />
         <div className="mt-4 space-y-3">
           {["1", "2", "3"].map((key) => (

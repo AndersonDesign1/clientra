@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
+import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { PortalProjectsPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
@@ -14,6 +15,7 @@ import {
   useClientsData,
   useProjectsData,
 } from "@/lib/api";
+import { getDeadlineLabel } from "@/lib/insights";
 import { getProjectPathParams } from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/portal/projects/")({
@@ -33,7 +35,10 @@ function PortalProjectsPage() {
 
   return (
     <PortalShell>
-      <h1 className="mb-4 font-semibold text-2xl">Your Projects</h1>
+      <PageHeader
+        description="A clean register of every project currently visible to your account."
+        title="Your Projects"
+      />
       {projectsQuery.isLoading || clientsQuery.isLoading ? (
         <LoadingPanel />
       ) : null}
@@ -60,32 +65,35 @@ function PortalProjectsPage() {
         projectsQuery.error ||
         clientsQuery.error
       ) && (projectsQuery.data?.length ?? 0) > 0 ? (
-        <div className="grid gap-3">
-          {projectsQuery.data?.map((project) => {
-            const { clientSlug, projectSlug } = getProjectPathParams(
-              project,
-              clientsQuery.data ?? []
-            );
+        <DataSection title="Project register">
+          <div className="divide-y divide-slate-200 border-slate-200 border-y">
+            {projectsQuery.data?.map((project) => {
+              const { clientSlug, projectSlug } = getProjectPathParams(
+                project,
+                clientsQuery.data ?? []
+              );
 
-            return (
-              <div className="rounded-xl border bg-white p-4" key={project.id}>
-                <div className="mb-2 flex items-center justify-between">
+              return (
+                <div
+                  className="grid gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_9rem_10rem] sm:items-center"
+                  key={project.id}
+                >
                   <Link
-                    className="font-medium underline"
+                    className="font-medium text-zinc-950 hover:underline"
                     params={{ clientSlug, projectSlug }}
                     to="/portal/projects/$clientSlug/$projectSlug"
                   >
                     {project.title}
                   </Link>
                   <StatusBadge value={project.status} />
+                  <p className="text-slate-600">
+                    {getDeadlineLabel(project.deadline)}
+                  </p>
                 </div>
-                <p className="text-slate-600 text-sm">
-                  Deadline: {project.deadline}
-                </p>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </DataSection>
       ) : null}
     </PortalShell>
   );

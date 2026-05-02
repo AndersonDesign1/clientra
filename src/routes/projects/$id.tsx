@@ -5,6 +5,11 @@ import {
   DeleteProjectDialog,
   ProjectFormDialog,
 } from "@/components/admin/crud-dialogs";
+import {
+  DataSection,
+  DefinitionGrid,
+  PageHeader,
+} from "@/components/common/product-ui";
 import { ProjectDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import {
@@ -33,6 +38,7 @@ import {
   useProjectsData,
   useUpdateProjectMutation,
 } from "@/lib/api";
+import { getDeadlineLabel } from "@/lib/insights";
 import {
   findProjectByClientAndProjectPathParams,
   findProjectByPathParam,
@@ -145,107 +151,118 @@ export function AdminProjectDetailPage({
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-semibold text-2xl">{project.title}</h1>
-          <p className="mt-1 text-slate-600 text-sm">{project.description}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge value={project.status} />
-          <Select
-            items={PROJECT_STATUS_OPTIONS}
-            onValueChange={(value) =>
-              setStatusDraft({
-                projectId: selectedProject.id,
-                status: value as Project["status"],
-              })
-            }
-            value={currentStatusDraft}
-          >
-            <SelectTrigger className="w-36" size="sm">
-              <SelectValue>{formatStatusLabel(currentStatusDraft)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {PROJECT_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Button
-            disabled={!hasStatusChange || updateProject.isPending}
-            onClick={() => {
-              saveStatus().catch(() => undefined);
-            }}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            {updateProject.isPending ? "Saving..." : "Save status"}
-          </Button>
-          <ProjectFormDialog
-            clients={clients}
-            onOpenChange={setIsEditOpen}
-            onSaved={(updatedProject) => {
-              const {
-                clientSlug: nextClientSlug,
-                projectSlug: nextProjectSlug,
-              } = getProjectPathParams(updatedProject, clients);
-
-              if (
-                nextClientSlug !== clientSlug ||
-                nextProjectSlug !== projectSlug
-              ) {
-                navigate({
-                  params: {
-                    clientSlug: nextClientSlug,
-                    projectSlug: nextProjectSlug,
-                  },
-                  replace: true,
-                  to: "/projects/$clientSlug/$projectSlug",
-                }).catch(() => undefined);
+      <PageHeader
+        actions={
+          <>
+            <StatusBadge value={project.status} />
+            <Select
+              items={PROJECT_STATUS_OPTIONS}
+              onValueChange={(value) =>
+                setStatusDraft({
+                  projectId: selectedProject.id,
+                  status: value as Project["status"],
+                })
               }
-            }}
-            open={isEditOpen}
-            project={project}
-            trigger={
-              <Button size="sm" type="button" variant="outline">
-                Edit
-              </Button>
-            }
-          />
-          <DeleteProjectDialog
-            onDeleted={() => {
-              navigate({ to: "/projects" }).catch(() => undefined);
-            }}
-            project={project}
-            trigger={
-              <Button size="sm" type="button" variant="destructive">
-                Delete
-              </Button>
-            }
-          />
-        </div>
-      </div>
-      <div className="mb-4 rounded-xl border bg-white p-4 text-sm">
-        <p>
-          Budget: ${project.budget.toLocaleString()} · Deadline:{" "}
-          {project.deadline || "No deadline yet"}
-        </p>
-      </div>
-      <div className="mb-4">
+              value={currentStatusDraft}
+            >
+              <SelectTrigger className="w-36" size="sm">
+                <SelectValue>
+                  {formatStatusLabel(currentStatusDraft)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {PROJECT_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button
+              disabled={!hasStatusChange || updateProject.isPending}
+              onClick={() => {
+                saveStatus().catch(() => undefined);
+              }}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {updateProject.isPending ? "Saving..." : "Save status"}
+            </Button>
+            <ProjectFormDialog
+              clients={clients}
+              onOpenChange={setIsEditOpen}
+              onSaved={(updatedProject) => {
+                const {
+                  clientSlug: nextClientSlug,
+                  projectSlug: nextProjectSlug,
+                } = getProjectPathParams(updatedProject, clients);
+
+                if (
+                  nextClientSlug !== clientSlug ||
+                  nextProjectSlug !== projectSlug
+                ) {
+                  navigate({
+                    params: {
+                      clientSlug: nextClientSlug,
+                      projectSlug: nextProjectSlug,
+                    },
+                    replace: true,
+                    to: "/projects/$clientSlug/$projectSlug",
+                  }).catch(() => undefined);
+                }
+              }}
+              open={isEditOpen}
+              project={project}
+              trigger={
+                <Button size="sm" type="button" variant="outline">
+                  Edit
+                </Button>
+              }
+            />
+            <DeleteProjectDialog
+              onDeleted={() => {
+                navigate({ to: "/projects" }).catch(() => undefined);
+              }}
+              project={project}
+              trigger={
+                <Button size="sm" type="button" variant="destructive">
+                  Delete
+                </Button>
+              }
+            />
+          </>
+        }
+        description={project.description}
+        title={project.title}
+      />
+      <DataSection title="Project record">
+        <DefinitionGrid
+          items={[
+            {
+              label: "Budget",
+              value: `$${project.budget.toLocaleString()}`,
+            },
+            { label: "Deadline", value: getDeadlineLabel(project.deadline) },
+            { label: "Status", value: formatStatusLabel(project.status) },
+            { label: "Project ID", value: project.id },
+          ]}
+        />
+      </DataSection>
+      <DataSection title="Updates">
         <ProjectUpdatesPanel canManage projectId={project.id} />
-      </div>
-      <div className="mb-4">
+      </DataSection>
+      <DataSection title="Milestones">
         <ProjectMilestonesPanel canManage projectId={project.id} />
-      </div>
-      <div className="mb-4">
+      </DataSection>
+      <DataSection title="Collaboration">
         <ProjectCollaborationPanel projectId={project.id} />
-      </div>
-      <ProjectFilesPanel canDelete projectId={project.id} />
+      </DataSection>
+      <DataSection title="Files">
+        <ProjectFilesPanel canDelete projectId={project.id} />
+      </DataSection>
     </AppShell>
   );
 }

@@ -5,6 +5,7 @@ import {
   ClientFormDialog,
   DeleteClientDialog,
 } from "@/components/admin/crud-dialogs";
+import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { ClientsPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
@@ -60,22 +61,25 @@ function ClientsPage() {
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-semibold text-2xl">Clients</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            className="rounded-md border p-2 text-sm"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search clients or projects"
-            value={query}
-          />
-          <ClientFormDialog
-            onOpenChange={setIsCreateOpen}
-            open={isCreateOpen}
-            trigger={<Button>New client</Button>}
-          />
-        </div>
-      </div>
+      <PageHeader
+        actions={
+          <>
+            <input
+              className="h-9 min-w-64 rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-slate-900"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search clients or projects"
+              value={query}
+            />
+            <ClientFormDialog
+              onOpenChange={setIsCreateOpen}
+              open={isCreateOpen}
+              trigger={<Button>New client</Button>}
+            />
+          </>
+        }
+        description="Manage client records, linked projects, and invite-ready accounts."
+        title="Clients"
+      />
       {clientsContent}
       {editingClient ? (
         <ClientFormDialog
@@ -134,9 +138,9 @@ function getClientsContent({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="overflow-x-auto border-slate-200 border-y bg-white">
       <Table>
-        <TableHeader className="bg-muted/50">
+        <TableHeader className="bg-stone-50">
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Company</TableHead>
@@ -150,7 +154,7 @@ function getClientsContent({
             <TableRow key={client.id}>
               <TableCell>
                 <Link
-                  className="underline"
+                  className="font-medium text-zinc-950 hover:underline"
                   params={{ id: getClientPathParam(client) }}
                   to="/clients/$id"
                 >
@@ -222,24 +226,19 @@ function ProjectMatchesSection({
   }
 
   return (
-    <section className="mt-6 rounded-xl border bg-white p-4">
-      <h2 className="mb-3 font-medium text-lg">Matching Projects</h2>
+    <DataSection className="mt-6" title="Matching projects">
       <div className="grid gap-3">
         {matchedProjects.map((project) => (
           <div
-            className="rounded-lg border border-slate-200 p-3"
+            className="grid gap-2 border-slate-200 border-t pt-3 text-sm first:border-t-0 first:pt-0 sm:grid-cols-[minmax(0,1fr)_9rem_10rem] sm:items-center"
             key={project.id}
           >
-            <div className="flex items-center justify-between gap-4">
-              <p className="font-medium">{project.title}</p>
-              <StatusBadge value={project.status} />
-            </div>
-            <p className="mt-2 text-slate-600 text-sm">
-              Deadline: {project.deadline}
-            </p>
+            <p className="font-medium text-zinc-950">{project.title}</p>
+            <StatusBadge value={project.status} />
+            <p className="text-slate-600">Deadline: {project.deadline}</p>
           </div>
         ))}
       </div>
-    </section>
+    </DataSection>
   );
 }

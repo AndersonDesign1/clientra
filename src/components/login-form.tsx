@@ -154,10 +154,10 @@ export function LoginForm() {
       asideTitle="Bring your client workspace back into focus."
     >
       <div className="flex flex-col gap-6">
-        <Card className="border-white/70 bg-white/90 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-          <CardHeader className="space-y-2 text-center">
+        <Card className="rounded-lg border-slate-200 bg-white shadow-none">
+          <CardHeader className="space-y-2">
             <CardTitle className="text-2xl">Welcome back</CardTitle>
-            <CardDescription className="text-balance text-slate-600">
+            <CardDescription className="text-slate-600">
               Admins can sign in with email, Google, or GitHub. Clients should
               continue with their invite link.
             </CardDescription>
@@ -193,9 +193,7 @@ export function LoginForm() {
                       : "Continue with GitHub"}
                   </Button>
                 </Field>
-                <FieldSeparator className="*:data-[slot=field-separator-content]:bg-white/90">
-                  Or continue with email
-                </FieldSeparator>
+                <FieldSeparator>Or continue with email</FieldSeparator>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
@@ -248,7 +246,7 @@ export function LoginForm() {
             </form>
           </CardContent>
         </Card>
-        <FieldDescription className="px-6 text-center text-slate-500">
+        <FieldDescription className="px-6 text-slate-500">
           Client access is invite-only. If a workspace owner invited you, use
           the secure link from your email to finish setup.
         </FieldDescription>

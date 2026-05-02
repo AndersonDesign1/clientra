@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
+import {
+  DataSection,
+  DefinitionGrid,
+  PageHeader,
+} from "@/components/common/product-ui";
 import { PortalProjectDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
+import { formatStatusLabel } from "@/components/common/status-badge";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { ProjectCollaborationPanel } from "@/components/projects/project-collaboration-panel";
 import { ProjectFilesPanel } from "@/components/projects/project-files-panel";
@@ -13,6 +19,7 @@ import {
   useClientsData,
   useProjectsData,
 } from "@/lib/api";
+import { getDeadlineLabel } from "@/lib/insights";
 import {
   findProjectByClientAndProjectPathParams,
   findProjectByPathParam,
@@ -86,18 +93,27 @@ export function PortalProjectDetailPage({
 
   return (
     <PortalShell>
-      <h1 className="mb-2 font-semibold text-2xl">{project.title}</h1>
-      <p className="mb-4 text-slate-600 text-sm">{project.description}</p>
-      <div className="mb-4">
+      <PageHeader description={project.description} title={project.title} />
+      <DataSection title="Project details">
+        <DefinitionGrid
+          items={[
+            { label: "Status", value: formatStatusLabel(project.status) },
+            { label: "Deadline", value: getDeadlineLabel(project.deadline) },
+          ]}
+        />
+      </DataSection>
+      <DataSection title="Updates">
         <ProjectUpdatesPanel canManage={false} projectId={project.id} />
-      </div>
-      <div className="mb-4">
+      </DataSection>
+      <DataSection title="Milestones">
         <ProjectMilestonesPanel canManage={false} projectId={project.id} />
-      </div>
-      <div className="mb-4">
+      </DataSection>
+      <DataSection title="Discussion and activity">
         <ProjectCollaborationPanel projectId={project.id} />
-      </div>
-      <ProjectFilesPanel canDelete={false} projectId={project.id} />
+      </DataSection>
+      <DataSection title="Files">
+        <ProjectFilesPanel canDelete={false} projectId={project.id} />
+      </DataSection>
     </PortalShell>
   );
 }

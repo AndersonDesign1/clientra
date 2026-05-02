@@ -3,6 +3,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useReducer } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { PageHeader } from "@/components/common/product-ui";
 import { UsersPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
@@ -119,12 +120,10 @@ function UsersPage() {
 
   return (
     <AppShell>
-      <div className="mb-4">
-        <h1 className="font-semibold text-2xl">Users</h1>
-        <p className="mt-1 text-slate-600 text-sm">
-          Manage workspace access, adjust roles, and remove unwanted accounts.
-        </p>
-      </div>
+      <PageHeader
+        description="Manage workspace access, adjust roles, and remove unwanted accounts."
+        title="Users"
+      />
 
       {state.mutationError ? (
         <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 text-sm">
@@ -183,7 +182,7 @@ function UsersPage() {
         />
       ) : null}
       {visibleUsers.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border bg-white">
+        <div className="overflow-x-auto border-slate-200 border-y bg-white">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-slate-500">
               <tr>

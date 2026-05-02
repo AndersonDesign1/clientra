@@ -27,11 +27,13 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   const user = session.data?.user;
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <SidebarProvider className="bg-stone-50 text-zinc-950">
+      <Sidebar className="bg-stone-100/70">
         <SidebarHeader>
-          <p className="font-semibold text-lg">Clientra Portal</p>
-          <p className="text-muted-foreground text-sm">
+          <p className="font-semibold text-lg tracking-tight">
+            Clientra Portal
+          </p>
+          <p className="text-muted-foreground text-xs">
             {user?.name ? `Signed in as ${user.name}` : "Secure client access"}
           </p>
         </SidebarHeader>
@@ -63,10 +65,10 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
           <SignOutButton className="w-full" />
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="border-b bg-background px-4 py-3 md:hidden">
+      <SidebarInset className="bg-stone-50">
+        <header className="border-b bg-stone-100/80 px-4 py-3 md:hidden">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold">Clientra Portal</p>
+            <p className="font-semibold tracking-tight">Clientra Portal</p>
             <SignOutButton />
           </div>
           <nav className="mt-3 flex flex-wrap gap-2">
@@ -76,9 +78,9 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
                   item.href === "/portal" ? { exact: true } : undefined
                 }
                 activeProps={{
-                  className: "bg-primary text-primary-foreground",
+                  className: "border-slate-900 bg-white text-zinc-950",
                 }}
-                className="rounded-md border px-2 py-1 text-sm"
+                className="rounded-md border border-transparent px-2 py-1 text-sm"
                 key={item.href}
                 to={item.href}
               >
@@ -87,7 +89,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
         </header>
-        <div className="mx-auto max-w-5xl px-6 py-8">{children}</div>
+        <main className="mx-auto max-w-5xl px-6 py-7">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

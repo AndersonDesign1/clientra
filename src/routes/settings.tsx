@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { SettingsPendingPage } from "@/components/common/route-pending";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -84,19 +85,20 @@ function SettingsPage() {
 
   return (
     <AppShell>
-      <h1 className="mb-4 font-semibold text-2xl">Settings</h1>
+      <PageHeader
+        description="Invite clients and keep callback configuration close at hand."
+        title="Settings"
+      />
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-xl border bg-white p-4">
-          <h2 className="font-medium text-lg">Client access invites</h2>
-          <p className="mt-2 text-slate-600 text-sm">
-            Invite clients into their portal without opening public signup. Each
-            invite stays active for seven days.
-          </p>
+        <DataSection
+          description="Invite clients into their portal without opening public signup. Each invite stays active for seven days."
+          title="Client access invites"
+        >
           <form className="mt-4 space-y-4" onSubmit={handleInviteSubmit}>
             <label className="block space-y-2 text-sm">
               <span className="font-medium text-slate-700">Client</span>
               <select
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2"
                 onChange={(event) =>
                   setFormState((current) => ({
                     ...current,
@@ -117,7 +119,7 @@ function SettingsPage() {
             <label className="block space-y-2 text-sm">
               <span className="font-medium text-slate-700">Invite email</span>
               <input
-                className="w-full rounded-md border border-slate-200 px-3 py-2"
+                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2"
                 onChange={(event) =>
                   setFormState((current) => ({
                     ...current,
@@ -136,7 +138,7 @@ function SettingsPage() {
               </p>
             ) : null}
             {formState.inviteLink ? (
-              <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-800 text-sm">
+              <div className="rounded-md border border-teal-200 bg-teal-50 px-3 py-3 text-sm text-teal-900">
                 <p className="font-medium">Invite ready</p>
                 <p className="mt-1 break-all">{formState.inviteLink}</p>
               </div>
@@ -150,10 +152,9 @@ function SettingsPage() {
                 : "Generate invite link"}
             </Button>
           </form>
-        </section>
-        <section className="rounded-xl border bg-white p-4 text-slate-600 text-sm">
-          <h2 className="font-medium text-lg text-slate-900">OAuth setup</h2>
-          <ul className="mt-3 space-y-2 leading-6">
+        </DataSection>
+        <DataSection className="text-slate-600 text-sm" title="OAuth setup">
+          <ul className="space-y-2 leading-6">
             <li>
               Google local: `http://localhost:3000/api/auth/callback/google`
             </li>
@@ -169,7 +170,7 @@ function SettingsPage() {
               `https://useclientra.vercel.app/api/auth/callback/github`
             </li>
           </ul>
-        </section>
+        </DataSection>
       </div>
     </AppShell>
   );

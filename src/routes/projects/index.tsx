@@ -5,6 +5,12 @@ import {
   DeleteProjectDialog,
   ProjectFormDialog,
 } from "@/components/admin/crud-dialogs";
+import {
+  BudgetLineChart,
+  DeadlineAreaChart,
+  StatusBarChart,
+} from "@/components/common/product-charts";
+import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { ProjectsPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
@@ -14,6 +20,14 @@ import {
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { Project } from "@/features/projects/mock-data";
 import {
   ensureClientsData,
@@ -21,6 +35,12 @@ import {
   useClientsData,
   useProjectsData,
 } from "@/lib/api";
+import {
+  getBudgetByStatusData,
+  getDeadlineData,
+  getDeadlineLabel,
+  getProjectStatusData,
+} from "@/lib/insights";
 import { getProjectPathParams } from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/projects/")({
@@ -43,15 +63,18 @@ function ProjectsPage() {
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-semibold text-2xl">Projects</h1>
-        <ProjectFormDialog
-          clients={clients}
-          onOpenChange={setIsCreateOpen}
-          open={isCreateOpen}
-          trigger={<Button>New project</Button>}
-        />
-      </div>
+      <PageHeader
+        actions={
+          <ProjectFormDialog
+            clients={clients}
+            onOpenChange={setIsCreateOpen}
+            open={isCreateOpen}
+            trigger={<Button>New project</Button>}
+          />
+        }
+        description="Track delivery status, deadlines, and budget concentration across all active work."
+        title="Projects"
+      />
       {projectsQuery.isLoading || clientsQuery.isLoading ? (
         <LoadingPanel />
       ) : null}
@@ -78,54 +101,94 @@ function ProjectsPage() {
         projectsQuery.error ||
         clientsQuery.error
       ) && (projectsQuery.data?.length ?? 0) > 0 ? (
-        <div className="grid gap-3">
-          {projectsQuery.data?.map((project) => {
-            const { clientSlug, projectSlug } = getProjectPathParams(
-              project,
-              clients
-            );
+        <>
+          <DataSection title="Delivery shape">
+            <div className="grid gap-6 xl:grid-cols-3">
+              <StatusBarChart
+                data={getProjectStatusData(projectsQuery.data ?? [])}
+              />
+              <DeadlineAreaChart
+                data={getDeadlineData(projectsQuery.data ?? [])}
+              />
+              <BudgetLineChart
+                data={getBudgetByStatusData(projectsQuery.data ?? [])}
+              />
+            </div>
+          </DataSection>
+          <DataSection title="Project register">
+            <div className="overflow-x-auto border-slate-200 border-y bg-white">
+              <Table>
+                <TableHeader className="bg-stone-50">
+                  <TableRow>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Budget</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {projectsQuery.data?.map((project) => {
+                    const { clientSlug, projectSlug } = getProjectPathParams(
+                      project,
+                      clients
+                    );
 
-            return (
-              <div className="rounded-xl border bg-white p-4" key={project.id}>
-                <div className="mb-2 flex items-center justify-between">
-                  <h2 className="font-medium">
-                    <Link
-                      className="hover:underline"
-                      params={{ clientSlug, projectSlug }}
-                      to="/projects/$clientSlug/$projectSlug"
-                    >
-                      {project.title}
-                    </Link>
-                  </h2>
-                  <StatusBadge value={project.status} />
-                </div>
-                <p className="text-slate-600 text-sm">{project.description}</p>
-                <p className="mt-2 text-sm">
-                  Budget: ${project.budget.toLocaleString()} · Deadline:{" "}
-                  {project.deadline}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => setEditingProject(project)}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Edit
-                  </Button>
-                  <DeleteProjectDialog
-                    project={project}
-                    trigger={
-                      <Button size="sm" type="button" variant="destructive">
-                        Delete
-                      </Button>
-                    }
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                    return (
+                      <TableRow key={project.id}>
+                        <TableCell>
+                          <Link
+                            className="font-medium text-zinc-950 hover:underline"
+                            params={{ clientSlug, projectSlug }}
+                            to="/projects/$clientSlug/$projectSlug"
+                          >
+                            {project.title}
+                          </Link>
+                          <p className="mt-1 max-w-lg text-slate-600 text-xs">
+                            {project.description}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge value={project.status} />
+                        </TableCell>
+                        <TableCell className="tabular-nums">
+                          ${project.budget.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {getDeadlineLabel(project.deadline)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              onClick={() => setEditingProject(project)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              Edit
+                            </Button>
+                            <DeleteProjectDialog
+                              project={project}
+                              trigger={
+                                <Button
+                                  size="sm"
+                                  type="button"
+                                  variant="destructive"
+                                >
+                                  Delete
+                                </Button>
+                              }
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </DataSection>
+        </>
       ) : null}
       {editingProject ? (
         <ProjectFormDialog

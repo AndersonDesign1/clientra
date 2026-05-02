@@ -139,17 +139,17 @@ export function AdminSignupForm({
       asideEyebrow="Admin Signup"
       asideTitle="Start the workspace your clients will trust."
     >
-      <Card className="border-white/70 bg-white/90 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-        <CardHeader className="space-y-2 text-center">
+      <Card className="rounded-lg border-slate-200 bg-white shadow-none">
+        <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Create an admin account</CardTitle>
-          <CardDescription className="text-balance text-slate-600">
+          <CardDescription className="text-slate-600">
             Public signup is reserved for workspace owners. Clients join later
             through invite-only access.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isBootstrapOpen ? null : (
-            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900 text-sm">
+            <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900 text-sm">
               This workspace already has an admin account. Use the sign-in page
               instead of creating another public admin.
             </div>

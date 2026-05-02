@@ -1,5 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireAdminSession } from "@/auth/guards";
+import {
+  ActivityRadialChart,
+  BudgetLineChart,
+  DeadlineAreaChart,
+  StatusBarChart,
+} from "@/components/common/product-charts";
+import {
+  DataSection,
+  MetricLedger,
+  PageHeader,
+  TimelineItem,
+  TimelineList,
+} from "@/components/common/product-ui";
 import { DashboardPendingPage } from "@/components/common/route-pending";
 import { EmptyPanel, ErrorPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
@@ -12,6 +25,14 @@ import {
   useDashboardActivityData,
   useProjectsData,
 } from "@/lib/api";
+import {
+  getActivityTypeData,
+  getBudgetByStatusData,
+  getDeadlineData,
+  getDeadlineLabel,
+  getNextDeadline,
+  getProjectStatusData,
+} from "@/lib/insights";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: requireAdminSession,
@@ -45,7 +66,7 @@ function DashboardPage() {
   if (activityQuery.error || clientsQuery.error || projectsQuery.error) {
     return (
       <AppShell>
-        <h1 className="mb-6 font-semibold text-2xl">Admin Dashboard</h1>
+        <PageHeader title="Admin Dashboard" />
         <ErrorPanel
           description={
             activityQuery.error ??
@@ -71,28 +92,54 @@ function DashboardPage() {
       return Number.isFinite(deadline) && deadline > Date.now();
     }).length,
   };
+  const nextDeadline = getNextDeadline(projects);
 
   return (
     <AppShell>
-      <h1 className="mb-6 font-semibold text-2xl">Admin Dashboard</h1>
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <MetricCard
-          label="Total clients"
-          value={dashboardMetrics.totalClients}
-        />
-        <MetricCard
-          label="Active projects"
-          value={dashboardMetrics.activeProjects}
-        />
-        <MetricCard
-          label="Upcoming deadlines"
-          value={dashboardMetrics.upcomingDeadlines}
-        />
-      </div>
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="mb-3 font-medium text-lg">Recent activity</h2>
+      <PageHeader
+        description="A compact view of delivery load, project mix, deadlines, and the latest workspace activity."
+        title="Admin Dashboard"
+      />
+      <MetricLedger
+        items={[
+          {
+            label: "Total clients",
+            value: dashboardMetrics.totalClients,
+            detail: `${clients.filter((client) => client.status === "active").length} active`,
+          },
+          {
+            label: "Active projects",
+            value: dashboardMetrics.activeProjects,
+            detail: `${projects.length} total projects`,
+          },
+          {
+            label: "Next deadline",
+            value: nextDeadline
+              ? getDeadlineLabel(nextDeadline.deadline)
+              : "None",
+            detail: nextDeadline?.title ?? "No upcoming project date",
+          },
+        ]}
+      />
+      <DataSection
+        className="mt-6"
+        description="Status, deadline, budget, and activity distribution from live workspace data."
+        title="Delivery shape"
+      >
+        <div className="grid gap-6 xl:grid-cols-4">
+          <div className="xl:col-span-2">
+            <StatusBarChart data={getProjectStatusData(projects)} />
+          </div>
+          <DeadlineAreaChart data={getDeadlineData(projects)} />
+          <ActivityRadialChart data={getActivityTypeData(activity)} />
+        </div>
+        <div className="mt-5">
+          <BudgetLineChart data={getBudgetByStatusData(projects)} />
+        </div>
+      </DataSection>
+      <DataSection title="Recent activity">
         <DashboardActivityList activity={activity} />
-      </section>
+      </DataSection>
     </AppShell>
   );
 }
@@ -144,31 +191,26 @@ export function DashboardActivityList({
   }
 
   return (
-    <ol className="space-y-3">
+    <TimelineList>
       {activity.map((event) => (
-        <li className="rounded-lg border border-slate-200 p-3" key={event.id}>
+        <TimelineItem
+          key={event.id}
+          time={
+            <time dateTime={event.createdAt}>
+              {new Date(event.createdAt).toLocaleString()}
+            </time>
+          }
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-medium text-slate-900 text-sm">
               {formatDashboardActivityTitle(event)}
             </p>
-            <time className="text-slate-500 text-xs" dateTime={event.createdAt}>
-              {new Date(event.createdAt).toLocaleString()}
-            </time>
           </div>
           <p className="mt-2 text-slate-600 text-sm leading-6">
             {formatDashboardActivityDescription(event)}
           </p>
-        </li>
+        </TimelineItem>
       ))}
-    </ol>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border bg-white p-4">
-      <p className="text-slate-500 text-sm">{label}</p>
-      <p className="font-semibold text-3xl">{value}</p>
-    </div>
+    </TimelineList>
   );
 }

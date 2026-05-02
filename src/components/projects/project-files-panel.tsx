@@ -161,7 +161,7 @@ export function ProjectFilesPanel({
     Boolean(filesQuery.error && visibleFiles.length === 0);
 
   return (
-    <section className="rounded-xl border bg-white p-4">
+    <section>
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="font-medium text-slate-900">Project files</h2>
@@ -194,7 +194,7 @@ export function ProjectFilesPanel({
       </div>
 
       {mutationError ? (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
+        <div className="mb-4 border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
           {mutationError}
         </div>
       ) : null}
@@ -214,10 +214,10 @@ export function ProjectFilesPanel({
         />
       ) : null}
       {visibleFiles.length > 0 ? (
-        <div className="space-y-3">
+        <div className="divide-y divide-slate-200 border-slate-200 border-y">
           {visibleFiles.map((file) => (
             <div
-              className="flex flex-col gap-3 rounded-xl border border-slate-200 p-3 md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between"
               key={file.id}
             >
               <div>
@@ -230,7 +230,7 @@ export function ProjectFilesPanel({
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  className="inline-flex h-7 items-center justify-center rounded-md border border-border px-2 text-xs/relaxed hover:bg-input/50"
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-border px-2 text-xs/relaxed hover:bg-input/50"
                   href={file.fileUrl}
                   rel="noreferrer"
                   target="_blank"

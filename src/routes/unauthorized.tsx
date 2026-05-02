@@ -6,11 +6,9 @@ export const Route = createFileRoute("/unauthorized")({
 
 function UnauthorizedPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-900">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-6 text-center shadow-sm">
-        <p className="font-medium text-slate-400 text-sm uppercase tracking-[0.2em]">
-          Clientra
-        </p>
+    <div className="flex min-h-[100dvh] items-center justify-center bg-stone-50 p-6 text-zinc-950">
+      <div className="w-full max-w-md border-slate-200 border-y py-6 text-center">
+        <p className="font-semibold text-lg tracking-tight">Clientra</p>
         <h1 className="mt-3 font-semibold text-2xl">Unauthorized</h1>
         <p className="mt-2 text-slate-600 text-sm">
           Your account does not currently have access to that area of the app.

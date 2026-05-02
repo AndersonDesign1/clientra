@@ -17,7 +17,7 @@ export function LoadingPanel({
   description = "Please wait while we fetch the latest records.",
 }: Partial<StatePanelProps>) {
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="border-slate-200 border-y py-5">
       <div className="flex flex-col gap-3">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-3 w-full max-w-sm" />
@@ -46,7 +46,7 @@ export function EmptyPanel({
   description = "There are no records available right now.",
 }: Partial<StatePanelProps>) {
   return (
-    <Empty className="border">
+    <Empty className="border-slate-200 border-y">
       <EmptyHeader>
         <EmptyTitle>{title}</EmptyTitle>
         <EmptyDescription>{description}</EmptyDescription>
