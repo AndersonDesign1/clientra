@@ -23,8 +23,9 @@ type AtLeastOneThemeColor = {
 
 const VALID_THEME_KEYS = Object.keys(THEMES) as ThemeKey[];
 
-// Validation for chart config colors at runtime
-function validateChartConfigColors(config: ChartConfig): void {
+function getChartConfigColorErrors(config: ChartConfig): string[] {
+  const errors: string[] = [];
+
   for (const [key, value] of Object.entries(config)) {
     if (value.colors) {
       const hasValidThemeKey = VALID_THEME_KEYS.some(
@@ -32,12 +33,14 @@ function validateChartConfigColors(config: ChartConfig): void {
       );
 
       if (!hasValidThemeKey) {
-        throw new Error(
+        errors.push(
           `[EvilCharts] Invalid chart config for "${key}": colors object must have at least one theme key (${VALID_THEME_KEYS.join(", ")}). Received empty object or invalid keys.`
         );
       }
     }
   }
+
+  return errors;
 }
 
 export type ChartConfig = Record<
@@ -100,8 +103,16 @@ function ChartContainer({
   const uniqueId = React.useId();
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`;
 
-  // Validate chart config at runtime
-  validateChartConfigColors(config);
+  const configColorErrors = React.useMemo(
+    () => getChartConfigColorErrors(config),
+    [config]
+  );
+
+  React.useEffect(() => {
+    for (const error of configColorErrors) {
+      console.error(error);
+    }
+  }, [configColorErrors]);
 
   return (
     <ChartContext.Provider value={{ config }}>

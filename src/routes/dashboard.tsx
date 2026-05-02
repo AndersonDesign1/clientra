@@ -32,6 +32,7 @@ import {
   getDeadlineLabel,
   getNextDeadline,
   getProjectStatusData,
+  parseDateOnlyLocal,
 } from "@/lib/insights";
 
 export const Route = createFileRoute("/dashboard")({
@@ -88,8 +89,15 @@ function DashboardPage() {
       (project) => project.status === "in_progress"
     ).length,
     upcomingDeadlines: projects.filter((project) => {
-      const deadline = Date.parse(project.deadline);
-      return Number.isFinite(deadline) && deadline > Date.now();
+      const deadline = parseDateOnlyLocal(project.deadline);
+      if (!deadline) {
+        return false;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return deadline.getTime() >= today.getTime();
     }).length,
   };
   const nextDeadline = getNextDeadline(projects);

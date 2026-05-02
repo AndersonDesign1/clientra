@@ -66,7 +66,7 @@ function PortalHomePage() {
       {!summaryQuery.isLoading && summaryQuery.error ? (
         <ErrorPanel description={summaryQuery.error} />
       ) : null}
-      {summary ? (
+      {summary && !summaryQuery.error ? (
         <>
           <MetricLedger
             items={[

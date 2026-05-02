@@ -83,8 +83,16 @@ export function MetricLedger({
     detail?: ReactNode;
   }>;
 }) {
+  const columnCount = Math.min(Math.max(items.length, 1), 4) as 1 | 2 | 3 | 4;
+  const columnClass = {
+    1: "sm:grid-cols-1",
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-3",
+    4: "sm:grid-cols-4",
+  }[columnCount];
+
   return (
-    <dl className="grid border-slate-200 border-y sm:grid-cols-3">
+    <dl className={cn("grid border-slate-200 border-y", columnClass)}>
       {items.map((item) => (
         <div
           className="border-slate-200 border-b py-4 last:border-b-0 sm:border-r sm:border-b-0 sm:px-5 sm:last:border-r-0 sm:first:pl-0"

@@ -15,6 +15,29 @@ export function formatMonthLabel(date: Date) {
   }).format(date);
 }
 
+export function parseDateOnlyLocal(value: string) {
+  const [datePart] = value.split("T");
+  const parts = datePart?.split("-").map(Number);
+
+  if (parts?.length !== 3 || parts.some((part) => !Number.isInteger(part))) {
+    const fallback = new Date(value);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+  }
+
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
 export function formatStatusText(value: string) {
   return value.replaceAll("_", " ");
 }
@@ -55,13 +78,12 @@ export function getDeadlineData(projects: Project[]) {
   >();
 
   for (const project of projects) {
-    const date = new Date(project.deadline);
-
-    if (Number.isNaN(date.getTime())) {
+    const date = parseDateOnlyLocal(project.deadline);
+    if (!date) {
       continue;
     }
 
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     const current = buckets.get(key) ?? {
       count: 0,
       label: formatMonthLabel(date),
@@ -92,24 +114,29 @@ export function getActivityTypeData(activity: DashboardActivityEvent[]) {
 }
 
 export function getNextDeadline(projects: Project[]) {
-  const now = Date.now();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return projects
-    .map((project) => ({
-      ...project,
-      deadlineTime: Date.parse(project.deadline),
-    }))
+    .map((project) => {
+      const deadlineDate = parseDateOnlyLocal(project.deadline);
+
+      return {
+        ...project,
+        deadlineTime: deadlineDate?.getTime() ?? Number.NaN,
+      };
+    })
     .filter(
       (project) =>
-        Number.isFinite(project.deadlineTime) && project.deadlineTime >= now
+        Number.isFinite(project.deadlineTime) &&
+        project.deadlineTime >= today.getTime()
     )
     .sort((a, b) => a.deadlineTime - b.deadlineTime)[0];
 }
 
 export function getDeadlineLabel(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
+  const date = parseDateOnlyLocal(value);
+  if (!date) {
     return "No deadline";
   }
 
