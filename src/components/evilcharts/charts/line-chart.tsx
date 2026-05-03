@@ -1,4 +1,3 @@
-// biome-ignore-all lint: generated EvilCharts registry component
 "use client";
 
 import { motion } from "motion/react";

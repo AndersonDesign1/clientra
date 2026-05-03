@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({
@@ -13,16 +14,16 @@ export function PageHeader({
   title: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-slate-200 border-b pb-4">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-border border-b pb-5">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="mb-1 text-slate-500 text-xs">{eyebrow}</p>
+          <p className="mb-1 text-muted-foreground text-xs">{eyebrow}</p>
         ) : null}
-        <h1 className="font-semibold text-2xl text-zinc-950 tracking-tight">
+        <h1 className="font-semibold text-2xl text-foreground tracking-tight">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-slate-600 text-sm leading-6">
+          <p className="mt-1 max-w-2xl text-muted-foreground text-sm leading-relaxed">
             {description}
           </p>
         ) : null}
@@ -48,20 +49,17 @@ export function DataSection({
   title?: ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "border-slate-200 border-t py-5 first:border-t-0 first:pt-0",
-        className
-      )}
-    >
+    <section className={cn("py-5 first:pt-0", className)}>
       {title || actions || description ? (
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             {title ? (
-              <h2 className="font-medium text-base text-zinc-950">{title}</h2>
+              <h2 className="font-semibold text-foreground text-sm">{title}</h2>
             ) : null}
             {description ? (
-              <p className="mt-1 text-slate-600 text-sm">{description}</p>
+              <p className="mt-0.5 text-muted-foreground text-xs">
+                {description}
+              </p>
             ) : null}
           </div>
           {actions ? (
@@ -75,8 +73,10 @@ export function DataSection({
 }
 
 export function MetricLedger({
+  isLoading,
   items,
 }: {
+  isLoading?: boolean;
   items: Array<{
     label: string;
     value: ReactNode;
@@ -92,19 +92,30 @@ export function MetricLedger({
   }[columnCount];
 
   return (
-    <dl className={cn("grid border-slate-200 border-y", columnClass)}>
+    <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item) => (
         <div
-          className="border-slate-200 border-b py-4 last:border-b-0 sm:border-r sm:border-b-0 sm:px-5 sm:last:border-r-0 sm:first:pl-0"
+          className="rounded-lg border border-border bg-card px-5 py-4"
           key={item.label}
         >
-          <dt className="text-slate-500 text-sm">{item.label}</dt>
-          <dd className="mt-1 font-semibold text-3xl text-zinc-950 tabular-nums">
-            {item.value}
-          </dd>
-          {item.detail ? (
-            <dd className="mt-1 text-slate-600 text-xs">{item.detail}</dd>
-          ) : null}
+          <dt className="text-muted-foreground text-xs">{item.label}</dt>
+          {isLoading ? (
+            <>
+              <Skeleton className="mt-2 h-8 w-16" />
+              <Skeleton className="mt-2 h-3.5 w-24" />
+            </>
+          ) : (
+            <>
+              <dd className="mt-1 font-semibold text-2xl text-foreground tabular-nums">
+                {item.value}
+              </dd>
+              {item.detail ? (
+                <dd className="mt-1 text-muted-foreground text-xs">
+                  {item.detail}
+                </dd>
+              ) : null}
+            </>
+          )}
         </div>
       ))}
     </dl>
@@ -117,11 +128,11 @@ export function DefinitionGrid({
   items: Array<{ label: string; value: ReactNode }>;
 }) {
   return (
-    <dl className="grid divide-y divide-slate-200 border-slate-200 border-y text-sm md:grid-cols-2 md:divide-x md:divide-y-0">
+    <dl className="grid divide-y divide-border border-border border-y text-sm md:grid-cols-2 md:divide-x md:divide-y-0">
       {items.map((item) => (
         <div className="grid gap-1 py-3 md:px-4 md:first:pl-0" key={item.label}>
-          <dt className="text-slate-500">{item.label}</dt>
-          <dd className="font-medium text-zinc-950">{item.value}</dd>
+          <dt className="text-muted-foreground">{item.label}</dt>
+          <dd className="font-medium text-foreground">{item.value}</dd>
         </div>
       ))}
     </dl>
@@ -137,10 +148,7 @@ export function TimelineList({
 }) {
   return (
     <ol
-      className={cn(
-        "divide-y divide-slate-200 border-slate-200 border-y",
-        className
-      )}
+      className={cn("divide-y divide-border border-border border-y", className)}
     >
       {children}
     </ol>
@@ -158,7 +166,9 @@ export function TimelineItem({
     <li className="grid gap-2 py-3 text-sm md:grid-cols-[minmax(0,1fr)_11rem] md:items-start">
       <div>{children}</div>
       {time ? (
-        <div className="text-slate-500 text-xs md:text-right">{time}</div>
+        <div className="text-muted-foreground text-xs md:text-right">
+          {time}
+        </div>
       ) : null}
     </li>
   );

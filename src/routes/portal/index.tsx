@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import {
-  DeadlineAreaChart,
+  DeadlineBarChart,
   StatusBarChart,
 } from "@/components/common/product-charts";
 import {
@@ -94,7 +94,7 @@ function PortalHomePage() {
               <StatusBarChart
                 data={getProjectStatusData(summary.activeProjects)}
               />
-              <DeadlineAreaChart
+              <DeadlineBarChart
                 data={getDeadlineData(summary.activeProjects)}
               />
             </div>

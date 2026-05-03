@@ -1,7 +1,5 @@
-// biome-ignore-all lint: generated EvilCharts registry component
 "use client";
 
-import { motion } from "motion/react";
 import {
   type ComponentProps,
   useCallback,
@@ -19,7 +17,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { RectRadius } from "recharts/types/shape/Rectangle";
 import {
   type BackgroundVariant,
   ChartBackground,
@@ -47,6 +44,10 @@ import {
   type TooltipRoundness,
   type TooltipVariant,
 } from "@/components/evilcharts/ui/tooltip";
+
+type RectRadius = [number, number, number, number] | number;
+
+import { motion } from "motion/react";
 
 // Constants
 const DEFAULT_BAR_RADIUS = 2;

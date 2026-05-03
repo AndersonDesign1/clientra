@@ -1,4 +1,3 @@
-// biome-ignore-all lint: generated EvilCharts registry component
 "use client";
 
 import * as React from "react";
@@ -23,9 +22,8 @@ type AtLeastOneThemeColor = {
 
 const VALID_THEME_KEYS = Object.keys(THEMES) as ThemeKey[];
 
-function getChartConfigColorErrors(config: ChartConfig): string[] {
-  const errors: string[] = [];
-
+// Validation for chart config colors at runtime
+function validateChartConfigColors(config: ChartConfig): void {
   for (const [key, value] of Object.entries(config)) {
     if (value.colors) {
       const hasValidThemeKey = VALID_THEME_KEYS.some(
@@ -33,14 +31,12 @@ function getChartConfigColorErrors(config: ChartConfig): string[] {
       );
 
       if (!hasValidThemeKey) {
-        errors.push(
+        throw new Error(
           `[EvilCharts] Invalid chart config for "${key}": colors object must have at least one theme key (${VALID_THEME_KEYS.join(", ")}). Received empty object or invalid keys.`
         );
       }
     }
   }
-
-  return errors;
 }
 
 export type ChartConfig = Record<
@@ -103,16 +99,8 @@ function ChartContainer({
   const uniqueId = React.useId();
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`;
 
-  const configColorErrors = React.useMemo(
-    () => getChartConfigColorErrors(config),
-    [config]
-  );
-
-  React.useEffect(() => {
-    for (const error of configColorErrors) {
-      console.error(error);
-    }
-  }, [configColorErrors]);
+  // Validate chart config at runtime
+  validateChartConfigColors(config);
 
   return (
     <ChartContext.Provider value={{ config }}>
