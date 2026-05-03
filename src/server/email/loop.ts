@@ -1,8 +1,8 @@
+import { LoopsClient } from "loops";
 import { loadEnvFiles } from "@/db/load-env";
 
 loadEnvFiles();
 
-const LOOP_TRANSACTIONAL_URL = "https://app.loops.so/api/v1/transactional";
 const DEFAULT_TIMEOUT_MS = 10_000;
 const TRAILING_SLASH_REGEX = /\/$/;
 
@@ -10,9 +10,14 @@ export type LoopTemplate =
   | "comment"
   | "fileUploaded"
   | "invite"
-  | "projectUpdate";
+  | "projectUpdate"
+  | "resetPassword"
+  | "verifyEmail";
 
-export type LoopDataVariables = Record<string, number | string | string[]>;
+export type LoopDataVariables = Record<
+  string,
+  Record<string, number | string>[] | number | string
+>;
 
 export class LoopEmailError extends Error {
   constructor(message: string) {
@@ -21,23 +26,56 @@ export class LoopEmailError extends Error {
   }
 }
 
-const TEMPLATE_ENV_KEYS: Record<LoopTemplate, string> = {
-  comment: "LOOP_COMMENT_TEMPLATE_ID",
-  fileUploaded: "LOOP_FILE_UPLOADED_TEMPLATE_ID",
-  invite: "LOOP_INVITE_TEMPLATE_ID",
-  projectUpdate: "LOOP_PROJECT_UPDATE_TEMPLATE_ID",
+const TEMPLATE_ENV_KEYS: Record<
+  LoopTemplate,
+  { fallback?: string; primary: string }
+> = {
+  comment: {
+    fallback: "LOOP_COMMENT_TEMPLATE_ID",
+    primary: "LOOPS_COMMENT_TRANSACTIONAL_ID",
+  },
+  fileUploaded: {
+    fallback: "LOOP_FILE_UPLOADED_TEMPLATE_ID",
+    primary: "LOOPS_FILE_UPLOADED_TRANSACTIONAL_ID",
+  },
+  invite: {
+    fallback: "LOOP_INVITE_TEMPLATE_ID",
+    primary: "LOOPS_INVITE_TRANSACTIONAL_ID",
+  },
+  projectUpdate: {
+    fallback: "LOOP_PROJECT_UPDATE_TEMPLATE_ID",
+    primary: "LOOPS_PROJECT_UPDATE_TRANSACTIONAL_ID",
+  },
+  resetPassword: {
+    primary: "LOOPS_RESET_PASSWORD_TRANSACTIONAL_ID",
+  },
+  verifyEmail: {
+    primary: "LOOPS_VERIFY_EMAIL_TRANSACTIONAL_ID",
+  },
 };
 
 export function isLoopEnabled() {
-  return process.env.LOOP_ENABLED !== "false";
+  return (
+    (firstConfiguredValue(
+      process.env.LOOPS_ENABLED,
+      process.env.LOOP_ENABLED
+    ) ?? "true") !== "false"
+  );
+}
+
+function firstConfiguredValue(...values: Array<string | undefined>) {
+  return values.map((value) => value?.trim()).find(Boolean);
 }
 
 function getLoopApiKey() {
-  const apiKey = process.env.LOOP_API_KEY?.trim();
+  const apiKey = firstConfiguredValue(
+    process.env.LOOPS_API_KEY,
+    process.env.LOOP_API_KEY
+  );
 
   if (!apiKey) {
     throw new LoopEmailError(
-      "Loop email is not configured: missing LOOP_API_KEY."
+      "Loops email is not configured: missing LOOPS_API_KEY."
     );
   }
 
@@ -45,16 +83,23 @@ function getLoopApiKey() {
 }
 
 function getLoopTemplateId(template: LoopTemplate) {
-  const envKey = TEMPLATE_ENV_KEYS[template];
-  const templateId = process.env[envKey]?.trim();
+  const { fallback, primary } = TEMPLATE_ENV_KEYS[template];
+  const templateId = firstConfiguredValue(
+    process.env[primary],
+    fallback ? process.env[fallback] : undefined
+  );
 
   if (!templateId) {
     throw new LoopEmailError(
-      `Loop email is not configured: missing ${envKey}.`
+      `Loops email is not configured: missing ${primary}.`
     );
   }
 
   return templateId;
+}
+
+function getLoopsClient() {
+  return new LoopsClient(getLoopApiKey());
 }
 
 export function getAppUrl(requestUrl?: string) {
@@ -71,21 +116,41 @@ export function getAppUrl(requestUrl?: string) {
   return "http://localhost:3000";
 }
 
-function createLoopPayload({
+function createLoopsPayload({
   dataVariables,
   email,
+  idempotencyKey,
   template,
 }: {
   dataVariables: LoopDataVariables;
   email: string;
+  idempotencyKey?: string;
   template: LoopTemplate;
 }) {
   return {
     addToAudience: true,
     dataVariables,
     email,
+    headers: idempotencyKey
+      ? { "Idempotency-Key": idempotencyKey.slice(0, 100) }
+      : undefined,
     transactionalId: getLoopTemplateId(template),
   };
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  let timeout: ReturnType<typeof setTimeout>;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(
+      () => reject(new LoopEmailError("Loops email request timed out.")),
+      timeoutMs
+    );
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() =>
+    clearTimeout(timeout)
+  );
 }
 
 export async function sendTransactionalEmail({
@@ -102,39 +167,19 @@ export async function sendTransactionalEmail({
   timeoutMs?: number;
 }) {
   if (!isLoopEnabled()) {
-    throw new LoopEmailError("Loop email is disabled.");
+    throw new LoopEmailError("Loops email is disabled.");
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const headers = new Headers({
-      authorization: `Bearer ${getLoopApiKey()}`,
-      "content-type": "application/json",
-    });
-
-    if (idempotencyKey) {
-      headers.set("idempotency-key", idempotencyKey.slice(0, 100));
-    }
-
-    const response = await fetch(LOOP_TRANSACTIONAL_URL, {
-      body: JSON.stringify(
-        createLoopPayload({ dataVariables, email, template })
+    const response = await withTimeout(
+      getLoopsClient().sendTransactionalEmail(
+        createLoopsPayload({ dataVariables, email, idempotencyKey, template })
       ),
-      headers,
-      method: "POST",
-      signal: controller.signal,
-    });
-    const data = (await response.json().catch(() => null)) as {
-      message?: string;
-      success?: boolean;
-    } | null;
+      timeoutMs
+    );
 
-    if (!response.ok || data?.success === false) {
-      throw new LoopEmailError(
-        data?.message ?? `Loop email failed with status ${response.status}.`
-      );
+    if (!response.success) {
+      throw new LoopEmailError("Loops transactional email failed.");
     }
 
     return { success: true };
@@ -142,15 +187,8 @@ export async function sendTransactionalEmail({
     if (error instanceof LoopEmailError) {
       throw error;
     }
-
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new LoopEmailError("Loop email request timed out.");
-    }
-
     throw new LoopEmailError(
-      error instanceof Error ? error.message : "Loop email request failed."
+      error instanceof Error ? error.message : "Loops email request failed."
     );
-  } finally {
-    clearTimeout(timeout);
   }
 }

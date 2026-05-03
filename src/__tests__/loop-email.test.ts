@@ -5,6 +5,14 @@ import {
   type NotificationRecipient,
 } from "@/server/email/notifications";
 
+const sendTransactionalEmailMock = vi.hoisted(() => vi.fn());
+
+vi.mock("loops", () => ({
+  LoopsClient: vi.fn(() => ({
+    sendTransactionalEmail: sendTransactionalEmailMock,
+  })),
+}));
+
 const recipients: NotificationRecipient[] = [
   {
     email: "client@example.com",
@@ -28,22 +36,15 @@ const recipients: NotificationRecipient[] = [
 
 describe("Loop email service", () => {
   beforeEach(() => {
-    vi.stubEnv("LOOP_ENABLED", "true");
-    vi.stubEnv("LOOP_API_KEY", "loop_secret");
-    vi.stubEnv("LOOP_INVITE_TEMPLATE_ID", "invite_template");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        Response.json({
-          success: true,
-        })
-      )
-    );
+    sendTransactionalEmailMock.mockResolvedValue({ success: true });
+    vi.stubEnv("LOOPS_ENABLED", "true");
+    vi.stubEnv("LOOPS_API_KEY", "loops_secret");
+    vi.stubEnv("LOOPS_INVITE_TRANSACTIONAL_ID", "invite_template");
   });
 
   afterEach(() => {
+    sendTransactionalEmailMock.mockReset();
     vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
   });
 
   it("sends transactional payloads with template ids and idempotency keys", async () => {
@@ -57,28 +58,22 @@ describe("Loop email service", () => {
       template: "invite",
     });
 
-    expect(fetch).toHaveBeenCalledWith(
-      "https://app.loops.so/api/v1/transactional",
-      expect.objectContaining({
-        body: JSON.stringify({
-          addToAudience: true,
-          dataVariables: {
-            appUrl: "https://clientra.test",
-            inviteUrl: "https://clientra.test/invite/token",
-          },
-          email: "client@example.com",
-          transactionalId: "invite_template",
-        }),
-        method: "POST",
-      })
-    );
-    const headers = vi.mocked(fetch).mock.calls[0]?.[1]?.headers as Headers;
-    expect(headers.get("authorization")).toBe("Bearer loop_secret");
-    expect(headers.get("idempotency-key")).toBe("invite:invite_1");
+    expect(sendTransactionalEmailMock).toHaveBeenCalledWith({
+      addToAudience: true,
+      dataVariables: {
+        appUrl: "https://clientra.test",
+        inviteUrl: "https://clientra.test/invite/token",
+      },
+      email: "client@example.com",
+      headers: {
+        "Idempotency-Key": "invite:invite_1",
+      },
+      transactionalId: "invite_template",
+    });
   });
 
   it("throws a configuration error when a template id is missing", async () => {
-    vi.stubEnv("LOOP_INVITE_TEMPLATE_ID", "");
+    vi.stubEnv("LOOPS_INVITE_TRANSACTIONAL_ID", "");
 
     await expect(
       sendTransactionalEmail({
@@ -87,7 +82,26 @@ describe("Loop email service", () => {
         template: "invite",
       })
     ).rejects.toThrow(LoopEmailError);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps legacy LOOP_* env names working while deployments migrate", async () => {
+    vi.stubEnv("LOOPS_API_KEY", "");
+    vi.stubEnv("LOOPS_INVITE_TRANSACTIONAL_ID", "");
+    vi.stubEnv("LOOP_API_KEY", "legacy_loop_secret");
+    vi.stubEnv("LOOP_INVITE_TEMPLATE_ID", "legacy_invite_template");
+
+    await sendTransactionalEmail({
+      dataVariables: {},
+      email: "client@example.com",
+      template: "invite",
+    });
+
+    expect(sendTransactionalEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactionalId: "legacy_invite_template",
+      })
+    );
   });
 });
 

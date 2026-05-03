@@ -4,7 +4,7 @@
 `phases.md` is the single source of truth for product progress and next actions. Keep updates feature-level, use the status labels `Done`, `Current`, `Next`, `Not started`, and `Blocked`, and move the `Current` marker to the next shippable slice as work progresses.
 
 ## Current Focus
-Phase 6 is current. Phase 5 invite management and Loop notifications are complete, so the only remaining launch gate is production-readiness hardening across runtime configuration, verification, browser QA, and release checks.
+Phase 6 is current. Phase 5 invite management and Loops notifications are complete, so the only remaining launch gate is production-readiness hardening across runtime configuration, verification, browser QA, and release checks.
 
 ## Phase 1 - Frontend Foundation
 Status: Done
@@ -60,7 +60,7 @@ Status: Done
 
 - Done: Show pending invites on relevant admin client views.
 - Done: Add resend and revoke actions for pending invites.
-- Done: Add lightweight email notifications through Loop for client invites, new project updates, new files, and new comments.
+- Done: Add lightweight email notifications through Loops for client invites, new project updates, new files, new comments, and Better Auth account emails.
 - Done: Add notification safeguards so Clientra stays lightweight and avoids complex automation workflows.
 
 ## Phase 6 - QA, Production Readiness, and Launch

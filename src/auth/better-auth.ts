@@ -4,6 +4,7 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
 import { accounts, sessions, users, verifications } from "@/db/schema";
+import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
 
@@ -19,6 +20,16 @@ function getTrustedOrigins() {
   ]
     .map((origin) => origin?.trim())
     .filter((origin): origin is string => Boolean(origin));
+}
+
+function sendAuthEmail(input: Parameters<typeof sendTransactionalEmail>[0]) {
+  sendTransactionalEmail(input).catch((error) => {
+    console.error("Loops auth email failed", {
+      email: input.email,
+      error,
+      template: input.template,
+    });
+  });
 }
 
 function getSocialProviderConfig({
@@ -82,6 +93,32 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ token, url, user }) => {
+      sendAuthEmail({
+        dataVariables: {
+          resetPasswordUrl: url,
+          token,
+        },
+        email: user.email,
+        idempotencyKey: `better-auth:reset-password:${token}`,
+        template: "resetPassword",
+      });
+      await Promise.resolve();
+    },
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ token, url, user }) => {
+      sendAuthEmail({
+        dataVariables: {
+          token,
+          verificationUrl: url,
+        },
+        email: user.email,
+        idempotencyKey: `better-auth:verify-email:${token}`,
+        template: "verifyEmail",
+      });
+      await Promise.resolve();
+    },
   },
   rateLimit: {
     enabled: true,
