@@ -10,8 +10,13 @@ import { loadEnvFiles } from "@/db/load-env";
 import {
   canAccessProject,
   createProjectFileRecord,
+  getProjectNotificationContext,
   serializeProjectFile,
 } from "@/db/records";
+import {
+  logNotificationFailure,
+  notifyFileUploaded,
+} from "@/server/email/notifications";
 
 loadEnvFiles();
 
@@ -70,8 +75,11 @@ export const uploadRouter = {
       }
 
       return {
+        userEmail: user.email,
         projectId: input.projectId,
         userId: user.id,
+        userName: user.name,
+        userRole: user.role,
       };
     })
     .onUploadComplete(async ({ file, metadata }) => {
@@ -118,6 +126,24 @@ export const uploadRouter = {
         }
 
         throw new UploadThingError("The uploaded file could not be saved.");
+      }
+
+      const notificationContext = await getProjectNotificationContext(
+        metadata.projectId
+      );
+
+      if (notificationContext) {
+        notifyFileUploaded({
+          actor: {
+            email: metadata.userEmail,
+            id: metadata.userId,
+            name: metadata.userName,
+            role: metadata.userRole,
+          },
+          context: notificationContext,
+          fileId: created.id,
+          fileName: created.fileName,
+        }).catch((error) => logNotificationFailure("file_uploaded", error));
       }
 
       return serializeProjectFile(created);

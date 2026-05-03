@@ -3,8 +3,13 @@ import { createNoteSchema } from "@/api/validation";
 import {
   canAccessProject,
   createProjectNoteRecord,
+  getProjectNotificationContext,
   serializeProjectComment,
 } from "@/db/records";
+import {
+  logNotificationFailure,
+  notifyProjectComment,
+} from "@/server/email/notifications";
 import {
   forbiddenError,
   internalServerError,
@@ -47,6 +52,19 @@ export const Route = createFileRoute("/api/notes")({
           return internalServerError(
             "Note was created but could not be reloaded."
           );
+        }
+
+        const notificationContext = await getProjectNotificationContext(
+          created.projectId
+        );
+
+        if (notificationContext) {
+          notifyProjectComment({
+            actor: auth.user,
+            commentId: created.id,
+            commentPreview: created.content,
+            context: notificationContext,
+          }).catch((error) => logNotificationFailure("comment", error));
         }
 
         return Response.json(serializeProjectComment(created), { status: 201 });

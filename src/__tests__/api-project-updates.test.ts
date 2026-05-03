@@ -10,6 +10,7 @@ vi.mock("@/db/records", () => ({
   createProjectUpdateRecord: vi.fn(),
   deleteProjectUpdateRecord: vi.fn(),
   getProjectById: vi.fn(),
+  getProjectNotificationContext: vi.fn(),
   listProjectUpdatesForUser: vi.fn(),
   serializeProjectUpdate: vi.fn((update) => ({
     ...update,
@@ -25,17 +26,24 @@ vi.mock("@/db/records", () => ({
   updateProjectUpdateRecord: vi.fn(),
 }));
 
+vi.mock("@/server/email/notifications", () => ({
+  logNotificationFailure: vi.fn(),
+  notifyProjectUpdate: vi.fn(),
+}));
+
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   canAccessProject,
   createProjectUpdateRecord,
   deleteProjectUpdateRecord,
   getProjectById,
+  getProjectNotificationContext,
   listProjectUpdatesForUser,
   updateProjectUpdateRecord,
 } from "@/db/records";
 import { Route as ProjectUpdateRoute } from "@/routes/api/project-updates/$id";
 import { Route as ProjectUpdatesRoute } from "@/routes/api/projects/$id/updates";
+import { notifyProjectUpdate } from "@/server/email/notifications";
 
 const updatesHandlers = ProjectUpdatesRoute.options.server?.handlers as {
   GET: (context: unknown) => Promise<Response>;
@@ -82,6 +90,14 @@ function createRequest(path: string, init?: RequestInit) {
 describe("project update API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getProjectNotificationContext).mockResolvedValue({
+      clientCompany: "Acme",
+      clientName: "Jordan",
+      projectId: "project_1",
+      projectTitle: "Delivery Portal",
+      recipients: [],
+    });
+    vi.mocked(notifyProjectUpdate).mockResolvedValue(undefined);
   });
 
   it("lets authorized users read project updates", async () => {
@@ -172,6 +188,45 @@ describe("project update API routes", () => {
         projectId: "project_1",
       })
     );
+    expect(notifyProjectUpdate).toHaveBeenCalled();
+  });
+
+  it("keeps project update creation successful when notifications fail", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(getProjectById).mockResolvedValue({
+      budget: 12_000,
+      clientId: "client_1",
+      createdAt: new Date("2026-04-01T10:00:00.000Z"),
+      deadline: "2026-04-30",
+      description: "Delivery portal.",
+      id: "project_1",
+      slug: "delivery-portal",
+      status: "in_progress",
+      title: "Delivery Portal",
+    });
+    vi.mocked(createProjectUpdateRecord).mockResolvedValue({
+      authorId: "admin_1",
+      authorName: "Admin User",
+      body: validPayload.body,
+      createdAt: new Date("2026-04-01T10:00:00.000Z"),
+      id: "update_1",
+      projectId: "project_1",
+      status: "on_track",
+      title: validPayload.title,
+      updatedAt: new Date("2026-04-01T10:00:00.000Z"),
+    });
+    vi.mocked(notifyProjectUpdate).mockRejectedValue(new Error("Loop failed"));
+
+    const response = await updatesHandlers.POST({
+      params: { id: "project_1" },
+      request: createRequest("/api/projects/project_1/updates", {
+        body: JSON.stringify(validPayload),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(201);
+    expect(notifyProjectUpdate).toHaveBeenCalled();
   });
 
   it("validates update payloads and missing records", async () => {
