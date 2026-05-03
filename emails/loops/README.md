@@ -2,6 +2,8 @@
 
 These MJML templates are the code-owned source for Clientra's Loops transactional emails. Loops still requires each transactional email to be created, imported, and published in the Loops dashboard before the API can send it.
 
+The visual direction follows the product dashboard: neutral near-white page background, white bordered cards, compact Geist-style typography, 8px radius, restrained green primary actions, and small event accents for activity types.
+
 ## Setup
 
 1. In Loops, create a new transactional email.
@@ -86,4 +88,3 @@ Loops variables are case-sensitive. Keep these names exactly as written.
 - Comment: `New comment on {DATA_VARIABLE:projectTitle}`
 - Email verification: `Verify your Clientra email`
 - Password reset: `Reset your Clientra password`
-
