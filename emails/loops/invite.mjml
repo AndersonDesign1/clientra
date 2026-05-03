@@ -1,0 +1,29 @@
+<mjml>
+  <mj-head>
+    <mj-title>You're invited to Clientra</mj-title>
+    <mj-preview>Set up your client portal access for {DATA_VARIABLE:clientCompany}.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" color="#172033" />
+      <mj-text font-size="15px" line-height="24px" />
+      <mj-button background-color="#1f6feb" color="#ffffff" border-radius="6px" font-size="15px" inner-padding="13px 20px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f7fb">
+    <mj-section background-color="#ffffff" padding="28px 24px 8px">
+      <mj-column>
+        <mj-text font-size="13px" color="#637083" font-weight="700" letter-spacing="1px">CLIENTRA</mj-text>
+        <mj-text font-size="24px" line-height="32px" font-weight="700" padding-top="10px">Your client portal is ready</mj-text>
+        <mj-text>Hello {DATA_VARIABLE:clientName},</mj-text>
+        <mj-text>You have been invited to Clientra for {DATA_VARIABLE:clientCompany}. Use the button below to create your account and view your projects, updates, files, and notes.</mj-text>
+        <mj-button href="{DATA_VARIABLE:inviteUrl}" align="left">Accept invite</mj-button>
+        <mj-text color="#637083" font-size="13px">This invite was sent to {DATA_VARIABLE:recipientEmail}. If the button does not work, open this link: {DATA_VARIABLE:inviteUrl}</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="12px 24px 28px">
+      <mj-column>
+        <mj-text color="#637083" font-size="12px">Clientra - {DATA_VARIABLE:appUrl}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+

@@ -1,0 +1,29 @@
+<mjml>
+  <mj-head>
+    <mj-title>New file uploaded</mj-title>
+    <mj-preview>{DATA_VARIABLE:fileName} was uploaded to {DATA_VARIABLE:projectTitle}.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" color="#172033" />
+      <mj-text font-size="15px" line-height="24px" />
+      <mj-button background-color="#1f6feb" color="#ffffff" border-radius="6px" font-size="15px" inner-padding="13px 20px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f7fb">
+    <mj-section background-color="#ffffff" padding="28px 24px 8px">
+      <mj-column>
+        <mj-text font-size="13px" color="#637083" font-weight="700" letter-spacing="1px">FILE UPLOADED</mj-text>
+        <mj-text font-size="24px" line-height="32px" font-weight="700" padding-top="10px">{DATA_VARIABLE:fileName}</mj-text>
+        <mj-text>Hello {DATA_VARIABLE:recipientName},</mj-text>
+        <mj-text>{DATA_VARIABLE:actorName} uploaded a new file to {DATA_VARIABLE:projectTitle} for {DATA_VARIABLE:clientCompany}.</mj-text>
+        <mj-button href="{DATA_VARIABLE:appUrl}" align="left">View file</mj-button>
+        <mj-text color="#637083" font-size="13px">This notice was sent to {DATA_VARIABLE:recipientEmail}.</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="12px 24px 28px">
+      <mj-column>
+        <mj-text color="#637083" font-size="12px">Clientra - {DATA_VARIABLE:appUrl}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+

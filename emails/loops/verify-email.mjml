@@ -1,0 +1,24 @@
+<mjml>
+  <mj-head>
+    <mj-title>Verify your Clientra email</mj-title>
+    <mj-preview>Confirm your email address to finish setting up Clientra.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" color="#172033" />
+      <mj-text font-size="15px" line-height="24px" />
+      <mj-button background-color="#1f6feb" color="#ffffff" border-radius="6px" font-size="15px" inner-padding="13px 20px" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f7fb">
+    <mj-section background-color="#ffffff" padding="28px 24px 8px">
+      <mj-column>
+        <mj-text font-size="13px" color="#637083" font-weight="700" letter-spacing="1px">CLIENTRA</mj-text>
+        <mj-text font-size="24px" line-height="32px" font-weight="700" padding-top="10px">Verify your email</mj-text>
+        <mj-text>Use the button below to confirm your email address and finish setting up your Clientra account.</mj-text>
+        <mj-button href="{DATA_VARIABLE:verificationUrl}" align="left">Verify email</mj-button>
+        <mj-text color="#637083" font-size="13px">If the button does not work, open this link: {DATA_VARIABLE:verificationUrl}</mj-text>
+        <mj-text color="#637083" font-size="13px">Verification token: {DATA_VARIABLE:token}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+
