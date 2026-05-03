@@ -2,6 +2,10 @@ import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
+import type {
+  NotificationRecipient,
+  ProjectNotificationContext,
+} from "@/server/email/notifications";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 import { db } from "./client";
 import {
@@ -1370,6 +1374,65 @@ export async function getProjectById(projectId: string) {
     .limit(1);
 
   return project ?? null;
+}
+
+export async function getProjectNotificationContext(
+  projectId: string
+): Promise<ProjectNotificationContext | null> {
+  const [projectRows, adminRows, clientRows] = await Promise.all([
+    db
+      .select({
+        client: clientsTable,
+        project: projectsTable,
+      })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(eq(projectsTable.id, projectId))
+      .limit(1),
+    db
+      .select({
+        email: usersTable.email,
+        id: usersTable.id,
+        name: usersTable.name,
+        role: usersTable.role,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.role, ROLES.ADMIN)),
+    db
+      .select({
+        email: usersTable.email,
+        id: usersTable.id,
+        name: usersTable.name,
+        role: usersTable.role,
+      })
+      .from(clientUsersTable)
+      .innerJoin(usersTable, eq(clientUsersTable.userId, usersTable.id))
+      .innerJoin(
+        projectsTable,
+        eq(projectsTable.clientId, clientUsersTable.clientId)
+      )
+      .where(eq(projectsTable.id, projectId)),
+  ]);
+  const match = projectRows[0];
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    clientCompany: match.client.company,
+    clientName: match.client.name,
+    projectId: match.project.id,
+    projectTitle: match.project.title,
+    recipients: [...adminRows, ...clientRows].map(
+      (recipient): NotificationRecipient => ({
+        email: recipient.email,
+        id: recipient.id,
+        name: recipient.name,
+        role: recipient.role,
+      })
+    ),
+  };
 }
 
 export async function listProjectCommentsForUser(
