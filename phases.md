@@ -4,7 +4,7 @@
 `phases.md` is the single source of truth for product progress and next actions. Keep updates feature-level, use the status labels `Done`, `Current`, `Next`, `Not started`, and `Blocked`, and move the `Current` marker to the next shippable slice as work progresses.
 
 ## Current Focus
-Phase 6 is current. The next shippable slice is production-readiness hardening across security, performance, folder structure, shadcn UI consistency, Vercel runtime configuration, and browser QA before Phase 5 expands invites and notifications.
+Phase 6 is current. Phase 5 invite management and Loop notifications are complete, so the only remaining launch gate is production-readiness hardening across runtime configuration, verification, browser QA, and release checks.
 
 ## Phase 1 - Frontend Foundation
 Status: Done
@@ -43,7 +43,7 @@ Status: Done
 - Done: Add focused UI coverage for admin client and project management flows.
 
 ## Phase 4 - Client Delivery Experience
-Status: Current
+Status: Done
 
 - Done: Add real file uploads, downloads, and admin delete flows for project files across admin and portal project views.
 - Done: Add comments/discussion flows for client collaboration.
@@ -53,15 +53,15 @@ Status: Current
 - Done: Add lightweight milestones or deliverables for project planning and client visibility.
 - Done: Improve the portal dashboard and project detail pages so clients can quickly see active work, latest updates, key dates, files, and discussion.
 - Done: Keep comments and files as collaboration support, not the only way to communicate project progress.
-- Next: Run browser QA across admin and portal delivery workflows before launch.
+- Done: Delivery workflows are feature-complete; final browser QA is tracked under Phase 6 launch readiness.
 
 ## Phase 5 - Access, Invites, and Notifications
-Status: Not started
+Status: Done
 
 - Done: Show pending invites on relevant admin client views.
-- Not started: Add resend and revoke actions for pending invites.
-- Not started: Add lightweight email notifications for client invites, new project updates, new files, and new comments.
-- Not started: Add notification safeguards so Clientra stays lightweight and avoids complex automation workflows.
+- Done: Add resend and revoke actions for pending invites.
+- Done: Add lightweight email notifications through Loop for client invites, new project updates, new files, and new comments.
+- Done: Add notification safeguards so Clientra stays lightweight and avoids complex automation workflows.
 
 ## Phase 6 - QA, Production Readiness, and Launch
 Status: Current
@@ -73,7 +73,7 @@ Status: Current
 - Done: Start tracked production-readiness audit (`docs/audits/production-readiness-audit.md`).
 - Done: Centralize server request guards and add same-origin regression coverage.
 - Done: Adopt shadcn-style admin and portal sidebar shells plus shared shadcn feedback states.
-- Current: Complete production verification, Vercel readiness checks, and browser QA before Phase 5.
+- Current: Complete production verification, Vercel readiness checks, and browser QA before launch.
 - Not started: Add automated tests for auth and invite flows.
 - Not started: Add end-to-end coverage for core admin and client portal flows.
 - Not started: Add deployment/runtime validation for production auth callbacks, cookies, Turso, UploadThing, and OAuth configuration.

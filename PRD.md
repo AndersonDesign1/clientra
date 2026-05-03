@@ -1,7 +1,7 @@
 # Clientra Product Requirements Document
 
 ## Product Summary
-Clientra is a lightweight client and project management system for freelancers, developers, and small agencies. It is intentionally not a full CRM and focuses on speed, clarity, and minimal workflows. The current product is partially implemented and still needs core admin operations, client delivery structure, invite management, notifications, and production QA before it should be considered complete.
+Clientra is a lightweight client and project management system for freelancers, developers, and small agencies. It is intentionally not a full CRM and focuses on speed, clarity, and minimal workflows. The current product is feature-complete enough for final production readiness, browser QA, and launch validation.
 
 ## Personas
 - **Admin**: Freelancer/agency operator managing client delivery.
@@ -26,7 +26,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 5. Project updates, lightweight milestones/deliverables, notes, and activity timeline.
 6. Client portal with project visibility, updates, files, key dates, and project notes.
 7. Client invites by email with pending invite management.
-8. Lightweight email notifications for invite, update, file, and comment events.
+8. Lightweight email notifications for invite, update, file, and comment events, sent through Loop.
 9. Global search for clients/projects.
 
 ## Current Implementation Status
@@ -48,8 +48,8 @@ Clientra is a lightweight client and project management system for freelancers, 
 - Done: Client detail shows linked projects and primary admin actions.
 - Done: Client detail shows pending invite visibility for admins.
 - Done: The client portal home summarizes active work, latest updates, upcoming milestones, and recent files.
-- Not started: Resend invite and revoke invite management.
-- Not started: Lightweight email notifications for invite, project update, file, and comment events.
+- Done: Resend invite and revoke invite management.
+- Done: Lightweight email notifications through Loop for invite, project update, file, and comment events.
 - Not started: Automated auth/invite flow coverage and broader end-to-end test coverage.
 - Not started: Production runtime validation for auth callbacks, cookies, Turso, UploadThing, and OAuth configuration.
 
@@ -80,6 +80,7 @@ Clientra is a lightweight client and project management system for freelancers, 
 - `project_updates`
 - `project_milestones`
 - `project_notes` stores project notes authored by admins and clients.
+- `invites.revoked_at` tracks revoked pending invites.
 - `files`
 
 ## Architecture
