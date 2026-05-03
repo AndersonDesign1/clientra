@@ -34,6 +34,22 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
           return notFoundError("The invited client could not be found.");
         }
 
+        const inviteUrl = new URL(`/invite/${invite.token}`, request.url);
+
+        try {
+          await sendInviteEmail({
+            clientCompany: client.company,
+            clientName: client.name,
+            email: invite.email,
+            inviteId: invite.id,
+            inviteUrl: inviteUrl.toString(),
+            requestUrl: request.url,
+          });
+        } catch (error) {
+          console.error("invite resend email failed", error);
+          return internalServerError("Invite email could not be sent.");
+        }
+
         const refreshedInvite = await refreshInviteExpiration(
           invite.id,
           new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
@@ -41,25 +57,6 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
 
         if (!refreshedInvite) {
           return internalServerError("Invite could not be refreshed.");
-        }
-
-        const inviteUrl = new URL(
-          `/invite/${refreshedInvite.token}`,
-          request.url
-        );
-
-        try {
-          await sendInviteEmail({
-            clientCompany: client.company,
-            clientName: client.name,
-            email: refreshedInvite.email,
-            inviteId: refreshedInvite.id,
-            inviteUrl: inviteUrl.toString(),
-            requestUrl: request.url,
-          });
-        } catch (error) {
-          console.error("invite resend email failed", error);
-          return internalServerError("Invite email could not be sent.");
         }
 
         return Response.json({

@@ -107,6 +107,7 @@ describe("invite management API routes", () => {
     expect(response.status).toBe(500);
     expect(createInviteRecord).toHaveBeenCalled();
     expect(sendInviteEmail).toHaveBeenCalled();
+    expect(revokeInviteRecord).toHaveBeenCalledWith("invite_1");
   });
 
   it("resends an active invite and blocks when Loop fails", async () => {
@@ -120,11 +121,8 @@ describe("invite management API routes", () => {
     } as never);
 
     expect(response.status).toBe(500);
-    expect(refreshInviteExpiration).toHaveBeenCalledWith(
-      "invite_1",
-      expect.any(Date)
-    );
     expect(sendInviteEmail).toHaveBeenCalled();
+    expect(refreshInviteExpiration).not.toHaveBeenCalled();
   });
 
   it("revokes active pending invites", async () => {

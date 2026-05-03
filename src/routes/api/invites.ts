@@ -4,6 +4,7 @@ import {
   createInviteRecord,
   getClientById,
   getInviteRecordById,
+  revokeInviteRecord,
 } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
@@ -72,6 +73,7 @@ export const Route = createFileRoute("/api/invites")({
           });
         } catch (error) {
           console.error("invite email failed", error);
+          await revokeInviteRecord(invite.id);
           return internalServerError("Invite email could not be sent.");
         }
 
