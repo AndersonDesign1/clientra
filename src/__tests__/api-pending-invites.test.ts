@@ -71,6 +71,7 @@ describe("pending invite API route", () => {
         email: "jordan@example.com",
         expiresAt: new Date("2026-04-08T10:00:00.000Z"),
         id: "invite_1",
+        revokedAt: null,
         token: "secret-token",
       },
     ]);

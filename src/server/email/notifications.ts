@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/auth/roles";
 import {
   getAppUrl,
+  isLoopEnabled,
   type LoopDataVariables,
   type LoopTemplate,
   sendTransactionalEmail,
@@ -155,6 +156,41 @@ export async function notifyProjectComment({
     idempotencyKeyPrefix: `comment:${commentId}`,
     template: "comment",
   });
+}
+
+export async function sendInviteEmail({
+  clientCompany,
+  clientName,
+  email,
+  inviteId,
+  inviteUrl,
+  requestUrl,
+}: {
+  clientCompany: string;
+  clientName: string;
+  email: string;
+  inviteId: string;
+  inviteUrl: string;
+  requestUrl: string;
+}) {
+  if (!(isLoopEnabled() || process.env.NODE_ENV === "production")) {
+    return { skipped: true };
+  }
+
+  await sendTransactionalEmail({
+    dataVariables: {
+      appUrl: getAppUrl(requestUrl),
+      clientCompany,
+      clientName,
+      inviteUrl,
+      recipientEmail: email,
+    },
+    email,
+    idempotencyKey: `invite:${inviteId}`,
+    template: "invite",
+  });
+
+  return { skipped: false };
 }
 
 export function logNotificationFailure(eventType: string, error: unknown) {

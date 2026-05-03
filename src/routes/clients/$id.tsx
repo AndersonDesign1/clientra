@@ -14,8 +14,25 @@ import { ClientDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   ensureClientsData,
   ensurePendingInvitesData,
@@ -25,6 +42,8 @@ import {
   useClientsData,
   usePendingInvitesData,
   useProjectsData,
+  useResendInviteMutation,
+  useRevokeInviteMutation,
   useUpdateClientMutation,
 } from "@/lib/api";
 import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
@@ -246,6 +265,8 @@ export function PendingInvitesPanel({
   pendingInvites: LoadableData<PendingInvite[]>;
 }) {
   const invites = pendingInvites.data ?? [];
+  const resendInvite = useResendInviteMutation();
+  const revokeInvite = useRevokeInviteMutation();
 
   return (
     <DataSection
@@ -261,6 +282,9 @@ export function PendingInvitesPanel({
           {pendingInvites.error}
         </p>
       ) : null}
+      <FieldError>
+        {resendInvite.error?.message ?? revokeInvite.error?.message}
+      </FieldError>
       {pendingInvites.isLoading ? (
         <p className="text-slate-600 text-sm">Loading pending invites...</p>
       ) : null}
@@ -272,21 +296,100 @@ export function PendingInvitesPanel({
       ) : null}
       {invites.length > 0 ? (
         <div className="divide-y divide-slate-200 border-slate-200 border-y">
-          {invites.map((invite) => (
-            <div
-              className="grid gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem]"
-              key={invite.id}
-            >
-              <p className="font-medium text-zinc-950">{invite.email}</p>
-              <Badge variant="secondary">Pending</Badge>
-              <time className="text-slate-600" dateTime={invite.createdAt}>
-                {formatInviteDate(invite.createdAt)}
-              </time>
-              <time className="text-slate-600" dateTime={invite.expiresAt}>
-                {formatInviteDate(invite.expiresAt)}
-              </time>
-            </div>
-          ))}
+          {invites.map((invite) => {
+            const isResending =
+              resendInvite.isPending &&
+              resendInvite.variables?.id === invite.id;
+            const isRevoking =
+              revokeInvite.isPending &&
+              revokeInvite.variables?.id === invite.id;
+
+            return (
+              <div
+                className="grid gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_8rem_8rem_9rem]"
+                key={invite.id}
+              >
+                <p className="font-medium text-zinc-950">{invite.email}</p>
+                <Badge variant="secondary">Pending</Badge>
+                <time className="text-slate-600" dateTime={invite.createdAt}>
+                  {formatInviteDate(invite.createdAt)}
+                </time>
+                <time className="text-slate-600" dateTime={invite.expiresAt}>
+                  {formatInviteDate(invite.expiresAt)}
+                </time>
+                <div className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          disabled={isResending || isRevoking}
+                          onClick={() => {
+                            resendInvite
+                              .mutateAsync({
+                                clientId: invite.clientId,
+                                id: invite.id,
+                              })
+                              .catch(() => undefined);
+                          }}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          {isResending ? "Sending" : "Resend"}
+                        </Button>
+                      }
+                    />
+                    <TooltipContent>
+                      Send this invite email again.
+                    </TooltipContent>
+                  </Tooltip>
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      render={
+                        <Button
+                          disabled={isResending || isRevoking}
+                          size="sm"
+                          type="button"
+                          variant="destructive"
+                        >
+                          Revoke
+                        </Button>
+                      }
+                    />
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Revoke this invite?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This invite link will stop working immediately. The
+                          client can be invited again later.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isRevoking}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={isRevoking}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            revokeInvite
+                              .mutateAsync({
+                                clientId: invite.clientId,
+                                id: invite.id,
+                              })
+                              .catch(() => undefined);
+                          }}
+                          variant="destructive"
+                        >
+                          {isRevoking ? "Revoking..." : "Revoke invite"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </DataSection>

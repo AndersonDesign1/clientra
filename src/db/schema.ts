@@ -108,6 +108,7 @@ export const invites = sqliteTable("invites", {
   token: text("token").notNull().unique(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
   consumedAt: integer("consumed_at", { mode: "timestamp" }),
+  revokedAt: integer("revoked_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 

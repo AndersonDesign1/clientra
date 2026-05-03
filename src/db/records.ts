@@ -327,6 +327,7 @@ function mapInvite(row: typeof invitesTable.$inferSelect) {
     email: row.email,
     expiresAt: row.expiresAt,
     id: row.id,
+    revokedAt: row.revokedAt,
     token: row.token,
   };
 }
@@ -1619,8 +1620,19 @@ export async function createInviteRecord(input: InviteInsert) {
     email: input.email,
     expiresAt: input.expiresAt,
     id: input.id,
+    revokedAt: null,
     token: input.token,
   });
+}
+
+export async function getClientById(clientId: string) {
+  const [client] = await db
+    .select()
+    .from(clientsTable)
+    .where(eq(clientsTable.id, clientId))
+    .limit(1);
+
+  return client ? mapClient(client) : null;
 }
 
 export async function getInviteRecordById(id: string) {
@@ -1641,6 +1653,7 @@ export async function getActiveInviteByToken(token: string) {
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )
@@ -1664,12 +1677,67 @@ export async function consumeInvite(
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )
     .returning({ token: invitesTable.token });
 
   return consumedInvites.length > 0;
+}
+
+export async function getActiveInviteById(inviteId: string) {
+  const [invite] = await db
+    .select()
+    .from(invitesTable)
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .limit(1);
+
+  return invite ? mapInvite(invite) : null;
+}
+
+export async function refreshInviteExpiration(
+  inviteId: string,
+  expiresAt: Date
+) {
+  const [invite] = await db
+    .update(invitesTable)
+    .set({ expiresAt })
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .returning();
+
+  return invite ? mapInvite(invite) : null;
+}
+
+export async function revokeInviteRecord(inviteId: string) {
+  const [invite] = await db
+    .update(invitesTable)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .returning();
+
+  return invite ? mapInvite(invite) : null;
 }
 
 export async function linkUserToClient(
@@ -1799,6 +1867,7 @@ export async function listPendingInvitesForClient(clientId: string) {
       and(
         eq(invitesTable.clientId, clientId),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )
