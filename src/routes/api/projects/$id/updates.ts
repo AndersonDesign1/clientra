@@ -4,9 +4,14 @@ import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   createProjectUpdateRecord,
   getProjectById,
+  getProjectNotificationContext,
   listProjectUpdatesForUser,
   serializeProjectUpdate,
 } from "@/db/records";
+import {
+  logNotificationFailure,
+  notifyProjectUpdate,
+} from "@/server/email/notifications";
 import {
   forbiddenError,
   internalServerError,
@@ -67,6 +72,21 @@ export const Route = createFileRoute("/api/projects/$id/updates")({
           return internalServerError(
             "Project update was created but could not be reloaded."
           );
+        }
+
+        const notificationContext = await getProjectNotificationContext(
+          params.id
+        );
+
+        if (notificationContext) {
+          notifyProjectUpdate({
+            actor: auth.user,
+            context: notificationContext,
+            updateBody: created.body,
+            updateId: created.id,
+            updateStatus: created.status,
+            updateTitle: created.title,
+          }).catch((error) => logNotificationFailure("project_update", error));
         }
 
         return Response.json(serializeProjectUpdate(created), { status: 201 });

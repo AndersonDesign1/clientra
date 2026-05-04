@@ -2,6 +2,10 @@ import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
+import type {
+  NotificationRecipient,
+  ProjectNotificationContext,
+} from "@/server/email/notifications";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 import { db } from "./client";
 import {
@@ -323,6 +327,7 @@ function mapInvite(row: typeof invitesTable.$inferSelect) {
     email: row.email,
     expiresAt: row.expiresAt,
     id: row.id,
+    revokedAt: row.revokedAt,
     token: row.token,
   };
 }
@@ -1372,6 +1377,65 @@ export async function getProjectById(projectId: string) {
   return project ?? null;
 }
 
+export async function getProjectNotificationContext(
+  projectId: string
+): Promise<ProjectNotificationContext | null> {
+  const [projectRows, adminRows, clientRows] = await Promise.all([
+    db
+      .select({
+        client: clientsTable,
+        project: projectsTable,
+      })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(eq(projectsTable.id, projectId))
+      .limit(1),
+    db
+      .select({
+        email: usersTable.email,
+        id: usersTable.id,
+        name: usersTable.name,
+        role: usersTable.role,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.role, ROLES.ADMIN)),
+    db
+      .select({
+        email: usersTable.email,
+        id: usersTable.id,
+        name: usersTable.name,
+        role: usersTable.role,
+      })
+      .from(clientUsersTable)
+      .innerJoin(usersTable, eq(clientUsersTable.userId, usersTable.id))
+      .innerJoin(
+        projectsTable,
+        eq(projectsTable.clientId, clientUsersTable.clientId)
+      )
+      .where(eq(projectsTable.id, projectId)),
+  ]);
+  const match = projectRows[0];
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    clientCompany: match.client.company,
+    clientName: match.client.name,
+    projectId: match.project.id,
+    projectTitle: match.project.title,
+    recipients: [...adminRows, ...clientRows].map(
+      (recipient): NotificationRecipient => ({
+        email: recipient.email,
+        id: recipient.id,
+        name: recipient.name,
+        role: recipient.role,
+      })
+    ),
+  };
+}
+
 export async function listProjectCommentsForUser(
   projectId: string,
   user: SessionUser
@@ -1556,8 +1620,19 @@ export async function createInviteRecord(input: InviteInsert) {
     email: input.email,
     expiresAt: input.expiresAt,
     id: input.id,
+    revokedAt: null,
     token: input.token,
   });
+}
+
+export async function getClientById(clientId: string) {
+  const [client] = await db
+    .select()
+    .from(clientsTable)
+    .where(eq(clientsTable.id, clientId))
+    .limit(1);
+
+  return client ? mapClient(client) : null;
 }
 
 export async function getInviteRecordById(id: string) {
@@ -1578,6 +1653,7 @@ export async function getActiveInviteByToken(token: string) {
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )
@@ -1601,12 +1677,67 @@ export async function consumeInvite(
       and(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )
     .returning({ token: invitesTable.token });
 
   return consumedInvites.length > 0;
+}
+
+export async function getActiveInviteById(inviteId: string) {
+  const [invite] = await db
+    .select()
+    .from(invitesTable)
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .limit(1);
+
+  return invite ? mapInvite(invite) : null;
+}
+
+export async function refreshInviteExpiration(
+  inviteId: string,
+  expiresAt: Date
+) {
+  const [invite] = await db
+    .update(invitesTable)
+    .set({ expiresAt })
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .returning();
+
+  return invite ? mapInvite(invite) : null;
+}
+
+export async function revokeInviteRecord(inviteId: string) {
+  const [invite] = await db
+    .update(invitesTable)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .returning();
+
+  return invite ? mapInvite(invite) : null;
 }
 
 export async function linkUserToClient(
@@ -1736,6 +1867,7 @@ export async function listPendingInvitesForClient(clientId: string) {
       and(
         eq(invitesTable.clientId, clientId),
         isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )

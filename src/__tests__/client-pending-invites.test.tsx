@@ -1,8 +1,37 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LoadableData, PendingInvite } from "@/lib/api";
+
+vi.mock("@/lib/api", () => ({
+  ensureClientsData: vi.fn(),
+  ensurePendingInvitesData: vi.fn(),
+  ensureProjectsData: vi.fn(),
+  useClientsData: vi.fn(),
+  usePendingInvitesData: vi.fn(),
+  useProjectsData: vi.fn(),
+  useResendInviteMutation: () => ({
+    error: null,
+    isPending: false,
+    mutateAsync: vi.fn(async () => undefined),
+    variables: undefined,
+  }),
+  useRevokeInviteMutation: () => ({
+    error: null,
+    isPending: false,
+    mutateAsync: vi.fn(async () => undefined),
+    variables: undefined,
+  }),
+  useUpdateClientMutation: vi.fn(),
+}));
+
+vi.mock("@/components/ui/field", () => ({
+  FieldError: ({ children }: { children?: ReactNode }) =>
+    children ? <p>{children}</p> : null,
+}));
+
 import { PendingInvitesPanel } from "@/routes/clients/$id";
 
 afterEach(() => {
@@ -42,6 +71,8 @@ describe("PendingInvitesPanel", () => {
     expect(screen.getByText("jordan@example.com")).toBeTruthy();
     expect(screen.getByText("1 pending")).toBeTruthy();
     expect(screen.getByText("Pending")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Resend" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Revoke" })).toBeTruthy();
   });
 
   it("renders an empty state", () => {

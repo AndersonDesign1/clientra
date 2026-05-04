@@ -7,11 +7,13 @@ A lightweight client management system for freelancers and small agencies.
 - TanStack Start server routes
 - Turso SQLite + Drizzle ORM
 - Better Auth
+- Loops email notifications
 - Zod
 - Bun
 
 ## Getting Started
 Copy `.env.example` to `.env.local` and fill in the values needed for your environment.
+For Loops notifications, create published transactional templates for invite, project update, file upload, comment, email verification, and password reset events, then set the matching `LOOPS_*_TRANSACTIONAL_ID` values. Keep `LOOPS_ENABLED=false` locally when you want invite flows to skip email delivery.
 
 ```bash
 bun install

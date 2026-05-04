@@ -1,0 +1,45 @@
+<mjml>
+  <mj-head>
+    <mj-title>New project update</mj-title>
+    <mj-preview>{DATA_VARIABLE:updateTitle} for {DATA_VARIABLE:projectTitle}</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Geist, Inter, Arial, sans-serif" color="#171717" />
+      <mj-body background-color="#fafafa" />
+      <mj-section background-color="#ffffff" />
+      <mj-text font-size="14px" line-height="22px" color="#171717" padding="0" />
+      <mj-button background-color="#188463" color="#ffffff" border-radius="6px" font-size="14px" font-weight="600" inner-padding="11px 16px" padding="0" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#fafafa">
+    <mj-section padding="28px 24px 0">
+      <mj-column>
+        <mj-text font-size="13px" font-weight="700" color="#171717">Clientra</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section border="1px solid #e8e8e8" border-radius="8px" padding="24px">
+      <mj-column>
+        <mj-text font-size="11px" color="#0f766e" font-weight="700" letter-spacing="0.8px" text-transform="uppercase">Project update</mj-text>
+        <mj-text font-size="22px" line-height="30px" font-weight="650" padding-top="8px">{DATA_VARIABLE:updateTitle}</mj-text>
+        <mj-text color="#525252" padding-top="14px">Hello {DATA_VARIABLE:recipientName},</mj-text>
+        <mj-text color="#525252" padding-top="10px">{DATA_VARIABLE:actorName} posted an update on {DATA_VARIABLE:projectTitle} for {DATA_VARIABLE:clientCompany}.</mj-text>
+        <mj-table padding="16px 0 0">
+          <tr>
+            <td style="border:1px solid #e8e8e8;border-radius:8px;padding:12px 14px;background:#fafafa;">
+              <div style="font-size:12px;line-height:18px;color:#737373;">Status</div>
+              <div style="font-size:14px;line-height:22px;color:#171717;font-weight:600;">{DATA_VARIABLE:updateStatus}</div>
+            </td>
+          </tr>
+        </mj-table>
+        <mj-text color="#525252" padding-top="16px">{DATA_VARIABLE:updatePreview}</mj-text>
+        <mj-button href="{DATA_VARIABLE:appUrl}" align="left" padding-top="18px">Open Clientra</mj-button>
+        <mj-divider border-color="#e8e8e8" padding="22px 0 14px" />
+        <mj-text color="#737373" font-size="12px" line-height="18px">Sent to {DATA_VARIABLE:recipientEmail}.</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="12px 24px 28px">
+      <mj-column>
+        <mj-text color="#737373" font-size="12px" align="center">Clientra - {DATA_VARIABLE:appUrl}</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

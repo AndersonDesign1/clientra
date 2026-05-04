@@ -451,6 +451,33 @@ async function deleteProjectRequest(id: string) {
   return data;
 }
 
+async function resendInviteRequest(id: string): Promise<PendingInvite> {
+  const response = await createApiRequest(`/api/invites/${id}/resend`, {
+    method: "POST",
+  });
+
+  return parseMutationResponse<PendingInvite>(response, "invite");
+}
+
+async function revokeInviteRequest(id: string) {
+  const response = await createApiRequest(`/api/invites/${id}/revoke`, {
+    method: "POST",
+  });
+
+  const data = (await response.json().catch(() => null)) as {
+    error?: string;
+    success?: boolean;
+  } | null;
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ?? `Request failed with status ${response.status}`
+    );
+  }
+
+  return data;
+}
+
 async function parseMutationResponse<TRecord extends { id: unknown }>(
   response: Response,
   recordName: string
@@ -1036,6 +1063,40 @@ export function useDeleteProjectMutation() {
         queryKey: queryKeys.projectMilestones(variables.id),
       });
       invalidateAdminData(queryClient);
+    },
+  });
+}
+
+export function useResendInviteMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { clientId: string; id: string }) =>
+      resendInviteRequest(id),
+    onSuccess: (invite) => {
+      queryClient.setQueryData<PendingInvite[]>(
+        queryKeys.pendingInvites(invite.clientId),
+        (current) =>
+          (current ?? []).map((item) => (item.id === invite.id ? invite : item))
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
+    },
+  });
+}
+
+export function useRevokeInviteMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { clientId: string; id: string }) =>
+      revokeInviteRequest(id),
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData<PendingInvite[]>(
+        queryKeys.pendingInvites(variables.clientId),
+        (current) =>
+          (current ?? []).filter((invite) => invite.id !== variables.id)
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
     },
   });
 }

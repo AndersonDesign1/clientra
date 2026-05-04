@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { inviteSchema } from "@/api/validation";
-import { createInviteRecord, getInviteRecordById } from "@/db/records";
+import {
+  createInviteRecord,
+  getClientById,
+  getInviteRecordById,
+  revokeInviteRecord,
+} from "@/db/records";
+import { sendInviteEmail } from "@/server/email/notifications";
 import {
   internalServerError,
+  notFoundError,
   parseJsonBody,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -21,6 +28,12 @@ export const Route = createFileRoute("/api/invites")({
 
         if (!parsed.ok) {
           return parsed.error;
+        }
+
+        const client = await getClientById(parsed.data.clientId);
+
+        if (!client) {
+          return notFoundError("We could not find a client with that id.");
         }
 
         const token = crypto.randomUUID();
@@ -48,6 +61,21 @@ export const Route = createFileRoute("/api/invites")({
         }
 
         const inviteUrl = new URL(`/invite/${token}`, request.url);
+
+        try {
+          await sendInviteEmail({
+            clientCompany: client.company,
+            clientName: client.name,
+            email: invite.email,
+            inviteId: invite.id,
+            inviteUrl: inviteUrl.toString(),
+            requestUrl: request.url,
+          });
+        } catch (error) {
+          console.error("invite email failed", error);
+          await revokeInviteRecord(invite.id);
+          return internalServerError("Invite email could not be sent.");
+        }
 
         return Response.json({
           ...invite,

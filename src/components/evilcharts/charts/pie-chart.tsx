@@ -1,14 +1,14 @@
 "use client";
 
+import { motion } from "motion/react";
+import { type ComponentProps, useCallback, useId, useState } from "react";
 import {
-  type ComponentProps,
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useState,
-} from "react";
-import { RadialBar, RadialBarChart, Sector, type SectorProps } from "recharts";
+  LabelList,
+  Pie,
+  PieChart,
+  type PieSectorShapeProps,
+  Sector,
+} from "recharts";
 import {
   type BackgroundVariant,
   ChartBackground,
@@ -32,21 +32,20 @@ import {
 } from "@/components/evilcharts/ui/tooltip";
 
 // Loading animation constants
-const LOADING_BARS = 5;
-const LOADING_ANIMATION_DURATION = 1500; // Duration between data changes in ms
+const LOADING_SECTORS = 5;
+const LOADING_ANIMATION_DURATION = 2000; // Full cycle duration in ms
 
 // Constants
-const DEFAULT_INNER_RADIUS = "30%";
-const DEFAULT_OUTER_RADIUS = "100%";
-const DEFAULT_CORNER_RADIUS = 5;
-const DEFAULT_BAR_SIZE = 14;
+const DEFAULT_INNER_RADIUS = 0;
+const DEFAULT_OUTER_RADIUS = "80%";
+const DEFAULT_CORNER_RADIUS = 0;
+const DEFAULT_PADDING_ANGLE = 0;
 
-type ChartProps = ComponentProps<typeof RadialBarChart>;
-type RadialBarProps = ComponentProps<typeof RadialBar>;
+type ChartProps = ComponentProps<typeof PieChart>;
+type PieProps = ComponentProps<typeof Pie>;
+type LabelListProps = ComponentProps<typeof LabelList>;
 
-type RadialVariant = "full" | "semi";
-
-type EvilRadialChartProps<TData extends Record<string, unknown>> = {
+type EvilPieChartProps<TData extends Record<string, unknown>> = {
   // Data
   data: TData[];
   dataKey: keyof TData & string;
@@ -54,21 +53,24 @@ type EvilRadialChartProps<TData extends Record<string, unknown>> = {
   chartConfig: ChartConfig;
   className?: string;
   chartProps?: ChartProps;
-  radialBarProps?: Omit<RadialBarProps, "dataKey">;
+  pieProps?: Omit<PieProps, "data" | "dataKey" | "nameKey">;
 
-  // Variant
-  variant?: RadialVariant;
-
-  // Radial Shape
+  // Pie Shape
   innerRadius?: number | string;
   outerRadius?: number | string;
   cornerRadius?: number;
-  barSize?: number;
+  paddingAngle?: number;
+  startAngle?: number;
+  endAngle?: number;
+
+  // Labels
+  showLabels?: boolean;
+  labelKey?: keyof TData & string;
+  labelListProps?: Omit<LabelListProps, "dataKey">;
 
   // Hide Stuffs
   hideTooltip?: boolean;
   hideLegend?: boolean;
-  hideBackground?: boolean;
   legendVariant?: ChartLegendVariant;
   // Tooltip
   tooltipRoundness?: TooltipRoundness;
@@ -79,72 +81,73 @@ type EvilRadialChartProps<TData extends Record<string, unknown>> = {
   isLoading?: boolean;
 
   // Glow Effects
-  glowingBars?: string[];
+  glowingSectors?: string[];
   // Background
   backgroundVariant?: BackgroundVariant;
 };
 
-type EvilRadialChartClickable = {
+type EvilPieChartClickable = {
   isClickable: true;
   onSelectionChange?: (
     selection: { dataKey: string; value: number } | null
   ) => void;
 };
 
-type EvilRadialChartNotClickable = {
+type EvilPieChartNotClickable = {
   isClickable?: false;
   onSelectionChange?: never;
 };
 
-type EvilRadialChartPropsWithCallback<TData extends Record<string, unknown>> =
-  EvilRadialChartProps<TData> &
-    (EvilRadialChartClickable | EvilRadialChartNotClickable);
+type EvilPieChartPropsWithCallback<TData extends Record<string, unknown>> =
+  EvilPieChartProps<TData> & (EvilPieChartClickable | EvilPieChartNotClickable);
 
-export function EvilRadialChart<TData extends Record<string, unknown>>({
+export function EvilPieChart<TData extends Record<string, unknown>>({
   data,
   dataKey,
   nameKey,
   chartConfig,
   className,
   chartProps,
-  radialBarProps,
-  variant = "full",
+  pieProps,
   innerRadius = DEFAULT_INNER_RADIUS,
   outerRadius = DEFAULT_OUTER_RADIUS,
   cornerRadius = DEFAULT_CORNER_RADIUS,
-  barSize = DEFAULT_BAR_SIZE,
+  paddingAngle = DEFAULT_PADDING_ANGLE,
+  startAngle = 0,
+  endAngle = 360,
+  showLabels = false,
+  labelKey,
+  labelListProps,
   hideTooltip = false,
   hideLegend = false,
-  hideBackground = false,
   legendVariant,
   tooltipRoundness,
   tooltipVariant,
   tooltipDefaultIndex,
   isClickable = false,
   isLoading = false,
-  glowingBars = [],
+  glowingSectors = [],
   onSelectionChange,
   backgroundVariant,
-}: EvilRadialChartPropsWithCallback<TData>) {
-  const [selectedBar, setSelectedBar] = useState<string | null>(null);
+}: EvilPieChartPropsWithCallback<TData>) {
+  const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const chartId = useId().replace(/:/g, "");
-  const loadingData = useLoadingData(isLoading);
 
   // Handler to update selection and call callback
   const handleSelectionChange = useCallback(
-    (barName: string | null) => {
-      setSelectedBar(barName);
+    (sectorName: string | null) => {
+      setSelectedSector(sectorName);
       if (isClickable && onSelectionChange) {
-        if (barName === null) {
+        if (sectorName === null) {
           onSelectionChange(null);
         } else {
           // Find the data item and get its value
           const selectedItem = data.find(
-            (item) => (item[nameKey] as string) === barName
+            (item) => (item[nameKey] as string) === sectorName
           );
           if (selectedItem) {
             const value = selectedItem[dataKey] as number;
-            onSelectionChange({ dataKey: barName, value });
+            onSelectionChange({ dataKey: sectorName, value });
           }
         }
       }
@@ -152,34 +155,21 @@ export function EvilRadialChart<TData extends Record<string, unknown>>({
     [isClickable, onSelectionChange, data, nameKey, dataKey]
   );
 
-  // Variant-specific settings
-  const variantConfig = getVariantConfig(variant);
-
   // Prepare data with fill colors referencing gradients
   const preparedData = data.map((item) => {
-    const barName = item[nameKey] as string;
+    const sectorName = item[nameKey] as string;
     return {
       ...item,
-      fill: `url(#${chartId}-radial-colors-${barName})`,
+      fill: `url(#${chartId}-pie-colors-${sectorName})`,
     };
   });
 
   return (
     <ChartContainer className={className} config={chartConfig}>
       <LoadingIndicator isLoading={isLoading} />
-      <RadialBarChart
-        cx={variantConfig.cx}
-        cy={variantConfig.cy}
-        data={isLoading ? loadingData : preparedData}
-        endAngle={variantConfig.endAngle}
-        id="evil-charts-radial-chart"
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={variantConfig.startAngle}
-        {...chartProps}
-      >
+      <PieChart accessibilityLayer id="evil-charts-pie-chart" {...chartProps}>
         {backgroundVariant && <ChartBackground variant={backgroundVariant} />}
-        {!(hideLegend || isLoading) && (
+        {!hideLegend && (
           <ChartLegend
             align="center"
             content={
@@ -187,11 +177,11 @@ export function EvilRadialChart<TData extends Record<string, unknown>>({
                 isClickable={isClickable}
                 nameKey={nameKey}
                 onSelectChange={handleSelectionChange}
-                selected={selectedBar}
+                selected={selectedSector}
                 variant={legendVariant}
               />
             }
-            verticalAlign={variant === "semi" ? "bottom" : "bottom"}
+            verticalAlign="bottom"
           />
         )}
         {!(hideTooltip || isLoading) && (
@@ -204,39 +194,39 @@ export function EvilRadialChart<TData extends Record<string, unknown>>({
                 variant={tooltipVariant}
               />
             }
-            cursor={false}
             defaultIndex={tooltipDefaultIndex}
           />
         )}
-
-        {/* Main radial bar */}
         {!isLoading && (
-          <RadialBar
-            background={!hideBackground}
-            barSize={barSize}
-            className="drop-shadow-sm"
+          <Pie
             cornerRadius={cornerRadius}
-            dataKey={dataKey as RadialBarProps["dataKey"]}
+            data={preparedData}
+            dataKey={dataKey}
+            endAngle={endAngle}
+            innerRadius={innerRadius}
+            isAnimationActive
+            nameKey={nameKey}
             onClick={(_, index) => {
               if (!isClickable) {
                 return;
               }
               const clickedName = data[index]?.[nameKey] as string;
               handleSelectionChange(
-                selectedBar === clickedName ? null : clickedName
+                selectedSector === clickedName ? null : clickedName
               );
             }}
-            shape={(props: SectorProps) => {
-              // Recharts merges data entry properties into shape props,
-              // so we can read the nameKey value directly from props
-              const barName = (props as unknown as TData)[nameKey] as string;
-              const isGlowing = glowingBars.includes(barName);
+            outerRadius={outerRadius}
+            paddingAngle={paddingAngle}
+            shape={(props: PieSectorShapeProps) => {
+              const index = props.index ?? 0;
+              const sectorName = data[index]?.[nameKey] as string;
+              const isGlowing = glowingSectors.includes(sectorName);
               const isSelected =
-                selectedBar === null || selectedBar === barName;
+                selectedSector === null || selectedSector === sectorName;
 
               const getFilter = () => {
                 if (isGlowing) {
-                  return `url(#${chartId}-radial-glow-${barName})`;
+                  return `url(#${chartId}-pie-glow-${sectorName})`;
                 }
                 return undefined;
               };
@@ -245,101 +235,105 @@ export function EvilRadialChart<TData extends Record<string, unknown>>({
                 <Sector
                   {...props}
                   className="transition-opacity duration-200"
+                  fill={`url(#${chartId}-pie-colors-${sectorName})`}
                   filter={getFilter()}
                   opacity={isClickable && !isSelected ? 0.3 : 1}
+                  stroke={paddingAngle < 0 ? "var(--background)" : "none"}
+                  strokeWidth={paddingAngle < 0 ? 5 : 0}
                 />
               );
             }}
+            startAngle={startAngle}
+            strokeWidth={0}
             style={isClickable ? { cursor: "pointer" } : undefined}
-            {...radialBarProps}
-          />
+            {...pieProps}
+          >
+            {showLabels && (
+              <LabelList
+                className="fill-background"
+                dataKey={labelKey ?? dataKey}
+                fill="currentColor"
+                fontSize={12}
+                fontWeight={500}
+                stroke="none"
+                {...labelListProps}
+              />
+            )}
+          </Pie>
         )}
 
-        {/* Loading state with animated data */}
+        {/* Animated loading overlay using custom shape */}
         {isLoading && (
-          <RadialBar
-            animationDuration={LOADING_ANIMATION_DURATION}
-            animationEasing="ease-in-out"
-            background
-            barSize={barSize}
+          <Pie
             cornerRadius={cornerRadius}
+            data={LOADING_PIE_DATA}
             dataKey="value"
-            isAnimationActive
-            shape={(props: SectorProps) => (
-              <Sector {...props} fill="currentColor" fillOpacity={0.25} />
-            )}
+            endAngle={endAngle}
+            innerRadius={innerRadius}
+            isAnimationActive={false}
+            nameKey="name"
+            outerRadius={outerRadius}
+            paddingAngle={paddingAngle}
+            shape={(props) => <AnimatedLoadingSector {...props} />}
+            startAngle={startAngle}
+            strokeWidth={0}
           />
         )}
 
         {/* ======== CHART STYLES ======== */}
         <defs>
-          {/* Color gradients for each bar */}
-          <ColorGradientStyle chartConfig={chartConfig} chartId={chartId} />
+          {/* Radial color gradients for each sector */}
+          <RadialColorGradientStyle
+            chartConfig={chartConfig}
+            chartId={chartId}
+          />
 
           {/* Glow filters */}
-          {glowingBars.length > 0 && (
-            <GlowFilterStyle chartId={chartId} glowingBars={glowingBars} />
+          {glowingSectors.length > 0 && (
+            <GlowFilterStyle
+              chartId={chartId}
+              glowingSectors={glowingSectors}
+            />
           )}
         </defs>
-      </RadialBarChart>
+      </PieChart>
     </ChartContainer>
   );
 }
 
-// Get angle and position configuration based on chart variant (full/semi)
-function getVariantConfig(variant: RadialVariant) {
-  switch (variant) {
-    case "semi":
-      return {
-        startAngle: 180,
-        endAngle: 0,
-        cx: "50%",
-        cy: "70%",
-      };
-    case "full":
-    default:
-      return {
-        startAngle: 90,
-        endAngle: -270,
-        cx: "50%",
-        cy: "50%",
-      };
-  }
-}
+// Generate fixed loading data with equal sectors for circular pulsing animation
+const LOADING_PIE_DATA = Array.from({ length: LOADING_SECTORS }, (_, i) => ({
+  name: `loading${i}`,
+  value: 100 / LOADING_SECTORS,
+}));
 
-// Generate random loading data with values between 40-100
-function generateLoadingData() {
-  return Array.from({ length: LOADING_BARS }, (_, i) => ({
-    name: `loading${i}`,
-    value: 40 + Math.random() * 60, // Random values between 40-100
-  }));
-}
+// Animated sector for loading state using motion.dev
+const AnimatedLoadingSector = (
+  props: ComponentProps<typeof Sector> & { index?: number }
+) => {
+  const { index = 0, ...sectorProps } = props;
 
-// Hook to animate loading data at intervals
-function useLoadingData(isLoading: boolean) {
-  const [dataKey, setDataKey] = useState(0);
+  // Calculate delay for circular wave effect
+  const delay = (index / LOADING_SECTORS) * (LOADING_ANIMATION_DURATION / 1000);
 
-  useEffect(() => {
-    if (!isLoading) {
-      return;
-    }
+  return (
+    <motion.g
+      animate={{ opacity: [0.15, 0.5, 0.15] }}
+      initial={{ opacity: 0.15 }}
+      transition={{
+        duration: LOADING_ANIMATION_DURATION / 1000,
+        delay,
+        repeat: Number.POSITIVE_INFINITY,
+        ease: "easeInOut",
+      }}
+    >
+      <Sector {...sectorProps} fill="currentColor" />
+    </motion.g>
+  );
+};
 
-    const interval = setInterval(() => {
-      setDataKey((prev) => prev + 1);
-    }, LOADING_ANIMATION_DURATION);
-
-    return () => clearInterval(interval);
-  }, [isLoading]);
-
-  // Regenerate data when dataKey changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadingData = useMemo(() => generateLoadingData(), [dataKey]);
-
-  return loadingData;
-}
-
-// Create horizontal color gradient for radial bars following the arc
-const ColorGradientStyle = ({
+// Create radial color gradient for pie sectors
+const RadialColorGradientStyle = ({
   chartConfig,
   chartId,
 }: {
@@ -353,8 +347,8 @@ const ColorGradientStyle = ({
 
         return (
           <linearGradient
-            id={`${chartId}-radial-colors-${dataKey}`}
-            key={`${chartId}-radial-colors-${dataKey}`}
+            id={`${chartId}-pie-colors-${dataKey}`}
+            key={`${chartId}-pie-colors-${dataKey}`}
             x1="0"
             x2="1"
             y1="0"
@@ -381,31 +375,31 @@ const ColorGradientStyle = ({
   );
 };
 
-// Apply soft glow filter effect to radial bars using SVG filters
+// Apply soft glow filter effect to pie sectors using SVG filters
 const GlowFilterStyle = ({
   chartId,
-  glowingBars,
+  glowingSectors,
 }: {
   chartId: string;
-  glowingBars: string[];
+  glowingSectors: string[];
 }) => {
   return (
     <>
-      {glowingBars.map((barName) => (
+      {glowingSectors.map((sectorName) => (
         <filter
           height="300%"
-          id={`${chartId}-radial-glow-${barName}`}
-          key={`${chartId}-radial-glow-${barName}`}
+          id={`${chartId}-pie-glow-${sectorName}`}
+          key={`${chartId}-pie-glow-${sectorName}`}
           width="300%"
           x="-100%"
           y="-100%"
         >
-          <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="6" />
+          <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="8" />
           <feColorMatrix
             in="blur"
             result="glow"
             type="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.6 0"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0"
           />
           <feMerge>
             <feMergeNode in="glow" />

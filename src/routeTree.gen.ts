@@ -49,6 +49,8 @@ import { Route as ApiProjectsIdUpdatesRouteImport } from './routes/api/projects/
 import { Route as ApiProjectsIdMilestonesRouteImport } from './routes/api/projects/$id/milestones'
 import { Route as ApiProjectsIdFilesRouteImport } from './routes/api/projects/$id/files'
 import { Route as ApiProjectsIdCollaborationRouteImport } from './routes/api/projects/$id/collaboration'
+import { Route as ApiInvitesIdRevokeRouteImport } from './routes/api/invites/$id/revoke'
+import { Route as ApiInvitesIdResendRouteImport } from './routes/api/invites/$id/resend'
 import { Route as ApiClientsIdInvitesRouteImport } from './routes/api/clients/$id/invites'
 
 const UsersRoute = UsersRouteImport.update({
@@ -254,6 +256,16 @@ const ApiProjectsIdCollaborationRoute =
     path: '/collaboration',
     getParentRoute: () => ApiProjectsIdRoute,
   } as any)
+const ApiInvitesIdRevokeRoute = ApiInvitesIdRevokeRouteImport.update({
+  id: '/$id/revoke',
+  path: '/$id/revoke',
+  getParentRoute: () => ApiInvitesRoute,
+} as any)
+const ApiInvitesIdResendRoute = ApiInvitesIdResendRouteImport.update({
+  id: '/$id/resend',
+  path: '/$id/resend',
+  getParentRoute: () => ApiInvitesRoute,
+} as any)
 const ApiClientsIdInvitesRoute = ApiClientsIdInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
@@ -297,6 +309,8 @@ export interface FileRoutesByFullPath {
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
+  '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
   '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
@@ -340,6 +354,8 @@ export interface FileRoutesByTo {
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects': typeof PortalProjectsIndexRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
+  '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
   '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
@@ -384,6 +400,8 @@ export interface FileRoutesById {
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
+  '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
   '/api/projects/$id/files': typeof ApiProjectsIdFilesRoute
   '/api/projects/$id/milestones': typeof ApiProjectsIdMilestonesRoute
@@ -429,6 +447,8 @@ export interface FileRouteTypes {
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/resend'
+    | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
     | '/api/projects/$id/milestones'
@@ -472,6 +492,8 @@ export interface FileRouteTypes {
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/resend'
+    | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
     | '/api/projects/$id/milestones'
@@ -515,6 +537,8 @@ export interface FileRouteTypes {
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/resend'
+    | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
     | '/api/projects/$id/files'
     | '/api/projects/$id/milestones'
@@ -839,6 +863,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsIdCollaborationRouteImport
       parentRoute: typeof ApiProjectsIdRoute
     }
+    '/api/invites/$id/revoke': {
+      id: '/api/invites/$id/revoke'
+      path: '/$id/revoke'
+      fullPath: '/api/invites/$id/revoke'
+      preLoaderRoute: typeof ApiInvitesIdRevokeRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
+    '/api/invites/$id/resend': {
+      id: '/api/invites/$id/resend'
+      path: '/$id/resend'
+      fullPath: '/api/invites/$id/resend'
+      preLoaderRoute: typeof ApiInvitesIdResendRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
     '/api/clients/$id/invites': {
       id: '/api/clients/$id/invites'
       path: '/invites'
@@ -875,10 +913,14 @@ const ApiClientsRouteWithChildren = ApiClientsRoute._addFileChildren(
 
 interface ApiInvitesRouteChildren {
   ApiInvitesRedeemRoute: typeof ApiInvitesRedeemRoute
+  ApiInvitesIdResendRoute: typeof ApiInvitesIdResendRoute
+  ApiInvitesIdRevokeRoute: typeof ApiInvitesIdRevokeRoute
 }
 
 const ApiInvitesRouteChildren: ApiInvitesRouteChildren = {
   ApiInvitesRedeemRoute: ApiInvitesRedeemRoute,
+  ApiInvitesIdResendRoute: ApiInvitesIdResendRoute,
+  ApiInvitesIdRevokeRoute: ApiInvitesIdRevokeRoute,
 }
 
 const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(

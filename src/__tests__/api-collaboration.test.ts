@@ -9,8 +9,14 @@ vi.mock("@/db/records", () => ({
   canAccessProject: vi.fn(),
   createProjectNoteRecord: vi.fn(),
   getProjectCollaboration: vi.fn(),
+  getProjectNotificationContext: vi.fn(),
   seedIfEmpty: vi.fn(),
   serializeProjectComment: vi.fn((comment) => comment),
+}));
+
+vi.mock("@/server/email/notifications", () => ({
+  logNotificationFailure: vi.fn(),
+  notifyProjectComment: vi.fn(),
 }));
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
@@ -18,11 +24,13 @@ import {
   canAccessProject,
   createProjectNoteRecord,
   getProjectCollaboration,
+  getProjectNotificationContext,
   seedIfEmpty,
   serializeProjectComment,
 } from "@/db/records";
 import { Route as NotesRoute } from "@/routes/api/notes";
 import { Route as CollaborationRoute } from "@/routes/api/projects/$id/collaboration";
+import { notifyProjectComment } from "@/server/email/notifications";
 
 const collaborationHandlers = CollaborationRoute.options.server?.handlers as {
   GET: (context: unknown) => Promise<Response>;
@@ -35,6 +43,14 @@ const notesHandlers = NotesRoute.options.server?.handlers as {
 describe("collaboration API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getProjectNotificationContext).mockResolvedValue({
+      clientCompany: "Acme",
+      clientName: "Jordan",
+      projectId: "project_1",
+      projectTitle: "Delivery Portal",
+      recipients: [],
+    });
+    vi.mocked(notifyProjectComment).mockResolvedValue(undefined);
   });
 
   it("returns collaboration data for an authorized user", async () => {
@@ -140,11 +156,50 @@ describe("collaboration API routes", () => {
       "project_1"
     );
     expect(response.status).toBe(201);
+    expect(notifyProjectComment).toHaveBeenCalled();
     await expect(response.json()).resolves.toMatchObject({
       authorName: "Admin User",
       authorRole: ROLES.ADMIN,
       content: "Admin update",
     });
+  });
+
+  it("keeps comment creation successful when notifications fail", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
+      email: "admin@example.com",
+      id: "admin_1",
+      name: "Admin User",
+      role: ROLES.ADMIN,
+    });
+    vi.mocked(canAccessProject).mockResolvedValue(true);
+    vi.mocked(createProjectNoteRecord).mockResolvedValue({
+      authorId: "admin_1",
+      authorName: "Admin User",
+      authorRole: ROLES.ADMIN,
+      content: "Admin update",
+      createdAt: new Date("2026-03-01T10:00:00.000Z"),
+      id: "note_1",
+      projectId: "project_1",
+    });
+    vi.mocked(notifyProjectComment).mockRejectedValue(new Error("Loop failed"));
+
+    const response = await notesHandlers.POST({
+      request: new Request("https://clientra.test/api/notes", {
+        body: JSON.stringify({
+          content: "Admin update",
+          projectId: "project_1",
+        }),
+        headers: {
+          "content-type": "application/json",
+          origin: "https://clientra.test",
+          "sec-fetch-site": "same-origin",
+        },
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(201);
+    expect(notifyProjectComment).toHaveBeenCalled();
   });
 
   it("rejects cross-site comment mutations before project access checks", async () => {
