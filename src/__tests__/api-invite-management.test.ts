@@ -83,6 +83,9 @@ describe("invite management API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(createInviteRecord).mockResolvedValue({
+      id: "invite_1",
+    } as never);
     vi.mocked(getClientById).mockResolvedValue(client as never);
     vi.mocked(getInviteRecordById).mockResolvedValue(invite);
     vi.mocked(getActiveInviteById).mockResolvedValue(invite);

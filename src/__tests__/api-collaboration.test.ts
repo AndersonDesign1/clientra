@@ -46,8 +46,10 @@ describe("collaboration API routes", () => {
     vi.mocked(getProjectNotificationContext).mockResolvedValue({
       clientCompany: "Acme",
       clientName: "Jordan",
+      discussionUrl: "https://clientra.test/projects/acme/project#discussion",
       projectId: "project_1",
       projectTitle: "Delivery Portal",
+      projectUrl: "https://clientra.test/projects/acme/project",
       recipients: [],
     });
     vi.mocked(notifyProjectComment).mockResolvedValue(undefined);

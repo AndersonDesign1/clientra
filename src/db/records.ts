@@ -1420,12 +1420,20 @@ export async function getProjectNotificationContext(
     return null;
   }
 
+  const appUrl = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? "";
+  const projectPath = `/projects/${getClientPathParam(mapClient(match.client))}/${match.project.slug || match.project.id}`;
+  const uniqueRecipients = new Map(
+    [...adminRows, ...clientRows].map((recipient) => [recipient.id, recipient])
+  );
+
   return {
     clientCompany: match.client.company,
     clientName: match.client.name,
+    discussionUrl: `${appUrl}${projectPath}#discussion`,
     projectId: match.project.id,
     projectTitle: match.project.title,
-    recipients: [...adminRows, ...clientRows].map(
+    projectUrl: `${appUrl}${projectPath}`,
+    recipients: [...uniqueRecipients.values()].map(
       (recipient): NotificationRecipient => ({
         email: recipient.email,
         id: recipient.id,

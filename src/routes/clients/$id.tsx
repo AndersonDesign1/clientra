@@ -282,9 +282,6 @@ export function PendingInvitesPanel({
           {pendingInvites.error}
         </p>
       ) : null}
-      <FieldError>
-        {resendInvite.error?.message ?? revokeInvite.error?.message}
-      </FieldError>
       {pendingInvites.isLoading ? (
         <p className="text-slate-600 text-sm">Loading pending invites...</p>
       ) : null}
@@ -303,6 +300,12 @@ export function PendingInvitesPanel({
             const isRevoking =
               revokeInvite.isPending &&
               revokeInvite.variables?.id === invite.id;
+            const rowError =
+              resendInvite.variables?.id === invite.id
+                ? resendInvite.error?.message
+                : revokeInvite.variables?.id === invite.id
+                  ? revokeInvite.error?.message
+                  : undefined;
 
             return (
               <div
@@ -324,6 +327,8 @@ export function PendingInvitesPanel({
                         <Button
                           disabled={isResending || isRevoking}
                           onClick={() => {
+                            resendInvite.reset();
+                            revokeInvite.reset();
                             resendInvite
                               .mutateAsync({
                                 clientId: invite.clientId,
@@ -372,6 +377,8 @@ export function PendingInvitesPanel({
                           disabled={isRevoking}
                           onClick={(event) => {
                             event.preventDefault();
+                            resendInvite.reset();
+                            revokeInvite.reset();
                             revokeInvite
                               .mutateAsync({
                                 clientId: invite.clientId,
@@ -387,6 +394,9 @@ export function PendingInvitesPanel({
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
+                {rowError ? (
+                  <FieldError className="sm:col-span-5">{rowError}</FieldError>
+                ) : null}
               </div>
             );
           })}

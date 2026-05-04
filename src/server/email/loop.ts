@@ -56,10 +56,12 @@ const TEMPLATE_ENV_KEYS: Record<
 
 export function isLoopEnabled() {
   return (
-    (firstConfiguredValue(
-      process.env.LOOPS_ENABLED,
-      process.env.LOOP_ENABLED
-    ) ?? "true") !== "false"
+    (
+      firstConfiguredValue(
+        process.env.LOOPS_ENABLED,
+        process.env.LOOP_ENABLED
+      ) ?? "true"
+    ).toLowerCase() !== "false"
   );
 }
 
@@ -110,7 +112,13 @@ export function getAppUrl(requestUrl?: string) {
   }
 
   if (requestUrl) {
-    return new URL(requestUrl).origin;
+    try {
+      return new URL(requestUrl).origin;
+    } catch (error) {
+      console.error("Invalid request URL for Loops app URL fallback", {
+        error,
+      });
+    }
   }
 
   return "http://localhost:3000";
@@ -128,7 +136,7 @@ function createLoopsPayload({
   template: LoopTemplate;
 }) {
   return {
-    addToAudience: true,
+    addToAudience: template === "invite",
     dataVariables,
     email,
     headers: idempotencyKey

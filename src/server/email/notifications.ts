@@ -17,8 +17,10 @@ export interface NotificationRecipient {
 export interface ProjectNotificationContext {
   clientCompany: string;
   clientName: string;
+  discussionUrl: string;
   projectId: string;
   projectTitle: string;
+  projectUrl: string;
   recipients: NotificationRecipient[];
 }
 
@@ -68,17 +70,21 @@ async function sendToRecipients({
   template: Exclude<LoopTemplate, "invite">;
 }) {
   const recipients = filterNotificationRecipients(context.recipients, actor.id);
+  const appUrl = getAppUrl();
 
-  await Promise.all(
+  const results = await Promise.allSettled(
     recipients.map((recipient) =>
       sendTransactionalEmail({
         dataVariables: {
           ...dataVariables,
           actorName: actor.name,
-          appUrl: getAppUrl(),
+          appUrl,
           clientCompany: context.clientCompany,
           clientName: context.clientName,
+          discussionUrl: context.discussionUrl,
+          preferenceUrl: `${appUrl}/settings`,
           projectTitle: context.projectTitle,
+          projectUrl: context.projectUrl,
           recipientEmail: recipient.email,
           recipientName: recipient.name,
         },
@@ -88,6 +94,19 @@ async function sendToRecipients({
       })
     )
   );
+
+  for (const [index, result] of results.entries()) {
+    if (result.status === "rejected") {
+      const recipient = recipients[index];
+
+      console.error("Loop notification failed for recipient", {
+        error: result.reason,
+        eventType: template,
+        projectId: context.projectId,
+        recipientId: recipient.id,
+      });
+    }
+  }
 }
 
 export async function notifyProjectUpdate({
@@ -173,7 +192,7 @@ export async function sendInviteEmail({
   inviteUrl: string;
   requestUrl: string;
 }) {
-  if (!(isLoopEnabled() || process.env.NODE_ENV === "production")) {
+  if (!isLoopEnabled()) {
     return { skipped: true };
   }
 

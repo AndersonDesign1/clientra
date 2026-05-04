@@ -93,8 +93,10 @@ describe("project update API routes", () => {
     vi.mocked(getProjectNotificationContext).mockResolvedValue({
       clientCompany: "Acme",
       clientName: "Jordan",
+      discussionUrl: "https://clientra.test/projects/acme/project#discussion",
       projectId: "project_1",
       projectTitle: "Delivery Portal",
+      projectUrl: "https://clientra.test/projects/acme/project",
       recipients: [],
     });
     vi.mocked(notifyProjectUpdate).mockResolvedValue(undefined);
@@ -193,6 +195,7 @@ describe("project update API routes", () => {
 
   it("keeps project update creation successful when notifications fail", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(canAccessProject).mockResolvedValue(true);
     vi.mocked(getProjectById).mockResolvedValue({
       budget: 12_000,
       clientId: "client_1",

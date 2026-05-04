@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import {
   type ComponentProps,
   useCallback,
@@ -45,9 +46,7 @@ import {
   type TooltipVariant,
 } from "@/components/evilcharts/ui/tooltip";
 
-type RectRadius = [number, number, number, number] | number;
-
-import { motion } from "motion/react";
+type RectRadius = ComponentProps<typeof Rectangle>["radius"];
 
 // Constants
 const DEFAULT_BAR_RADIUS = 2;

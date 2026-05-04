@@ -33,6 +33,7 @@
         <mj-button href="{DATA_VARIABLE:appUrl}" align="left" padding-top="18px">View file</mj-button>
         <mj-divider border-color="#e8e8e8" padding="22px 0 14px" />
         <mj-text color="#737373" font-size="12px" line-height="18px">Sent to {DATA_VARIABLE:recipientEmail}.</mj-text>
+        <mj-text color="#737373" font-size="12px" line-height="18px" padding-top="8px"><a href="{DATA_VARIABLE:preferenceUrl}" style="color:#737373;text-decoration:underline;">Manage your email preferences</a></mj-text>
       </mj-column>
     </mj-section>
     <mj-section padding="12px 24px 28px">
