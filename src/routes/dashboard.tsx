@@ -260,6 +260,15 @@ export function formatDashboardActivityDescription(
 function formatRelativeTime(dateString: string) {
   const now = new Date();
   const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Invalid date";
+  }
+
+  if (date.getTime() > now.getTime()) {
+    return "Just now";
+  }
+
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60_000);
   const diffHours = Math.floor(diffMs / 3_600_000);
@@ -339,7 +348,7 @@ function CompactActivityList({
               className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${EVENT_BG_COLORS[event.type]} ${EVENT_COLORS[event.type]}`}
             >
               <HugeiconsIcon
-                icon={EVENT_ICONS[event.type] as any}
+                icon={EVENT_ICONS[event.type] as never}
                 size={14}
                 strokeWidth={2}
               />

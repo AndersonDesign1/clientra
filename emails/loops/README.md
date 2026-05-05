@@ -55,6 +55,7 @@ Loops variables are case-sensitive. Keep these names exactly as written.
 - `clientCompany`
 - `clientName`
 - `fileName`
+- `preferenceUrl`
 - `projectTitle`
 - `recipientEmail`
 - `recipientName`
@@ -66,6 +67,7 @@ Loops variables are case-sensitive. Keep these names exactly as written.
 - `clientCompany`
 - `clientName`
 - `commentPreview`
+- `discussionUrl`
 - `projectTitle`
 - `recipientEmail`
 - `recipientName`
@@ -77,8 +79,9 @@ Loops variables are case-sensitive. Keep these names exactly as written.
 
 ### Password Reset
 
+- `expiryMinutes`
 - `resetPasswordUrl`
-- `token`
+- `supportEmail`
 
 ## Suggested Subjects
 

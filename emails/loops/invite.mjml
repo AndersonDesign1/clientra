@@ -24,12 +24,12 @@
         <mj-text color="#525252" padding-top="10px">You have been invited to Clientra for {DATA_VARIABLE:clientCompany}. Create your account to view project updates, files, milestones, and notes in one place.</mj-text>
         <mj-button href="{DATA_VARIABLE:inviteUrl}" align="left" padding-top="18px">Accept invite</mj-button>
         <mj-divider border-color="#e8e8e8" padding="22px 0 14px" />
-        <mj-text color="#737373" font-size="12px" line-height="18px">Sent to {DATA_VARIABLE:recipientEmail}. If the button does not work, open {DATA_VARIABLE:inviteUrl}</mj-text>
+        <mj-text color="#737373" font-size="12px" line-height="18px">Sent to {DATA_VARIABLE:recipientEmail}. If the button does not work, open <a href="{DATA_VARIABLE:inviteUrl}" style="color:#188463;text-decoration:underline;">{DATA_VARIABLE:inviteUrl}</a></mj-text>
       </mj-column>
     </mj-section>
     <mj-section padding="12px 24px 28px">
       <mj-column>
-        <mj-text color="#737373" font-size="12px" align="center">Clientra - {DATA_VARIABLE:appUrl}</mj-text>
+        <mj-text color="#737373" font-size="12px" align="center">Clientra - <a href="{DATA_VARIABLE:appUrl}" style="color:#737373;text-decoration:underline;">{DATA_VARIABLE:appUrl}</a></mj-text>
       </mj-column>
     </mj-section>
   </mj-body>

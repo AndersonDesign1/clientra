@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
@@ -22,14 +23,28 @@ function getTrustedOrigins() {
     .filter((origin): origin is string => Boolean(origin));
 }
 
-function sendAuthEmail(input: Parameters<typeof sendTransactionalEmail>[0]) {
-  sendTransactionalEmail(input).catch((error) => {
+function getEmailLogId(email: string) {
+  const secret = process.env.BETTER_AUTH_SECRET ?? "clientra-auth-email-log";
+
+  return createHmac("sha256", secret)
+    .update(email.trim().toLowerCase())
+    .digest("hex")
+    .slice(0, 12);
+}
+
+async function sendAuthEmail(
+  input: Parameters<typeof sendTransactionalEmail>[0]
+) {
+  try {
+    await sendTransactionalEmail(input);
+  } catch (error) {
+    // Keep raw email out of logs; this stable HMAC id is enough to correlate failures.
     console.error("Loops auth email failed", {
-      email: input.email,
+      emailLogId: getEmailLogId(input.email),
       error,
       template: input.template,
     });
-  });
+  }
 }
 
 function getSocialProviderConfig({
@@ -93,22 +108,22 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ token, url, user }) => {
-      sendAuthEmail({
+    sendResetPassword: ({ token, url, user }) => {
+      return sendAuthEmail({
         dataVariables: {
+          expiryMinutes: "60",
           resetPasswordUrl: url,
-          token,
+          supportEmail: process.env.SUPPORT_EMAIL ?? "support@clientra.app",
         },
         email: user.email,
         idempotencyKey: `better-auth:reset-password:${token}`,
         template: "resetPassword",
       });
-      await Promise.resolve();
     },
   },
   emailVerification: {
-    sendVerificationEmail: async ({ token, url, user }) => {
-      sendAuthEmail({
+    sendVerificationEmail: ({ token, url, user }) => {
+      return sendAuthEmail({
         dataVariables: {
           token,
           verificationUrl: url,
@@ -117,7 +132,6 @@ export const auth = betterAuth({
         idempotencyKey: `better-auth:verify-email:${token}`,
         template: "verifyEmail",
       });
-      await Promise.resolve();
     },
   },
   rateLimit: {

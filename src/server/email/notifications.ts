@@ -8,17 +8,27 @@ import {
 } from "./loop";
 
 export interface NotificationRecipient {
+  discussionUrl: string;
   email: string;
   id: string;
   name: string;
+  projectUrl: string;
   role: "admin" | "client";
+}
+
+export interface NotificationDeliverySummary {
+  failed: number;
+  sent: number;
+  total: number;
 }
 
 export interface ProjectNotificationContext {
   clientCompany: string;
   clientName: string;
+  discussionUrl: string;
   projectId: string;
   projectTitle: string;
+  projectUrl: string;
   recipients: NotificationRecipient[];
 }
 
@@ -66,19 +76,23 @@ async function sendToRecipients({
   dataVariables: LoopDataVariables;
   idempotencyKeyPrefix: string;
   template: Exclude<LoopTemplate, "invite">;
-}) {
+}): Promise<NotificationDeliverySummary> {
   const recipients = filterNotificationRecipients(context.recipients, actor.id);
+  const appUrl = getAppUrl();
 
-  await Promise.all(
+  const results = await Promise.allSettled(
     recipients.map((recipient) =>
       sendTransactionalEmail({
         dataVariables: {
           ...dataVariables,
           actorName: actor.name,
-          appUrl: getAppUrl(),
+          appUrl,
           clientCompany: context.clientCompany,
           clientName: context.clientName,
+          discussionUrl: recipient.discussionUrl,
+          preferenceUrl: `${appUrl}/settings`,
           projectTitle: context.projectTitle,
+          projectUrl: recipient.projectUrl,
           recipientEmail: recipient.email,
           recipientName: recipient.name,
         },
@@ -88,6 +102,39 @@ async function sendToRecipients({
       })
     )
   );
+
+  for (const [index, result] of results.entries()) {
+    if (result.status === "rejected") {
+      const recipient = recipients[index];
+
+      console.error("Loop notification failed for recipient", {
+        error: result.reason,
+        eventType: template,
+        projectId: context.projectId,
+        recipientId: recipient.id,
+      });
+    }
+  }
+
+  const failed = results.filter(
+    (result) => result.status === "rejected"
+  ).length;
+
+  if (failed > 0) {
+    console.warn("Loop notification delivery summary", {
+      eventType: template,
+      failed,
+      projectId: context.projectId,
+      sent: results.length - failed,
+      total: results.length,
+    });
+  }
+
+  return {
+    failed,
+    sent: results.length - failed,
+    total: results.length,
+  };
 }
 
 export async function notifyProjectUpdate({
@@ -105,7 +152,7 @@ export async function notifyProjectUpdate({
   updateStatus: string;
   updateTitle: string;
 }) {
-  await sendToRecipients({
+  return await sendToRecipients({
     actor,
     context,
     dataVariables: {
@@ -129,7 +176,7 @@ export async function notifyFileUploaded({
   fileId: string;
   fileName: string;
 }) {
-  await sendToRecipients({
+  return await sendToRecipients({
     actor,
     context,
     dataVariables: { fileName },
@@ -149,7 +196,7 @@ export async function notifyProjectComment({
   commentPreview: string;
   context: ProjectNotificationContext;
 }) {
-  await sendToRecipients({
+  return await sendToRecipients({
     actor,
     context,
     dataVariables: { commentPreview: truncatePreview(commentPreview) },
@@ -173,7 +220,7 @@ export async function sendInviteEmail({
   inviteUrl: string;
   requestUrl: string;
 }) {
-  if (!(isLoopEnabled() || process.env.NODE_ENV === "production")) {
+  if (!isLoopEnabled()) {
     return { skipped: true };
   }
 

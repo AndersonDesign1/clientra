@@ -73,7 +73,15 @@ export const Route = createFileRoute("/api/invites")({
           });
         } catch (error) {
           console.error("invite email failed", error);
-          await revokeInviteRecord(invite.id);
+          try {
+            await revokeInviteRecord(invite.id);
+          } catch (rollbackError) {
+            console.error("invite rollback failed after email failure", {
+              error,
+              inviteId: invite.id,
+              rollbackError,
+            });
+          }
           return internalServerError("Invite email could not be sent.");
         }
 

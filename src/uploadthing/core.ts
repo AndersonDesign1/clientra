@@ -128,9 +128,17 @@ export const uploadRouter = {
         throw new UploadThingError("The uploaded file could not be saved.");
       }
 
-      const notificationContext = await getProjectNotificationContext(
-        metadata.projectId
-      );
+      let notificationContext: Awaited<
+        ReturnType<typeof getProjectNotificationContext>
+      > = null;
+
+      try {
+        notificationContext = await getProjectNotificationContext(
+          metadata.projectId
+        );
+      } catch (error) {
+        logNotificationFailure("file_uploaded_context", error);
+      }
 
       if (notificationContext) {
         notifyFileUploaded({

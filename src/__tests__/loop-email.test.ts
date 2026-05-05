@@ -15,21 +15,29 @@ vi.mock("loops", () => ({
 
 const recipients: NotificationRecipient[] = [
   {
+    discussionUrl:
+      "https://clientra.test/portal/projects/acme/project#discussion",
     email: "client@example.com",
     id: "client_1",
     name: "Client",
+    projectUrl: "https://clientra.test/portal/projects/acme/project",
     role: "client",
   },
   {
+    discussionUrl:
+      "https://clientra.test/portal/projects/acme/project#discussion",
     email: "CLIENT@example.com",
     id: "client_2",
     name: "Duplicate Client",
+    projectUrl: "https://clientra.test/portal/projects/acme/project",
     role: "client",
   },
   {
+    discussionUrl: "https://clientra.test/projects/acme/project#discussion",
     email: "admin@example.com",
     id: "admin_1",
     name: "Admin",
+    projectUrl: "https://clientra.test/projects/acme/project",
     role: "admin",
   },
 ];
@@ -40,6 +48,7 @@ describe("Loop email service", () => {
     vi.stubEnv("LOOPS_ENABLED", "true");
     vi.stubEnv("LOOPS_API_KEY", "loops_secret");
     vi.stubEnv("LOOPS_INVITE_TRANSACTIONAL_ID", "invite_template");
+    vi.stubEnv("LOOPS_RESET_PASSWORD_TRANSACTIONAL_ID", "reset_template");
   });
 
   afterEach(() => {
@@ -74,6 +83,7 @@ describe("Loop email service", () => {
 
   it("throws a configuration error when a template id is missing", async () => {
     vi.stubEnv("LOOPS_INVITE_TRANSACTIONAL_ID", "");
+    vi.stubEnv("LOOP_INVITE_TEMPLATE_ID", "");
 
     await expect(
       sendTransactionalEmail({
@@ -83,6 +93,23 @@ describe("Loop email service", () => {
       })
     ).rejects.toThrow(LoopEmailError);
     expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("does not add account emails to the Loops audience", async () => {
+    await sendTransactionalEmail({
+      dataVariables: {
+        resetPasswordUrl: "https://clientra.test/reset",
+      },
+      email: "client@example.com",
+      template: "resetPassword",
+    });
+
+    expect(sendTransactionalEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        addToAudience: false,
+        transactionalId: "reset_template",
+      })
+    );
   });
 
   it("keeps legacy LOOP_* env names working while deployments migrate", async () => {

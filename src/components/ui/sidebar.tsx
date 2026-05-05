@@ -12,11 +12,11 @@ import { cn } from "@/lib/utils";
 
 // ── Sidebar context ─────────────────────────────────────────────────────────
 
-type SidebarContextValue = {
+interface SidebarContextValue {
   open: boolean;
   setOpen: (open: boolean) => void;
   toggleSidebar: () => void;
-};
+}
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
 
@@ -85,10 +85,12 @@ function SidebarTrigger({
   className,
   ...props
 }: React.ComponentProps<"button">) {
-  const { toggleSidebar } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
 
   return (
     <button
+      aria-controls="sidebar"
+      aria-expanded={open}
       className={cn(
         "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
         className
@@ -99,6 +101,7 @@ function SidebarTrigger({
       {...props}
     >
       <svg
+        aria-hidden="true"
         className="h-4 w-4"
         fill="none"
         stroke="currentColor"
@@ -128,6 +131,7 @@ function Sidebar({ className, ...props }: React.ComponentProps<"aside">) {
       )}
       data-slot="sidebar"
       data-state={open ? "expanded" : "collapsed"}
+      id="sidebar"
       style={{
         width: open ? "var(--sidebar-width)" : "var(--sidebar-width-icon)",
       }}
@@ -210,7 +214,7 @@ function SidebarGroupLabel({
   return (
     <div
       className={cn(
-        "px-2 py-1 font-medium text-sidebar-foreground/60 text-xs transition-opacity duration-200",
+        "px-2 py-1 font-medium text-sidebar-foreground/60 text-xs transition-all duration-200",
         !open && "h-0 overflow-hidden py-0 opacity-0",
         className
       )}

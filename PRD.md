@@ -1,7 +1,7 @@
 # Clientra Product Requirements Document
 
 ## Product Summary
-Clientra is a lightweight client and project management system for freelancers, developers, and small agencies. It is intentionally not a full CRM and focuses on speed, clarity, and minimal workflows. The current product is feature-complete enough for final production readiness, browser QA, and launch validation.
+Clientra is a lightweight client and project management system for freelancers, developers, and small agencies. It is intentionally not a full CRM and focuses on speed, clarity, and minimal workflows. The current product is feature-complete for testing and ready for pre-production readiness, browser QA, and launch validation.
 
 ## Personas
 - **Admin**: Freelancer/agency operator managing client delivery.

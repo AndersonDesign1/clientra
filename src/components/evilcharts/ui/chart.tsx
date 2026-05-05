@@ -99,8 +99,23 @@ function ChartContainer({
   const uniqueId = React.useId();
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`;
 
-  // Validate chart config at runtime
-  validateChartConfigColors(config);
+  // Validate only when config changes; production logs and keeps rendering.
+  const validationError = React.useMemo(() => {
+    try {
+      validateChartConfigColors(config);
+      return null;
+    } catch (error) {
+      return error;
+    }
+  }, [config]);
+
+  if (validationError) {
+    if (process.env.NODE_ENV === "development") {
+      throw validationError;
+    }
+
+    console.error(validationError);
+  }
 
   return (
     <ChartContext.Provider value={{ config }}>

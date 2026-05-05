@@ -132,6 +132,10 @@ export function ActivityPieChart({
   const visibleData = data.some((item) => item.total > 0)
     ? data
     : [{ label: "No activity", total: 1 }];
+  const keyedData = visibleData.map((item, index) => ({
+    ...item,
+    _key: `${item.label}-${index}`,
+  }));
 
   // Build dynamic chartConfig from data labels
   const colorPalette = [
@@ -142,10 +146,10 @@ export function ActivityPieChart({
   ];
 
   const chartConfig: ChartConfig = {};
-  for (let i = 0; i < visibleData.length; i++) {
-    const item = visibleData[i];
+  for (let i = 0; i < keyedData.length; i++) {
+    const item = keyedData[i];
     const colors = colorPalette[i % colorPalette.length];
-    chartConfig[item.label] = {
+    chartConfig[item._key] = {
       colors: { light: colors.light, dark: colors.dark },
       label: item.label,
     };
@@ -156,11 +160,11 @@ export function ActivityPieChart({
       chartConfig={chartConfig}
       className="h-[180px]"
       cornerRadius={4}
-      data={visibleData}
+      data={keyedData}
       dataKey="total"
       innerRadius="55%"
       isLoading={isLoading}
-      nameKey="label"
+      nameKey="_key"
       paddingAngle={3}
       tooltipVariant="frosted-glass"
     />
@@ -179,6 +183,10 @@ export function ActivityRadialChart({
   const visibleData = data.some((item) => item.total > 0)
     ? data
     : [{ label: "No activity", total: 1 }];
+  const keyedData = visibleData.map((item, index) => ({
+    ...item,
+    _key: `${item.label}-${index}`,
+  }));
 
   // Build a dynamic chartConfig from the data labels
   const colorPalette = [
@@ -188,10 +196,10 @@ export function ActivityRadialChart({
     palette.sky,
   ];
   const chartConfig: ChartConfig = {};
-  for (let i = 0; i < visibleData.length; i++) {
-    const item = visibleData[i];
+  for (let i = 0; i < keyedData.length; i++) {
+    const item = keyedData[i];
     const color = colorPalette[i % colorPalette.length];
-    chartConfig[item.label] = {
+    chartConfig[item._key] = {
       colors: { light: color, dark: color },
       label: item.label,
     };
@@ -202,10 +210,10 @@ export function ActivityRadialChart({
       barSize={10}
       chartConfig={chartConfig}
       className="h-[180px]"
-      data={visibleData}
+      data={keyedData}
       dataKey="total"
       isLoading={isLoading}
-      nameKey="label"
+      nameKey="_key"
       variant="full"
     />
   );

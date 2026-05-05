@@ -40,6 +40,7 @@ const DEFAULT_INNER_RADIUS = 0;
 const DEFAULT_OUTER_RADIUS = "80%";
 const DEFAULT_CORNER_RADIUS = 0;
 const DEFAULT_PADDING_ANGLE = 0;
+const ID_SAFE_CHARS_REGEX = /[^a-zA-Z0-9_-]/g;
 
 type ChartProps = ComponentProps<typeof PieChart>;
 type PieProps = ComponentProps<typeof Pie>;
@@ -101,6 +102,10 @@ type EvilPieChartNotClickable = {
 type EvilPieChartPropsWithCallback<TData extends Record<string, unknown>> =
   EvilPieChartProps<TData> & (EvilPieChartClickable | EvilPieChartNotClickable);
 
+function sanitizeForId(value: string) {
+  return value.replace(ID_SAFE_CHARS_REGEX, "_");
+}
+
 export function EvilPieChart<TData extends Record<string, unknown>>({
   data,
   dataKey,
@@ -143,11 +148,17 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
         } else {
           // Find the data item and get its value
           const selectedItem = data.find(
-            (item) => (item[nameKey] as string) === sectorName
+            (item) => item[nameKey] === sectorName
           );
-          if (selectedItem) {
-            const value = selectedItem[dataKey] as number;
-            onSelectionChange({ dataKey: sectorName, value });
+          if (
+            selectedItem &&
+            typeof selectedItem[nameKey] === "string" &&
+            typeof selectedItem[dataKey] === "number"
+          ) {
+            onSelectionChange({
+              dataKey: selectedItem[nameKey],
+              value: selectedItem[dataKey],
+            });
           }
         }
       }
@@ -157,10 +168,11 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
 
   // Prepare data with fill colors referencing gradients
   const preparedData = data.map((item) => {
-    const sectorName = item[nameKey] as string;
+    const sectorName =
+      typeof item[nameKey] === "string" ? item[nameKey] : String(item[nameKey]);
     return {
       ...item,
-      fill: `url(#${chartId}-pie-colors-${sectorName})`,
+      fill: `url(#${chartId}-pie-colors-${sanitizeForId(sectorName)})`,
     };
   });
 
@@ -210,7 +222,10 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
               if (!isClickable) {
                 return;
               }
-              const clickedName = data[index]?.[nameKey] as string;
+              const clickedName = data[index]?.[nameKey];
+              if (typeof clickedName !== "string") {
+                return;
+              }
               handleSelectionChange(
                 selectedSector === clickedName ? null : clickedName
               );
@@ -219,14 +234,17 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
             paddingAngle={paddingAngle}
             shape={(props: PieSectorShapeProps) => {
               const index = props.index ?? 0;
-              const sectorName = data[index]?.[nameKey] as string;
+              const rawSectorName = data[index]?.[nameKey];
+              const sectorName =
+                typeof rawSectorName === "string" ? rawSectorName : "";
+              const safeSectorName = sanitizeForId(sectorName);
               const isGlowing = glowingSectors.includes(sectorName);
               const isSelected =
                 selectedSector === null || selectedSector === sectorName;
 
               const getFilter = () => {
                 if (isGlowing) {
-                  return `url(#${chartId}-pie-glow-${sectorName})`;
+                  return `url(#${chartId}-pie-glow-${safeSectorName})`;
                 }
                 return undefined;
               };
@@ -235,7 +253,7 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
                 <Sector
                   {...props}
                   className="transition-opacity duration-200"
-                  fill={`url(#${chartId}-pie-colors-${sectorName})`}
+                  fill={`url(#${chartId}-pie-colors-${safeSectorName})`}
                   filter={getFilter()}
                   opacity={isClickable && !isSelected ? 0.3 : 1}
                   stroke={paddingAngle < 0 ? "var(--background)" : "none"}
@@ -347,8 +365,8 @@ const RadialColorGradientStyle = ({
 
         return (
           <linearGradient
-            id={`${chartId}-pie-colors-${dataKey}`}
-            key={`${chartId}-pie-colors-${dataKey}`}
+            id={`${chartId}-pie-colors-${sanitizeForId(dataKey)}`}
+            key={`${chartId}-pie-colors-${sanitizeForId(dataKey)}`}
             x1="0"
             x2="1"
             y1="0"
@@ -360,13 +378,17 @@ const RadialColorGradientStyle = ({
                 <stop offset="100%" stopColor={`var(--color-${dataKey}-0)`} />
               </>
             ) : (
-              Array.from({ length: colorsCount }, (_, index) => (
-                <stop
-                  key={index}
-                  offset={`${(index / (colorsCount - 1)) * 100}%`}
-                  stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
-                />
-              ))
+              Array.from({ length: colorsCount }, (_, index) => {
+                const offset = `${(index / (colorsCount - 1)) * 100}%`;
+
+                return (
+                  <stop
+                    key={`${dataKey}-${offset}`}
+                    offset={offset}
+                    stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
+                  />
+                );
+              })
             )}
           </linearGradient>
         );
@@ -388,8 +410,8 @@ const GlowFilterStyle = ({
       {glowingSectors.map((sectorName) => (
         <filter
           height="300%"
-          id={`${chartId}-pie-glow-${sectorName}`}
-          key={`${chartId}-pie-glow-${sectorName}`}
+          id={`${chartId}-pie-glow-${sanitizeForId(sectorName)}`}
+          key={`${chartId}-pie-glow-${sanitizeForId(sectorName)}`}
           width="300%"
           x="-100%"
           y="-100%"

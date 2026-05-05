@@ -102,7 +102,11 @@ export function MetricLedger({
           {isLoading ? (
             <>
               <Skeleton className="mt-2 h-8 w-16" />
-              <Skeleton className="mt-2 h-3.5 w-24" />
+              {item.detail ? (
+                <Skeleton className="mt-2 h-3.5 w-24" />
+              ) : (
+                <div className="mt-2 h-3.5" />
+              )}
             </>
           ) : (
             <>

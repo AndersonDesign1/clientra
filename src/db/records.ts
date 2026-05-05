@@ -26,6 +26,8 @@ type DatabaseExecutor = Pick<
   "delete" | "insert" | "select" | "transaction" | "update"
 >;
 
+const TRAILING_SLASH_PATTERN = /\/$/;
+
 interface ClientInsert {
   company: string;
   email: string;
@@ -1420,18 +1422,35 @@ export async function getProjectNotificationContext(
     return null;
   }
 
+  const appUrl =
+    process.env.BETTER_AUTH_URL?.replace(TRAILING_SLASH_PATTERN, "") ?? "";
+  const projectPath = `/projects/${getClientPathParam(mapClient(match.client))}/${match.project.slug || match.project.id}`;
+  const portalProjectPath = `/portal/projects/${getClientPathParam(mapClient(match.client))}/${match.project.slug || match.project.id}`;
+  const uniqueRecipients = new Map(
+    [...adminRows, ...clientRows].map((recipient) => [recipient.id, recipient])
+  );
+
   return {
     clientCompany: match.client.company,
     clientName: match.client.name,
+    discussionUrl: `${appUrl}${projectPath}#discussion`,
     projectId: match.project.id,
     projectTitle: match.project.title,
-    recipients: [...adminRows, ...clientRows].map(
-      (recipient): NotificationRecipient => ({
-        email: recipient.email,
-        id: recipient.id,
-        name: recipient.name,
-        role: recipient.role,
-      })
+    projectUrl: `${appUrl}${projectPath}`,
+    recipients: [...uniqueRecipients.values()].map(
+      (recipient): NotificationRecipient => {
+        const recipientPath =
+          recipient.role === ROLES.ADMIN ? projectPath : portalProjectPath;
+
+        return {
+          discussionUrl: `${appUrl}${recipientPath}#discussion`,
+          email: recipient.email,
+          id: recipient.id,
+          name: recipient.name,
+          projectUrl: `${appUrl}${recipientPath}`,
+          role: recipient.role,
+        };
+      }
     ),
   };
 }
