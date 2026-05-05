@@ -44,7 +44,6 @@ async function sendAuthEmail(
       error,
       template: input.template,
     });
-    throw error;
   }
 }
 

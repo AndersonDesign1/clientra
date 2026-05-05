@@ -99,7 +99,11 @@ describe("project update API routes", () => {
       projectUrl: "https://clientra.test/projects/acme/project",
       recipients: [],
     });
-    vi.mocked(notifyProjectUpdate).mockResolvedValue(undefined);
+    vi.mocked(notifyProjectUpdate).mockResolvedValue({
+      failed: 0,
+      sent: 0,
+      total: 0,
+    });
   });
 
   it("lets authorized users read project updates", async () => {

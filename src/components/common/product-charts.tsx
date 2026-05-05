@@ -58,7 +58,7 @@ export function DeadlineBarChart({
   isLoading?: boolean;
 }) {
   const visibleData =
-    data.length > 0 ? data : [{ count: 1, label: "No dates" }];
+    data.length > 0 ? data : [{ count: 0, label: "No dates" }];
 
   return (
     <EvilBarChart

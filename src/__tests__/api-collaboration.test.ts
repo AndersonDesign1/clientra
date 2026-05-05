@@ -52,7 +52,11 @@ describe("collaboration API routes", () => {
       projectUrl: "https://clientra.test/projects/acme/project",
       recipients: [],
     });
-    vi.mocked(notifyProjectComment).mockResolvedValue(undefined);
+    vi.mocked(notifyProjectComment).mockResolvedValue({
+      failed: 0,
+      sent: 0,
+      total: 0,
+    });
   });
 
   it("returns collaboration data for an authorized user", async () => {

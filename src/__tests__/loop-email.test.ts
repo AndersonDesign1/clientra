@@ -15,21 +15,29 @@ vi.mock("loops", () => ({
 
 const recipients: NotificationRecipient[] = [
   {
+    discussionUrl:
+      "https://clientra.test/portal/projects/acme/project#discussion",
     email: "client@example.com",
     id: "client_1",
     name: "Client",
+    projectUrl: "https://clientra.test/portal/projects/acme/project",
     role: "client",
   },
   {
+    discussionUrl:
+      "https://clientra.test/portal/projects/acme/project#discussion",
     email: "CLIENT@example.com",
     id: "client_2",
     name: "Duplicate Client",
+    projectUrl: "https://clientra.test/portal/projects/acme/project",
     role: "client",
   },
   {
+    discussionUrl: "https://clientra.test/projects/acme/project#discussion",
     email: "admin@example.com",
     id: "admin_1",
     name: "Admin",
+    projectUrl: "https://clientra.test/projects/acme/project",
     role: "admin",
   },
 ];
