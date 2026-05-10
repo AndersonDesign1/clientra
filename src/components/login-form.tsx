@@ -91,6 +91,7 @@ function loginReducer(state: LoginState, action: LoginAction): LoginState {
 
 export function LoginForm() {
   const router = useRouter();
+  const lastMethod = authClient.getLastUsedLoginMethod();
   const [state, dispatch] = useReducer(loginReducer, {
     activeProvider: null,
     email: "",
@@ -169,7 +170,7 @@ export function LoginForm() {
             <Field>
               <div className="grid grid-cols-2 gap-4">
                 <Button
-                  className="w-full h-10 px-4 text-sm font-medium"
+                  className="w-full h-10 px-4 text-sm font-medium relative"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("google");
@@ -181,9 +182,14 @@ export function LoginForm() {
                   {state.activeProvider === "google"
                     ? "Connecting..."
                     : "Google"}
+                  {lastMethod === "google" && (
+                    <span className="absolute -top-2 -right-2 text-[10px] font-medium bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full leading-none">
+                      Last used
+                    </span>
+                  )}
                 </Button>
                 <Button
-                  className="w-full h-10 px-4 text-sm font-medium"
+                  className="w-full h-10 px-4 text-sm font-medium relative"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("github");
@@ -195,10 +201,22 @@ export function LoginForm() {
                   {state.activeProvider === "github"
                     ? "Connecting..."
                     : "GitHub"}
+                  {lastMethod === "github" && (
+                    <span className="absolute -top-2 -right-2 text-[10px] font-medium bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full leading-none">
+                      Last used
+                    </span>
+                  )}
                 </Button>
               </div>
             </Field>
-            <FieldSeparator>Or continue with email</FieldSeparator>
+            <FieldSeparator>
+              Or continue with email
+              {lastMethod === "email" && (
+                <span className="ml-2 text-[10px] font-medium bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full leading-none">
+                  Last used
+                </span>
+              )}
+            </FieldSeparator>
             <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input

@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { lastLoginMethod } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
@@ -156,6 +157,6 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [tanstackStartCookies()],
+  plugins: [tanstackStartCookies(), lastLoginMethod()],
   trustedOrigins: getTrustedOrigins(),
 });
