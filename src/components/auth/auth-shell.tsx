@@ -3,60 +3,51 @@ import { cn } from "@/lib/utils";
 
 export function AuthShell({
   asideDescription,
-  asideEyebrow,
   asideTitle,
   children,
   className,
 }: {
   asideDescription: string;
-  asideEyebrow: string;
   asideTitle: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-stone-50 text-zinc-950">
-      <div className="mx-auto grid min-h-[100dvh] max-w-6xl gap-10 px-6 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-10">
-        <section className="flex flex-col justify-between border-slate-200 border-r py-10 pr-8">
-          <div className="space-y-6">
-            <Link
-              className="inline-flex w-fit items-center font-semibold text-lg tracking-tight"
-              to="/"
-            >
-              Clientra
-            </Link>
-            <div className="space-y-4">
-              <p className="text-slate-500 text-sm">{asideEyebrow}</p>
-              <h1 className="max-w-lg font-semibold text-3xl leading-tight tracking-tight">
-                {asideTitle}
-              </h1>
-              <p className="max-w-xl text-base text-slate-600 leading-7">
-                {asideDescription}
-              </p>
+    <div className="flex min-h-[100dvh] w-full bg-background">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground p-12 flex-col">
+        <div>
+          <Link
+            className="inline-flex w-fit items-center font-semibold text-2xl tracking-tight"
+            to="/"
+          >
+            <div className="bg-primary-foreground text-primary rounded-md p-1.5 mr-2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
-          </div>
-          <div className="grid gap-4 border-slate-200 border-t pt-8 text-slate-600 text-sm sm:grid-cols-2">
-            <div>
-              <p className="font-medium text-zinc-950">Admin access</p>
-              <p className="mt-2 leading-6">
-                Public signup is reserved for workspace admins who manage
-                clients, projects, and invites.
-              </p>
-            </div>
-            <div>
-              <p className="font-medium text-zinc-950">Client access</p>
-              <p className="mt-2 leading-6">
-                Clients join through secure invite links and land directly in
-                their portal after setup.
-              </p>
-            </div>
-          </div>
-        </section>
-        <section
-          className={cn("flex items-center justify-center py-6", className)}
-        >
-          <div className="w-full max-w-md">{children}</div>
-        </section>
+            Clientra
+          </Link>
+        </div>
+        <div className="space-y-6 max-w-lg flex-1 flex flex-col justify-center">
+          <h1 className="font-bold text-4xl leading-tight tracking-tight">
+            {asideTitle}
+          </h1>
+          <p className="text-lg text-primary-foreground/90 leading-relaxed">
+            {asideDescription}
+          </p>
+        </div>
+      </div>
+      
+      <div className={cn("flex flex-1 items-center justify-center p-6 lg:p-12", className)}>
+        <div className="w-full max-w-sm space-y-8">
+           <div className="lg:hidden flex justify-center mb-8">
+              <Link className="inline-flex items-center font-semibold text-2xl tracking-tight text-primary" to="/">
+                <div className="bg-primary text-primary-foreground rounded-md p-1.5 mr-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                Clientra
+              </Link>
+           </div>
+           {children}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { lastLoginMethod } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
@@ -156,6 +157,24 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [tanstackStartCookies()],
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (_user, ctx) => {
+          // Block public signups via built-in routes as a fail-safe.
+          // Legitimate account creation happens via /api/auth/admin-signup or /api/invites/redeem.
+          if (ctx?.path === "/sign-up/email") {
+            const { hasWorkspaceAdmin } = await import("@/db/records");
+            if (await hasWorkspaceAdmin()) {
+              throw new Error(
+                "Public signup is disabled. Use an invite link or sign in."
+              );
+            }
+          }
+        },
+      },
+    },
+  },
+  plugins: [tanstackStartCookies(), lastLoginMethod()],
   trustedOrigins: getTrustedOrigins(),
 });

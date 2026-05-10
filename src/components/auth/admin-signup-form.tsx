@@ -3,14 +3,8 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useReducer } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { ClientAccessDialog } from "@/components/auth/client-access-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -67,11 +61,7 @@ function adminSignupReducer(
   }
 }
 
-export function AdminSignupForm({
-  isBootstrapOpen,
-}: {
-  isBootstrapOpen: boolean;
-}) {
+export function AdminSignupForm() {
   const router = useRouter();
   const [state, dispatch] = useReducer(adminSignupReducer, {
     confirmPassword: "",
@@ -85,15 +75,6 @@ export function AdminSignupForm({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     dispatch({ type: "set-error", value: null });
-
-    if (!isBootstrapOpen) {
-      dispatch({
-        type: "set-error",
-        value:
-          "Admin signup is closed for this workspace. Sign in with an existing admin account.",
-      });
-      return;
-    }
 
     if (state.password !== state.confirmPassword) {
       dispatch({ type: "set-error", value: "Passwords do not match." });
@@ -136,112 +117,111 @@ export function AdminSignupForm({
   return (
     <AuthShell
       asideDescription="Create the admin account that will own your workspace, send client invites, and manage the delivery side of every project."
-      asideEyebrow="Admin Signup"
       asideTitle="Start the workspace your clients will trust."
     >
-      <Card className="rounded-lg border-slate-200 bg-white shadow-none">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">Create an admin account</CardTitle>
-          <CardDescription className="text-slate-600">
-            Public signup is reserved for workspace owners. Clients join later
-            through invite-only access.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isBootstrapOpen ? null : (
-            <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900 text-sm">
-              This workspace already has an admin account. Use the sign-in page
-              instead of creating another public admin.
-            </div>
-          )}
-          <form onSubmit={handleSubmit}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="name">Full name</FieldLabel>
-                <Input
-                  autoComplete="name"
-                  id="name"
-                  onChange={(event) =>
-                    dispatch({ type: "set-name", value: event.target.value })
-                  }
-                  placeholder="Jordan Lee"
-                  required
-                  value={state.name}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="email">Work email</FieldLabel>
-                <Input
-                  autoComplete="email"
-                  id="email"
-                  onChange={(event) =>
-                    dispatch({ type: "set-email", value: event.target.value })
-                  }
-                  placeholder="you@studio.com"
-                  required
-                  type="email"
-                  value={state.email}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  autoComplete="new-password"
-                  id="password"
-                  minLength={12}
-                  onChange={(event) =>
-                    dispatch({
-                      type: "set-password",
-                      value: event.target.value,
-                    })
-                  }
-                  placeholder="Create a secure password"
-                  required
-                  type="password"
-                  value={state.password}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="confirm-password">
-                  Confirm password
-                </FieldLabel>
-                <Input
-                  autoComplete="new-password"
-                  id="confirm-password"
-                  minLength={12}
-                  onChange={(event) =>
-                    dispatch({
-                      type: "set-confirm-password",
-                      value: event.target.value,
-                    })
-                  }
-                  placeholder="Repeat your password"
-                  required
-                  type="password"
-                  value={state.confirmPassword}
-                />
-              </Field>
-              <FieldError>{state.error}</FieldError>
-              <Field>
-                <Button
-                  disabled={!isBootstrapOpen || state.isSubmitting}
-                  type="submit"
-                >
-                  {state.isSubmitting
-                    ? "Creating account..."
-                    : "Create admin account"}
-                </Button>
-                <FieldDescription className="text-center text-slate-500">
-                  Already have access?{" "}
-                  <Link className="font-medium text-slate-900" to="/login">
-                    Sign in instead
-                  </Link>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="mx-auto flex w-full max-w-sm flex-col gap-8 lg:mx-0">
+        <div className="text-center lg:text-left">
+          <h2 className="font-bold text-3xl tracking-tight">
+            Create an admin account
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="name">Full name</FieldLabel>
+              <Input
+                autoComplete="name"
+                className="h-10 px-3 py-2 text-sm"
+                id="name"
+                onChange={(event) =>
+                  dispatch({ type: "set-name", value: event.target.value })
+                }
+                placeholder="Jordan Lee"
+                required
+                value={state.name}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="email">Work email</FieldLabel>
+              <Input
+                autoComplete="email"
+                className="h-10 px-3 py-2 text-sm"
+                id="email"
+                onChange={(event) =>
+                  dispatch({ type: "set-email", value: event.target.value })
+                }
+                placeholder="you@studio.com"
+                required
+                type="email"
+                value={state.email}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                autoComplete="new-password"
+                className="h-10 px-3 py-2 text-sm"
+                id="password"
+                minLength={12}
+                onChange={(event) =>
+                  dispatch({
+                    type: "set-password",
+                    value: event.target.value,
+                  })
+                }
+                placeholder="Create a secure password"
+                required
+                type="password"
+                value={state.password}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="confirm-password">
+                Confirm password
+              </FieldLabel>
+              <Input
+                autoComplete="new-password"
+                className="h-10 px-3 py-2 text-sm"
+                id="confirm-password"
+                minLength={12}
+                onChange={(event) =>
+                  dispatch({
+                    type: "set-confirm-password",
+                    value: event.target.value,
+                  })
+                }
+                placeholder="Repeat your password"
+                required
+                type="password"
+                value={state.confirmPassword}
+              />
+            </Field>
+            <FieldError>{state.error}</FieldError>
+            <Field>
+              <Button
+                className="mt-2 h-10 w-full px-4 text-sm"
+                disabled={state.isSubmitting}
+                type="submit"
+              >
+                {state.isSubmitting
+                  ? "Creating account..."
+                  : "Create admin account"}
+              </Button>
+              <FieldDescription className="mt-2 text-center text-slate-500">
+                Already have access?{" "}
+                <Link className="font-medium text-slate-900" to="/login">
+                  Sign in instead
+                </Link>
+              </FieldDescription>
+            </Field>
+          </FieldGroup>
+        </form>
+
+        <FieldDescription className="text-center text-slate-500">
+          <ClientAccessDialog />
+        </FieldDescription>
+      </div>
     </AuthShell>
   );
 }
