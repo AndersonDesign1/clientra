@@ -124,7 +124,6 @@ export function InviteRedeemForm({
   return (
     <AuthShell
       asideDescription="Finish your account setup and you’ll land straight in your Clientra portal with the projects your team invited you to review."
-      asideEyebrow="Invite Access"
       asideTitle="Your client portal is almost ready."
     >
       <Card className="rounded-lg border-slate-200 bg-white shadow-none">
