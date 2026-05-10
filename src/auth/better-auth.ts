@@ -157,6 +157,24 @@ export const auth = betterAuth({
       },
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (_user, ctx) => {
+          // Block public signups via built-in routes as a fail-safe.
+          // Legitimate account creation happens via /api/auth/admin-signup or /api/invites/redeem.
+          if (ctx?.path === "/sign-up/email") {
+            const { hasWorkspaceAdmin } = await import("@/db/records");
+            if (await hasWorkspaceAdmin()) {
+              throw new Error(
+                "Public signup is disabled. Use an invite link or sign in."
+              );
+            }
+          }
+        },
+      },
+    },
+  },
   plugins: [tanstackStartCookies(), lastLoginMethod()],
   trustedOrigins: getTrustedOrigins(),
 });

@@ -2,7 +2,6 @@
 
 import { MailOpen02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,20 +18,22 @@ export function ClientAccessDialog() {
       <DialogTrigger
         render={
           <button
-            className="font-medium text-slate-900 underline underline-offset-2 hover:text-slate-700 transition-colors cursor-pointer"
+            className="cursor-pointer font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-slate-700"
             type="button"
           />
         }
       >
         Are you a client?
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md p-6 gap-5">
+      <DialogContent className="gap-5 p-6 sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600">
+          <div className="mb-1 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
               <HugeiconsIcon icon={MailOpen02Icon} size={20} strokeWidth={2} />
             </div>
-            <DialogTitle className="text-base">Client access is invite-only</DialogTitle>
+            <DialogTitle className="text-base">
+              Client access is invite-only
+            </DialogTitle>
           </div>
           <DialogDescription className="text-sm/relaxed">
             Clientra workspaces are private. If a workspace owner has added you
@@ -40,8 +41,8 @@ export function ClientAccessDialog() {
             your way in.
           </DialogDescription>
         </DialogHeader>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-600">
-          <p className="font-medium text-slate-700 mb-1.5">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-600 text-sm">
+          <p className="mb-1.5 font-medium text-slate-700">
             Can't find your invite?
           </p>
           <p className="leading-relaxed">
