@@ -142,33 +142,33 @@ function DashboardPage() {
         title="Delivery shape"
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="xl:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Project Status</CardTitle>
+          <Card className="xl:col-span-2 border-0 bg-transparent shadow-none ring-0">
+            <CardHeader className="pb-2 px-0">
+              <CardTitle className="text-base font-semibold">Project Status</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 px-0">
               <StatusBarChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Deadlines</CardTitle>
+          <Card className="border-0 bg-transparent shadow-none ring-0">
+            <CardHeader className="pb-2 px-0">
+              <CardTitle className="text-base font-semibold">Deadlines</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 px-0">
               <DeadlineBarChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Activity</CardTitle>
+          <Card className="border-0 bg-transparent shadow-none ring-0">
+            <CardHeader className="pb-2 px-0">
+              <CardTitle className="text-base font-semibold">Activity</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 px-0">
               <ActivityRadialChart
                 data={getActivityTypeData(activity)}
                 isLoading={isLoading}
@@ -180,11 +180,11 @@ function DashboardPage() {
 
       {/* ── Budget + Recent activity (side-by-side) ────────────────────── */}
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Budget by Status</CardTitle>
+        <Card className="border-0 bg-transparent shadow-none ring-0">
+          <CardHeader className="pb-2 px-0">
+            <CardTitle className="text-base font-semibold">Budget by Status</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 px-0">
             <BudgetBarChart
               data={getBudgetByStatusData(projects)}
               isLoading={isLoading}
@@ -337,10 +337,10 @@ function CompactActivityList({
 
   return (
     <div>
-      <div className="divide-y divide-border rounded-lg border">
+      <div className="flex flex-col gap-1">
         {visibleActivity.map((event) => (
           <div
-            className="flex items-start gap-3 px-3.5 py-3 transition-colors hover:bg-muted/30"
+            className="flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-muted/50"
             key={event.id}
           >
             {/* Icon */}

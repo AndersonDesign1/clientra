@@ -27,7 +27,6 @@ export function StatusBarChart({
   return (
     <EvilBarChart
       barRadius={4}
-      barVariant="gradient"
       chartConfig={{
         total: {
           colors: {
@@ -63,7 +62,6 @@ export function DeadlineBarChart({
   return (
     <EvilBarChart
       barRadius={4}
-      barVariant="gradient"
       chartConfig={{
         count: {
           colors: {
@@ -95,7 +93,6 @@ export function BudgetBarChart({
   return (
     <EvilBarChart
       barRadius={4}
-      barVariant="gradient"
       chartConfig={{
         budget: {
           colors: {
