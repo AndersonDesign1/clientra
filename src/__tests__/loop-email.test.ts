@@ -10,7 +10,6 @@ const sendTransactionalEmailMock = vi.hoisted(() => vi.fn());
 vi.mock("loops", () => ({
   LoopsClient: class LoopsClientMock {
     sendTransactionalEmail = sendTransactionalEmailMock;
-    constructor(_apiKey: string) {}
   },
 }));
 

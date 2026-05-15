@@ -1,14 +1,26 @@
 import {
   Briefcase01Icon,
   DashboardSquare01Icon,
+  HelpCircleIcon,
   Settings01Icon,
   UserGroupIcon,
   UserMultipleIcon,
 } from "@hugeicons/core-free-icons";
-import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -24,20 +36,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
 
 const adminNav = [
   {
@@ -69,12 +68,12 @@ function SidebarNav() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 overflow-hidden py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground font-bold shadow-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary font-bold text-primary-foreground shadow-sm">
             C
           </div>
           {open && (
             <div className="min-w-0 transition-opacity duration-200">
-              <p className="truncate font-bold text-lg tracking-tight text-foreground">
+              <p className="truncate font-bold text-foreground text-lg tracking-tight">
                 Clientra
               </p>
             </div>
@@ -83,7 +82,7 @@ function SidebarNav() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground/80">
+          <SidebarGroupLabel className="font-medium text-muted-foreground/80 text-xs">
             General
           </SidebarGroupLabel>
           <SidebarMenu>
@@ -95,7 +94,7 @@ function SidebarNav() {
                       active={isActive}
                       className={
                         isActive
-                          ? "bg-accent text-accent-foreground font-medium"
+                          ? "bg-accent font-medium text-accent-foreground"
                           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }
                       title={open ? undefined : item.label}
@@ -125,7 +124,7 @@ function SidebarNav() {
                     active={isActive}
                     className={
                       isActive
-                        ? "bg-accent text-accent-foreground font-medium"
+                        ? "bg-accent font-medium text-accent-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }
                     title={open ? undefined : "Settings"}
@@ -143,8 +142,9 @@ function SidebarNav() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                className="text-muted-foreground hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                title={open ? undefined : "Help & Support"}
+                aria-disabled
+                className="pointer-events-none cursor-default text-muted-foreground/70"
+                title={open ? undefined : "Help & Support (coming soon)"}
               >
                 <HugeiconsIcon
                   className="shrink-0"
@@ -181,25 +181,30 @@ function NavUser() {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-auto">
+        <Button
+          className="relative ml-auto h-8 w-8 rounded-full"
+          variant="ghost"
+        >
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-emerald-100 text-emerald-800 font-medium text-xs">
+            <AvatarFallback className="bg-emerald-100 font-medium text-emerald-800 text-xs">
               {user.name?.[0]?.toUpperCase() ?? "U"}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent align="end" className="w-56" forceMount>
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">
+              <p className="font-medium text-sm leading-none">{user.name}</p>
+              <p className="text-muted-foreground text-xs leading-none">
                 {user.email}
               </p>
             </div>
@@ -220,7 +225,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SidebarNav />
       <SidebarInset className="h-svh overflow-auto">
         <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4">
-          <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-1 items-center gap-2">
             <SidebarTrigger />
             <div className="h-4 w-px bg-border" />
             <span className="text-muted-foreground text-sm">Admin</span>
@@ -241,6 +246,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               {item.label}
             </Link>
           ))}
+          <Link
+            activeProps={{
+              className: "bg-accent text-accent-foreground",
+            }}
+            className="rounded-md px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            to="/settings"
+          >
+            Settings
+          </Link>
         </nav>
         <div className="mx-auto max-w-7xl px-5 py-6 md:px-8">{children}</div>
       </SidebarInset>
