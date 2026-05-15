@@ -142,11 +142,13 @@ function DashboardPage() {
         title="Delivery shape"
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="xl:col-span-2 border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Project Status</CardTitle>
+          <Card className="border-0 bg-transparent shadow-none ring-0 xl:col-span-2">
+            <CardHeader className="px-0 pb-2">
+              <CardTitle className="font-semibold text-base">
+                Project Status
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 px-0">
+            <CardContent className="px-0 pt-0">
               <StatusBarChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
@@ -154,10 +156,12 @@ function DashboardPage() {
             </CardContent>
           </Card>
           <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Deadlines</CardTitle>
+            <CardHeader className="px-0 pb-2">
+              <CardTitle className="font-semibold text-base">
+                Deadlines
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 px-0">
+            <CardContent className="px-0 pt-0">
               <DeadlineBarChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
@@ -165,10 +169,12 @@ function DashboardPage() {
             </CardContent>
           </Card>
           <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Activity</CardTitle>
+            <CardHeader className="px-0 pb-2">
+              <CardTitle className="font-semibold text-base">
+                Activity
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 px-0">
+            <CardContent className="px-0 pt-0">
               <ActivityRadialChart
                 data={getActivityTypeData(activity)}
                 isLoading={isLoading}
@@ -181,10 +187,12 @@ function DashboardPage() {
       {/* ── Budget + Recent activity (side-by-side) ────────────────────── */}
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <Card className="border-0 bg-transparent shadow-none ring-0">
-          <CardHeader className="pb-2 px-0">
-            <CardTitle className="text-base font-semibold">Budget by Status</CardTitle>
+          <CardHeader className="px-0 pb-2">
+            <CardTitle className="font-semibold text-base">
+              Budget by Status
+            </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 px-0">
+          <CardContent className="px-0 pt-0">
             <BudgetBarChart
               data={getBudgetByStatusData(projects)}
               isLoading={isLoading}

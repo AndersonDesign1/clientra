@@ -16,6 +16,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import logoUrl from "/logo.webp";
 
 const portalNav = [
   { href: "/portal", label: "Overview" },
@@ -30,9 +31,18 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
     <SidebarProvider className="bg-stone-50 text-zinc-950">
       <Sidebar className="bg-stone-100/70">
         <SidebarHeader>
-          <p className="font-semibold text-lg tracking-tight">
-            Clientra Portal
-          </p>
+          <div className="mb-2 flex items-center gap-1.5">
+            <img
+              alt="Clientra Logo"
+              className="h-5 w-auto"
+              height={20}
+              src={logoUrl}
+              width={20}
+            />
+            <p className="font-semibold text-lg tracking-tight">
+              Clientra Portal
+            </p>
+          </div>
           <p className="text-muted-foreground text-xs">
             {user?.name ? `Signed in as ${user.name}` : "Secure client access"}
           </p>
@@ -68,7 +78,16 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
       <SidebarInset className="bg-stone-50">
         <header className="border-b bg-stone-100/80 px-4 py-3 md:hidden">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold tracking-tight">Clientra Portal</p>
+            <div className="flex items-center gap-1.5">
+              <img
+                alt="Clientra Logo"
+                className="h-5 w-auto"
+                height={20}
+                src={logoUrl}
+                width={20}
+              />
+              <p className="font-semibold tracking-tight">Clientra Portal</p>
+            </div>
             <SignOutButton />
           </div>
           <nav className="mt-3 flex flex-wrap gap-2">

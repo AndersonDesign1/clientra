@@ -37,6 +37,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import logoUrl from "/logo.webp";
 
 const adminNav = [
   {
@@ -66,17 +67,17 @@ function SidebarNav() {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 overflow-hidden py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary font-bold text-primary-foreground shadow-sm">
-            C
-          </div>
+      <SidebarHeader className="py-6 px-4">
+        <div className="flex items-center gap-2">
+          <img
+            alt="Clientra Logo"
+            className="h-8 w-auto shrink-0"
+            src={logoUrl}
+          />
           {open && (
-            <div className="min-w-0 transition-opacity duration-200">
-              <p className="truncate font-bold text-foreground text-lg tracking-tight">
-                Clientra
-              </p>
-            </div>
+            <span className="truncate font-semibold text-foreground text-xl tracking-tight transition-opacity duration-200">
+              Clientra
+            </span>
           )}
         </div>
       </SidebarHeader>
@@ -187,7 +188,7 @@ function NavUser() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button
           className="relative ml-auto h-8 w-8 rounded-full"
           variant="ghost"
@@ -199,7 +200,7 @@ function NavUser() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56" forceMount>
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">

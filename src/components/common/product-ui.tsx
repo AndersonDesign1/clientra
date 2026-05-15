@@ -17,7 +17,9 @@ export function PageHeader({
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="mb-1 text-muted-foreground text-xs font-medium uppercase tracking-wider">{eyebrow}</p>
+          <p className="mb-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+            {eyebrow}
+          </p>
         ) : null}
         <h1 className="font-bold text-3xl text-foreground tracking-tight">
           {title}
@@ -95,7 +97,7 @@ export function MetricLedger({
     <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item) => (
         <div
-          className="rounded-xl bg-zinc-50/80 dark:bg-zinc-900/50 px-6 py-5"
+          className="rounded-xl bg-zinc-50/80 px-6 py-5 dark:bg-zinc-900/50"
           key={item.label}
         >
           <dt className="text-muted-foreground text-xs">{item.label}</dt>
