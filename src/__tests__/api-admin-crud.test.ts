@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/auth/roles";
 
 vi.mock("uploadthing/server", () => ({
-  UTApi: vi.fn().mockImplementation(() => ({
-    deleteFiles: vi.fn().mockResolvedValue({ success: true }),
-  })),
+  UTApi: class UTApiMock {
+    deleteFiles = vi.fn().mockResolvedValue({ success: true });
+  },
 }));
 
 vi.mock("@/auth/session.server", () => ({

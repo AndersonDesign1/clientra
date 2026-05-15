@@ -8,9 +8,9 @@ import {
 const sendTransactionalEmailMock = vi.hoisted(() => vi.fn());
 
 vi.mock("loops", () => ({
-  LoopsClient: vi.fn(() => ({
-    sendTransactionalEmail: sendTransactionalEmailMock,
-  })),
+  LoopsClient: class LoopsClientMock {
+    sendTransactionalEmail = sendTransactionalEmailMock;
+  },
 }));
 
 const recipients: NotificationRecipient[] = [
