@@ -240,7 +240,10 @@ function ClientDetailPage() {
           </div>
         )}
       </DataSection>
-      <PendingInvitesPanel clientId={id} pendingInvites={pendingInvitesQuery} />
+      <PendingInvitesPanel
+        clientId={client.id}
+        pendingInvites={pendingInvitesQuery}
+      />
     </AppShell>
   );
 }

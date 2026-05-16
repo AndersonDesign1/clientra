@@ -572,22 +572,22 @@ const VerticalColorGradientStyle = ({
             x1="0"
             x2="0"
             y1="0"
-              y2="1"
-            >
-              {colorsCount === 1 ? (
-                <>
-                  <stop offset="0%" stopColor={`var(--color-${dataKey}-0)`} />
-                  <stop offset="100%" stopColor={`var(--color-${dataKey}-0)`} />
-                </>
-              ) : (
-                Array.from({ length: colorsCount }, (_, index) => (
-                  <stop
-                    key={`${dataKey}-${index}`}
-                    offset={`${(index / (colorsCount - 1)) * 100}%`}
-                    stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
-                  />
-                ))
-              )}
+            y2="1"
+          >
+            {colorsCount === 1 ? (
+              <>
+                <stop offset="0%" stopColor={`var(--color-${dataKey}-0)`} />
+                <stop offset="100%" stopColor={`var(--color-${dataKey}-0)`} />
+              </>
+            ) : (
+              Array.from({ length: colorsCount }, (_, index) => (
+                <stop
+                  key={`${dataKey}-${index}`}
+                  offset={`${(index / (colorsCount - 1)) * 100}%`}
+                  stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
+                />
+              ))
+            )}
           </linearGradient>
         );
       })}
