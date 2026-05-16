@@ -240,7 +240,7 @@ function ClientDetailPage() {
           </div>
         )}
       </DataSection>
-      <PendingInvitesPanel pendingInvites={pendingInvitesQuery} />
+      <PendingInvitesPanel clientId={id} pendingInvites={pendingInvitesQuery} />
     </AppShell>
   );
 }
@@ -260,13 +260,15 @@ function formatInviteDate(value: string) {
 }
 
 export function PendingInvitesPanel({
+  clientId,
   pendingInvites,
 }: {
+  clientId: string;
   pendingInvites: LoadableData<PendingInvite[]>;
 }) {
   const invites = pendingInvites.data ?? [];
-  const resendInvite = useResendInviteMutation();
-  const revokeInvite = useRevokeInviteMutation();
+  const resendInvite = useResendInviteMutation(clientId);
+  const revokeInvite = useRevokeInviteMutation(clientId);
 
   return (
     <DataSection
@@ -300,12 +302,19 @@ export function PendingInvitesPanel({
             const isRevoking =
               revokeInvite.isPending &&
               revokeInvite.variables?.id === invite.id;
-            const rowError =
-              resendInvite.variables?.id === invite.id
-                ? resendInvite.error?.message
-                : revokeInvite.variables?.id === invite.id
-                  ? revokeInvite.error?.message
-                  : undefined;
+
+            const isResendError =
+              resendInvite.variables?.id === invite.id &&
+              resendInvite.error != null;
+            const isRevokeError =
+              revokeInvite.variables?.id === invite.id &&
+              revokeInvite.error != null;
+            let rowError: string | undefined;
+            if (isResendError) {
+              rowError = resendInvite.error.message;
+            } else if (isRevokeError) {
+              rowError = revokeInvite.error.message;
+            }
 
             return (
               <div
@@ -331,7 +340,6 @@ export function PendingInvitesPanel({
                             revokeInvite.reset();
                             resendInvite
                               .mutateAsync({
-                                clientId: invite.clientId,
                                 id: invite.id,
                               })
                               .catch(() => undefined);
@@ -381,7 +389,6 @@ export function PendingInvitesPanel({
                             revokeInvite.reset();
                             revokeInvite
                               .mutateAsync({
-                                clientId: invite.clientId,
                                 id: invite.id,
                               })
                               .catch(() => undefined);

@@ -67,12 +67,14 @@ function SidebarNav() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="py-6 px-4">
+      <SidebarHeader className="px-4 py-6">
         <div className="flex items-center gap-2">
           <img
             alt="Clientra Logo"
             className="h-8 w-auto shrink-0"
+            height={32}
             src={logoUrl}
+            width={32}
           />
           {open && (
             <span className="truncate font-semibold text-foreground text-xl tracking-tight transition-opacity duration-200">

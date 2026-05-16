@@ -1067,15 +1067,15 @@ export function useDeleteProjectMutation() {
   });
 }
 
-export function useResendInviteMutation() {
+export function useResendInviteMutation(clientId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id }: { clientId: string; id: string }) =>
-      resendInviteRequest(id),
+    mutationFn: (variables: { id: string }) =>
+      resendInviteRequest(variables.id),
     onSuccess: (invite) => {
       queryClient.setQueryData<PendingInvite[]>(
-        queryKeys.pendingInvites(invite.clientId),
+        queryKeys.pendingInvites(clientId),
         (current) =>
           (current ?? []).map((item) => (item.id === invite.id ? invite : item))
       );
@@ -1084,15 +1084,15 @@ export function useResendInviteMutation() {
   });
 }
 
-export function useRevokeInviteMutation() {
+export function useRevokeInviteMutation(clientId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id }: { clientId: string; id: string }) =>
-      revokeInviteRequest(id),
+    mutationFn: (variables: { id: string }) =>
+      revokeInviteRequest(variables.id),
     onSuccess: (_, variables) => {
       queryClient.setQueryData<PendingInvite[]>(
-        queryKeys.pendingInvites(variables.clientId),
+        queryKeys.pendingInvites(clientId),
         (current) =>
           (current ?? []).filter((invite) => invite.id !== variables.id)
       );

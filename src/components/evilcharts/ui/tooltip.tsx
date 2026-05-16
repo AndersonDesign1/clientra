@@ -135,7 +135,7 @@ function ChartTooltipContent({
                   indicator === "dot" && "items-center",
                   selected != null && selected !== item.dataKey && "opacity-30"
                 )}
-                key={index}
+                key={key}
               >
                 {formatter && item?.value !== undefined && item.name ? (
                   formatter(item.value, item.name, item, index, item.payload)

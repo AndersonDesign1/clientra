@@ -584,7 +584,7 @@ function MiniChart({
           ) : (
             Array.from({ length: colorsCount }, (_, i) => (
               <stop
-                key={i}
+                key={`${dataKey}-${i}`}
                 offset={`${(i / (colorsCount - 1)) * 100}%`}
                 stopColor={`var(--color-${dataKey}-${i}, var(--color-${dataKey}-0))`}
               />

@@ -71,57 +71,57 @@ type ValidateConfigKeys<TData, TConfig> = {
   [K in keyof TConfig]: K extends keyof TData ? ChartConfig[string] : never;
 };
 
-type BaseEvilAreaChartProps<
+interface BaseEvilAreaChartProps<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
-> = {
-  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
-  data: TData[];
-  xDataKey?: keyof TData & string;
-  yDataKey?: keyof TData & string;
-  className?: string;
-  chartProps?: ChartProps;
-  xAxisProps?: XAxisProps;
-  yAxisProps?: YAxisProps;
-  defaultSelectedDataKey?: string | null;
-  curveType?: AreaType;
-  areaVariant?: AreaVariant;
-  strokeVariant?: StrokeVariant;
-  stackType?: StackType;
-  dotVariant?: DotVariant;
+> {
   activeDotVariant?: DotVariant;
-  legendVariant?: ChartLegendVariant;
+  areaVariant?: AreaVariant;
+  // Background
+  backgroundVariant?: BackgroundVariant;
+  brushFormatLabel?: (value: unknown, index: number) => string;
+  brushHeight?: number;
+  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
+  chartProps?: ChartProps;
+  className?: string;
   connectNulls?: boolean;
-  tickGap?: number;
+  curveType?: AreaType;
+  data: TData[];
+  defaultSelectedDataKey?: string | null;
+  dotVariant?: DotVariant;
+  hideCartesianGrid?: boolean;
+  hideCursorLine?: boolean;
+  hideLegend?: boolean;
   // Hide Stuffs
   hideTooltip?: boolean;
-  hideCartesianGrid?: boolean;
-  hideLegend?: boolean;
-  hideCursorLine?: boolean;
+  isLoading?: boolean;
+  legendVariant?: ChartLegendVariant;
+  loadingPoints?: number;
+  onBrushChange?: (range: EvilBrushRange) => void;
+  // Brush
+  showBrush?: boolean;
+  stackType?: StackType;
+  strokeVariant?: StrokeVariant;
+  tickGap?: number;
+  tooltipDefaultIndex?: number;
   // Tooltip
   tooltipRoundness?: TooltipRoundness;
   tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-  isLoading?: boolean;
-  loadingPoints?: number;
-  // Brush
-  showBrush?: boolean;
-  brushHeight?: number;
-  brushFormatLabel?: (value: unknown, index: number) => string;
-  onBrushChange?: (range: EvilBrushRange) => void;
-  // Background
-  backgroundVariant?: BackgroundVariant;
-};
+  xAxisProps?: XAxisProps;
+  xDataKey?: keyof TData & string;
+  yAxisProps?: YAxisProps;
+  yDataKey?: keyof TData & string;
+}
 
-type EvilAreaChartClickable = {
+interface EvilAreaChartClickable {
   isClickable: true;
   onSelectionChange?: (selectedDataKey: string | null) => void;
-};
+}
 
-type EvilAreaChartNotClickable = {
+interface EvilAreaChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilAreaChartProps<
   TData extends Record<string, unknown>,
@@ -360,11 +360,10 @@ export function EvilAreaChart<
                 stackId={isStacked ? "evil-stacked" : undefined}
                 stroke={`url(#${chartId}-colors-${dataKey})`}
                 strokeDasharray={
-                  strokeVariant === "dashed"
+                  strokeVariant === "dashed" ||
+                  strokeVariant === "animated-dashed"
                     ? "3 3"
-                    : strokeVariant === "animated-dashed"
-                      ? "3 3"
-                      : undefined
+                    : undefined
                 }
                 strokeOpacity={_opacity.stroke}
                 strokeWidth={STROKE_WIDTH}
@@ -545,11 +544,11 @@ const HorizontalColorGradientStyle = ({
             ) : (
               // Multiple colors: distribute evenly
               // Fallback to first color if index doesn't exist in current theme
-              Array.from({ length: colorsCount }, (_, index) => (
+              Array.from({ length: colorsCount }, (_, _idx) => (
                 <stop
-                  key={index}
-                  offset={`${(index / (colorsCount - 1)) * 100}%`}
-                  stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
+                  key={`${chartId}-area-color-${dataKey}-${_idx}`}
+                  offset={`${(_idx / (colorsCount - 1)) * 100}%`}
+                  stopColor={`var(--color-${dataKey}-${_idx}, var(--color-${dataKey}-0))`}
                 />
               ))
             )}
@@ -994,7 +993,7 @@ const generateEasedGradientStops = (
  * while the invisible portion continues animating.
  */
 export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
-  const [loadingDataKey, setLoadingDataKey] = useState(false);
+  const [_loadingDataKey, setLoadingDataKey] = useState(false);
 
   // Callback fired by motion.dev when shimmer exits visible area
   const onShimmerExit = useCallback(() => {
@@ -1007,7 +1006,7 @@ export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
     () => getLoadingData(loadingPoints),
     // loadingDataKey toggle triggers re-computation when shimmer exits
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadingPoints, loadingDataKey]
+    [loadingPoints]
   );
 
   return { loadingData, onShimmerExit };

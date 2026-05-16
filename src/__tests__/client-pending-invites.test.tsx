@@ -53,6 +53,7 @@ describe("PendingInvitesPanel", () => {
   it("renders pending invite rows", () => {
     render(
       <PendingInvitesPanel
+        clientId="client_1"
         pendingInvites={createState({
           data: [
             {
@@ -76,7 +77,9 @@ describe("PendingInvitesPanel", () => {
   });
 
   it("renders an empty state", () => {
-    render(<PendingInvitesPanel pendingInvites={createState()} />);
+    render(
+      <PendingInvitesPanel clientId="client_1" pendingInvites={createState()} />
+    );
 
     expect(screen.getByText("0 pending")).toBeTruthy();
     expect(
@@ -89,6 +92,7 @@ describe("PendingInvitesPanel", () => {
       <>
         <p>Acme Inc.</p>
         <PendingInvitesPanel
+          clientId="client_1"
           pendingInvites={createState({
             error: "Unable to load pending invites.",
             isLoading: true,

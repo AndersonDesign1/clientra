@@ -46,58 +46,58 @@ type ChartProps = ComponentProps<typeof PieChart>;
 type PieProps = ComponentProps<typeof Pie>;
 type LabelListProps = ComponentProps<typeof LabelList>;
 
-type EvilPieChartProps<TData extends Record<string, unknown>> = {
+interface EvilPieChartProps<TData extends Record<string, unknown>> {
+  // Background
+  backgroundVariant?: BackgroundVariant;
+  chartConfig: ChartConfig;
+  chartProps?: ChartProps;
+  className?: string;
+  cornerRadius?: number;
   // Data
   data: TData[];
   dataKey: keyof TData & string;
-  nameKey: keyof TData & string;
-  chartConfig: ChartConfig;
-  className?: string;
-  chartProps?: ChartProps;
-  pieProps?: Omit<PieProps, "data" | "dataKey" | "nameKey">;
-
-  // Pie Shape
-  innerRadius?: number | string;
-  outerRadius?: number | string;
-  cornerRadius?: number;
-  paddingAngle?: number;
-  startAngle?: number;
   endAngle?: number;
-
-  // Labels
-  showLabels?: boolean;
-  labelKey?: keyof TData & string;
-  labelListProps?: Omit<LabelListProps, "dataKey">;
-
-  // Hide Stuffs
-  hideTooltip?: boolean;
-  hideLegend?: boolean;
-  legendVariant?: ChartLegendVariant;
-  // Tooltip
-  tooltipRoundness?: TooltipRoundness;
-  tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-
-  // Interactive Stuffs
-  isLoading?: boolean;
 
   // Glow Effects
   glowingSectors?: string[];
-  // Background
-  backgroundVariant?: BackgroundVariant;
-};
+  hideLegend?: boolean;
 
-type EvilPieChartClickable = {
+  // Hide Stuffs
+  hideTooltip?: boolean;
+
+  // Pie Shape
+  innerRadius?: number | string;
+
+  // Interactive Stuffs
+  isLoading?: boolean;
+  labelKey?: keyof TData & string;
+  labelListProps?: Omit<LabelListProps, "dataKey">;
+  legendVariant?: ChartLegendVariant;
+  nameKey: keyof TData & string;
+  outerRadius?: number | string;
+  paddingAngle?: number;
+  pieProps?: Omit<PieProps, "data" | "dataKey" | "nameKey">;
+
+  // Labels
+  showLabels?: boolean;
+  startAngle?: number;
+  tooltipDefaultIndex?: number;
+  // Tooltip
+  tooltipRoundness?: TooltipRoundness;
+  tooltipVariant?: TooltipVariant;
+}
+
+interface EvilPieChartClickable {
   isClickable: true;
   onSelectionChange?: (
     selection: { dataKey: string; value: number } | null
   ) => void;
-};
+}
 
-type EvilPieChartNotClickable = {
+interface EvilPieChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilPieChartPropsWithCallback<TData extends Record<string, unknown>> =
   EvilPieChartProps<TData> & (EvilPieChartClickable | EvilPieChartNotClickable);
