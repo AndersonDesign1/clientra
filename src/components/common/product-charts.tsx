@@ -93,7 +93,7 @@ export function ProjectStatusPieChart({
       nameKey="_key"
     >
       <Legend isClickable />
-      <Tooltip variant="frosted-glass" />
+      <Tooltip />
       <Pie cornerRadius={5} innerRadius="55%" isClickable paddingAngle={3} />
     </EvilPieChart>
   );
@@ -126,7 +126,7 @@ export function DeadlineAreaChart({
       data={visibleData}
       hideLegend
       isLoading={isLoading}
-      tooltipVariant="frosted-glass"
+      tooltipVariant="default"
       xDataKey="label"
       yDataKey="count"
     />
@@ -164,7 +164,7 @@ export function BudgetComposedChart({
       data={data}
       isLoading={isLoading}
       lineDataKey="count"
-      tooltipVariant="frosted-glass"
+      tooltipVariant="default"
       xDataKey="status"
       yAxisLeftProps={{
         tickFormatter: (v: number) =>
@@ -224,7 +224,7 @@ export function ActivityPieChart({
       nameKey="_key"
     >
       <Legend isClickable />
-      <Tooltip variant="frosted-glass" />
+      <Tooltip />
       <Pie cornerRadius={4} innerRadius="55%" isClickable paddingAngle={3} />
     </EvilPieChart>
   );
@@ -283,15 +283,15 @@ export function ActivitySankeyChart({
 
   return (
     <EvilSankeyChart
-      className="h-[280px] w-full"
+      className="h-[280px] w-full p-4"
       config={chartConfig}
       data={data}
       isLoading={isLoading}
-      nodePadding={14}
-      nodeWidth={80}
+      nodePadding={20}
+      nodeWidth={8}
     >
-      <Node isClickable>
-        <NodeLabel position="inside" showValues />
+      <Node isClickable radius={4}>
+        <NodeLabel position="outside" showValues />
       </Node>
       <Link variant="source" />
       <SankeyTooltip />
