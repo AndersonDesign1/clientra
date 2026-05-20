@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import {
-  DeadlineBarChart,
-  StatusBarChart,
+  DeadlineAreaChart,
+  ProjectStatusPieChart,
 } from "@/components/common/product-charts";
 import {
   DataSection,
@@ -91,10 +91,10 @@ function PortalHomePage() {
           />
           <DataSection className="mt-6" title="Project overview">
             <div className="grid gap-6 md:grid-cols-2">
-              <StatusBarChart
+              <ProjectStatusPieChart
                 data={getProjectStatusData(summary.activeProjects)}
               />
-              <DeadlineBarChart
+              <DeadlineAreaChart
                 data={getDeadlineData(summary.activeProjects)}
               />
             </div>

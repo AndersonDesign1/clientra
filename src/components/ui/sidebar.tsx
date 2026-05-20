@@ -251,7 +251,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 // ── Menu Button ─────────────────────────────────────────────────────────────
 
 const sidebarMenuButtonVariants = cva(
-  "flex min-h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&>span:last-child]:truncate",
+  "flex min-h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&>span:last-child]:truncate",
   {
     variants: {
       active: {

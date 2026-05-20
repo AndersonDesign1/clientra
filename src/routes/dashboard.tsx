@@ -11,8 +11,8 @@ import { requireAdminSession } from "@/auth/guards";
 import {
   ActivityRadialChart,
   BudgetBarChart,
-  DeadlineBarChart,
-  StatusBarChart,
+  DeadlineAreaChart,
+  ProjectStatusPieChart,
 } from "@/components/common/product-charts";
 import {
   DataSection,
@@ -142,27 +142,27 @@ function DashboardPage() {
         title="Delivery shape"
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="border-0 bg-transparent shadow-none ring-0 xl:col-span-2">
+          <Card className="border-0 bg-transparent shadow-none ring-0">
             <CardHeader className="px-0 pb-2">
               <CardTitle className="font-semibold text-base">
                 Project Status
               </CardTitle>
             </CardHeader>
             <CardContent className="px-0 pt-0">
-              <StatusBarChart
+              <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
-          <Card className="border-0 bg-transparent shadow-none ring-0">
+          <Card className="border-0 bg-transparent shadow-none ring-0 xl:col-span-2">
             <CardHeader className="px-0 pb-2">
               <CardTitle className="font-semibold text-base">
                 Deadlines
               </CardTitle>
             </CardHeader>
             <CardContent className="px-0 pt-0">
-              <DeadlineBarChart
+              <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />

@@ -632,10 +632,10 @@ const HatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by hatched stripes */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-hatched-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -687,10 +687,10 @@ const BufferHatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by buffer hatched stripes - lines only */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-buffer-hatched-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -922,10 +922,10 @@ const GradientPatternStyle = ({
 
           {/* Pattern: gradient fill with vertical fade mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -975,10 +975,10 @@ const StrippedPatternStyle = ({
 
           {/* Pattern: gradient fill with stripped fade mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-stripped-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}

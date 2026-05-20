@@ -77,7 +77,7 @@ function SidebarNav() {
             width={32}
           />
           {open && (
-            <span className="truncate font-semibold text-foreground text-xl tracking-tight transition-opacity duration-200">
+            <span className="truncate font-semibold text-foreground text-lg tracking-tight transition-opacity duration-200">
               Clientra
             </span>
           )}
@@ -85,7 +85,7 @@ function SidebarNav() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-medium text-muted-foreground/80 text-xs">
+          <SidebarGroupLabel className="font-medium text-[10px] text-muted-foreground/50 uppercase tracking-wider">
             General
           </SidebarGroupLabel>
           <SidebarMenu>

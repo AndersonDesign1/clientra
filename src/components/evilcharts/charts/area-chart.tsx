@@ -577,7 +577,7 @@ const LinearGradientStyle = ({
         y1="0"
         y2="1"
       >
-        <stop offset="0%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="0%" stopColor="white" stopOpacity={0.4} />
         <stop offset="100%" stopColor="white" stopOpacity={0} />
       </linearGradient>
 
@@ -594,10 +594,10 @@ const LinearGradientStyle = ({
 
           {/* Pattern combining shared color gradient + vertical mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -631,7 +631,7 @@ const ReverseGradientStyle = ({
         y2="1"
       >
         <stop offset="0%" stopColor="white" stopOpacity={0} />
-        <stop offset="100%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="100%" stopColor="white" stopOpacity={0.4} />
       </linearGradient>
 
       {Object.keys(chartConfig).map((dataKey) => (
@@ -647,10 +647,10 @@ const ReverseGradientStyle = ({
 
           {/* Pattern: horizontal gradient + reverse vertical mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-reverse-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -700,10 +700,10 @@ const LinesPatternStyle = ({
 
           {/* Pattern: gradient fill masked by diagonal lines */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-lines-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -736,8 +736,8 @@ const SolidPatternStyle = ({
         y1="0"
         y2="1"
       >
-        <stop offset="0%" stopColor="white" stopOpacity={0.1} />
-        <stop offset="100%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="0%" stopColor="white" stopOpacity={0.4} />
+        <stop offset="100%" stopColor="white" stopOpacity={0.4} />
       </linearGradient>
 
       {Object.keys(chartConfig).map((dataKey) => (
@@ -753,10 +753,10 @@ const SolidPatternStyle = ({
 
           {/* Pattern: gradient fill with uniform opacity mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-solid-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -807,10 +807,10 @@ const DottedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by dots */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-dotted-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -874,10 +874,10 @@ const UnselectedDiagonalPatternStyle = ({
 
             {/* Pattern: gradient fill masked by diagonal lines */}
             <pattern
-              height="100%"
+              height="1"
               id={`${chartId}-unselected-${dataKey}`}
-              patternUnits="userSpaceOnUse"
-              width="100%"
+              patternUnits="objectBoundingBox"
+              width="1"
             >
               <rect
                 fill={`url(#${chartId}-colors-${dataKey})`}
@@ -945,10 +945,10 @@ const HatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by hatched stripes */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-hatched-pattern-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}

@@ -153,6 +153,8 @@ function LegendIndicator({
           style={outlineStyle}
         />
       );
+
+    case "rounded-square":
     default:
       return (
         <div className="h-2 w-2 shrink-0 rounded-[2px]" style={fillStyle} />

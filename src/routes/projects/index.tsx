@@ -7,8 +7,8 @@ import {
 } from "@/components/admin/crud-dialogs";
 import {
   BudgetBarChart,
-  DeadlineBarChart,
-  StatusBarChart,
+  DeadlineAreaChart,
+  ProjectStatusPieChart,
 } from "@/components/common/product-charts";
 import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { ProjectsPendingPage } from "@/components/common/route-pending";
@@ -104,10 +104,10 @@ function ProjectsPage() {
         <>
           <DataSection title="Delivery shape">
             <div className="grid gap-6 xl:grid-cols-3">
-              <StatusBarChart
+              <ProjectStatusPieChart
                 data={getProjectStatusData(projectsQuery.data ?? [])}
               />
-              <DeadlineBarChart
+              <DeadlineAreaChart
                 data={getDeadlineData(projectsQuery.data ?? [])}
               />
               <BudgetBarChart
