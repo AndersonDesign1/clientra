@@ -238,7 +238,7 @@ export function ActivitySankeyChart({
   data: SankeyData;
   isLoading?: boolean;
 }) {
-  // Build chartConfig from nodes — types get brand colors, projects get softer tones
+  // Source nodes (activity types) get distinct brand colors
   const typeColors: Record<string, { light: string[]; dark: string[] }> = {
     Clients: {
       light: ["#15803d"],
@@ -262,16 +262,10 @@ export function ActivitySankeyChart({
     },
   };
 
-  // Soft teal tones for project nodes
-  const projectPalette = [
-    { light: ["#0d9488"], dark: ["#2dd4bf"] },
-    { light: ["#0e7490"], dark: ["#22d3ee"] },
-    { light: ["#059669"], dark: ["#34d399"] },
-    { light: ["#4f46e5"], dark: ["#818cf8"] },
-  ];
+  // All project/target nodes share a single unified teal
+  const projectColor = { light: ["#0d9488"], dark: ["#2dd4bf"] };
 
   const chartConfig: ChartConfig = {};
-  let projectIndex = 0;
 
   for (const node of data.nodes) {
     if (typeColors[node.name]) {
@@ -280,29 +274,27 @@ export function ActivitySankeyChart({
         colors: typeColors[node.name],
       };
     } else {
-      const colors = projectPalette[projectIndex % projectPalette.length];
       chartConfig[node.name] = {
         label: node.name,
-        colors,
+        colors: projectColor,
       };
-      projectIndex++;
     }
   }
 
   return (
     <EvilSankeyChart
-      className="h-[240px] w-full"
+      className="h-[280px] w-full"
       config={chartConfig}
       data={data}
       isLoading={isLoading}
-      nodePadding={16}
-      nodeWidth={14}
+      nodePadding={14}
+      nodeWidth={80}
     >
-      <Node>
-        <NodeLabel position="outside" showValues />
+      <Node isClickable>
+        <NodeLabel position="inside" showValues />
       </Node>
       <Link variant="source" />
-      <SankeyTooltip variant="frosted-glass" />
+      <SankeyTooltip />
     </EvilSankeyChart>
   );
 }
