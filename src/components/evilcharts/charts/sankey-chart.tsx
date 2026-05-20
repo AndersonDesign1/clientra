@@ -445,7 +445,7 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
             y={outsideLabelY - (showValues ? 8 : 0)}
             textAnchor="start"
             dominantBaseline="middle"
-            className="fill-foreground text-xs"
+            className="fill-muted-foreground text-sm font-medium"
             style={{ pointerEvents: "none" }}
           >
             {configLabel}
@@ -457,7 +457,7 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
               textAnchor="start"
               dominantBaseline="middle"
               opacity={0.5}
-              className="fill-foreground font-mono text-xs tabular-nums dark:fill-white"
+              className="fill-muted-foreground font-mono text-sm tabular-nums dark:fill-white/60"
               style={{ pointerEvents: "none" }}
             >
               {valueFormatter(nodeValue)}

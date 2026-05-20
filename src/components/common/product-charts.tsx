@@ -290,7 +290,7 @@ export function ActivitySankeyChart({
       nodePadding={20}
       nodeWidth={8}
     >
-      <Node isClickable radius={4}>
+      <Node isClickable>
         <NodeLabel position="outside" showValues />
       </Node>
       <Link variant="source" />
