@@ -9,7 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
-  ActivityRadialChart,
+  ActivityPieChart,
   BudgetComposedChart,
   DeadlineAreaChart,
   ProjectStatusPieChart,
@@ -135,77 +135,82 @@ function DashboardPage() {
         ]}
       />
 
-      {/* ── Delivery shape charts ─────────────────────────────────────── */}
+      {/* ── Delivery shape ─────────────────────────────────────────── */}
       <DataSection
         className="mt-8"
         description="Status, deadline, budget, and activity distribution from live workspace data."
         title="Delivery shape"
       >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="px-0 pb-2">
-              <CardTitle className="font-semibold text-base">
+        {/* Row 1: Project Status + Deadlines */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="font-semibold text-sm">
                 Project Status
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-0 pt-0">
+            <CardContent className="pt-0">
               <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
-          <Card className="border-0 bg-transparent shadow-none ring-0 xl:col-span-2">
-            <CardHeader className="px-0 pb-2">
-              <CardTitle className="font-semibold text-base">
+          <Card className="md:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-semibold text-sm">
                 Deadlines
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-0 pt-0">
+            <CardContent className="pt-0">
               <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
-          <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="px-0 pb-2">
-              <CardTitle className="font-semibold text-base">
+        </div>
+
+        {/* Row 2: Activity + Budget + Recent Activity */}
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="font-semibold text-sm">
                 Activity
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-0 pt-0">
-              <ActivityRadialChart
+            <CardContent className="pt-0">
+              <ActivityPieChart
                 data={getActivityTypeData(activity)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="font-semibold text-sm">
+                Budget by Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <BudgetComposedChart
+                data={getBudgetByStatusData(projects)}
+                isLoading={isLoading}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="font-semibold text-sm">
+                Recent activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CompactActivityList activity={activity} isLoading={isLoading} />
+            </CardContent>
+          </Card>
         </div>
       </DataSection>
-
-      {/* ── Budget + Recent activity (side-by-side) ────────────────────── */}
-      <div className="mt-8 grid gap-6 xl:grid-cols-2">
-        <Card className="border-0 bg-transparent shadow-none ring-0">
-          <CardHeader className="px-0 pb-2">
-            <CardTitle className="font-semibold text-base">
-              Budget by Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-0 pt-0">
-            <BudgetComposedChart
-              data={getBudgetByStatusData(projects)}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
-
-        <div>
-          <DataSection title="Recent activity">
-            <CompactActivityList activity={activity} isLoading={isLoading} />
-          </DataSection>
-        </div>
-      </div>
     </AppShell>
   );
 }

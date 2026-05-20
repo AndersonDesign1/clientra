@@ -8,7 +8,6 @@ import {
   Pie,
   Tooltip,
 } from "@/components/evilcharts/charts/pie-chart";
-import { EvilRadialChart } from "@/components/evilcharts/charts/radial-chart";
 import type { ChartConfig } from "@/components/evilcharts/ui/chart";
 
 // ── Shared palette ────────────────────────────────────────────────────────────
@@ -78,7 +77,7 @@ export function ProjectStatusPieChart({
 
   return (
     <EvilPieChart
-      className="h-[180px] w-full"
+      className="h-[220px] w-full"
       config={chartConfig}
       data={keyedData}
       dataKey="total"
@@ -87,7 +86,7 @@ export function ProjectStatusPieChart({
     >
       <Legend isClickable />
       <Tooltip variant="frosted-glass" />
-      <Pie cornerRadius={6} innerRadius="50%" isClickable paddingAngle={4} />
+      <Pie cornerRadius={5} innerRadius="55%" isClickable paddingAngle={3} />
     </EvilPieChart>
   );
 }
@@ -114,7 +113,7 @@ export function DeadlineAreaChart({
           label: "Deadlines",
         },
       }}
-      className="h-[180px]"
+      className="h-[240px]"
       curveType="monotone"
       data={visibleData}
       hideLegend
@@ -153,7 +152,7 @@ export function BudgetComposedChart({
           label: "Projects",
         },
       }}
-      className="h-[180px]"
+      className="h-[240px]"
       data={data}
       isLoading={isLoading}
       lineDataKey="count"
@@ -209,7 +208,7 @@ export function ActivityPieChart({
 
   return (
     <EvilPieChart
-      className="h-[180px] w-full"
+      className="h-[220px] w-full"
       config={chartConfig}
       data={keyedData}
       dataKey="total"
@@ -223,50 +222,3 @@ export function ActivityPieChart({
   );
 }
 
-// ── Activity Radial Chart ─────────────────────────────────────────────────────
-export function ActivityRadialChart({
-  data,
-  isLoading,
-}: {
-  data: Array<{ label: string; total: number }>;
-  isLoading?: boolean;
-}) {
-  // Each bar in a radial chart needs its own chartConfig key matching the nameKey
-  const visibleData = data.some((item) => item.total > 0)
-    ? data
-    : [{ label: "No activity", total: 1 }];
-  const keyedData = visibleData.map((item, index) => ({
-    ...item,
-    _key: `${item.label}-${index}`,
-  }));
-
-  // Build a dynamic chartConfig from the data labels
-  const colorPalette = [
-    palette.forest,
-    palette.mint,
-    palette.teal,
-    palette.sky,
-  ];
-  const chartConfig: ChartConfig = {};
-  for (let i = 0; i < keyedData.length; i++) {
-    const item = keyedData[i];
-    const color = colorPalette[i % colorPalette.length];
-    chartConfig[item._key] = {
-      colors: { light: color, dark: color },
-      label: item.label,
-    };
-  }
-
-  return (
-    <EvilRadialChart
-      barSize={10}
-      chartConfig={chartConfig}
-      className="h-[180px]"
-      data={keyedData}
-      dataKey="total"
-      isLoading={isLoading}
-      nameKey="_key"
-      variant="full"
-    />
-  );
-}

@@ -14,7 +14,7 @@ export function PageHeader({
   title: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {eyebrow ? (
           <p className="mb-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
@@ -97,7 +97,7 @@ export function MetricLedger({
     <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item) => (
         <div
-          className="rounded-xl bg-zinc-50/80 px-6 py-5 dark:bg-zinc-900/50"
+          className="rounded-xl border border-border bg-card px-6 py-5"
           key={item.label}
         >
           <dt className="text-muted-foreground text-xs">{item.label}</dt>
