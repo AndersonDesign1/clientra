@@ -147,9 +147,8 @@
   }
 }
 
-/* ── Sidebar: sticky to viewport ───────────────────────────────────────────── */
-
-[data-slot="sidebar"] {
+/* ── Sidebar: sticky to viewport on desktop ── */
+div[data-slot="sidebar"]:not(.fixed) {
   position: sticky;
   top: 0;
   height: 100svh;

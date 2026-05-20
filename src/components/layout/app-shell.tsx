@@ -63,7 +63,8 @@ const adminNav = [
 ];
 
 function SidebarNav() {
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
+  const showText = isMobile || open;
 
   return (
     <Sidebar>
@@ -76,7 +77,7 @@ function SidebarNav() {
             src={logoUrl}
             width={32}
           />
-          {open && (
+          {showText && (
             <span className="truncate font-semibold text-foreground text-lg tracking-tight transition-opacity duration-200">
               Clientra
             </span>
@@ -100,7 +101,7 @@ function SidebarNav() {
                           ? "bg-accent font-medium text-accent-foreground"
                           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }
-                      title={open ? undefined : item.label}
+                      title={showText ? undefined : item.label}
                     >
                       <HugeiconsIcon
                         className="shrink-0"
@@ -108,7 +109,7 @@ function SidebarNav() {
                         size={18}
                         strokeWidth={isActive ? 2 : 1.5}
                       />
-                      {open && <span>{item.label}</span>}
+                      {showText && <span>{item.label}</span>}
                     </SidebarMenuButton>
                   )}
                 </Link>
@@ -130,7 +131,7 @@ function SidebarNav() {
                         ? "bg-accent font-medium text-accent-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }
-                    title={open ? undefined : "Settings"}
+                    title={showText ? undefined : "Settings"}
                   >
                     <HugeiconsIcon
                       className="shrink-0"
@@ -138,7 +139,7 @@ function SidebarNav() {
                       size={18}
                       strokeWidth={isActive ? 2 : 1.5}
                     />
-                    {open && <span>Settings</span>}
+                    {showText && <span>Settings</span>}
                   </SidebarMenuButton>
                 )}
               </Link>
@@ -147,7 +148,7 @@ function SidebarNav() {
               <SidebarMenuButton
                 aria-disabled
                 className="pointer-events-none cursor-default text-muted-foreground/70"
-                title={open ? undefined : "Help & Support (coming soon)"}
+                title={showText ? undefined : "Help & Support (coming soon)"}
               >
                 <HugeiconsIcon
                   className="shrink-0"
@@ -155,7 +156,7 @@ function SidebarNav() {
                   size={18}
                   strokeWidth={1.5}
                 />
-                {open && <span>Help & Support</span>}
+                {showText && <span>Help & Support</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -235,30 +236,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <NavUser />
         </header>
-        {/* Mobile nav fallback */}
-        <nav className="flex flex-wrap gap-2 border-b px-4 py-2 md:hidden">
-          {adminNav.map((item) => (
-            <Link
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-              className="rounded-md px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              key={item.href}
-              to={item.href}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-            className="rounded-md px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            to="/settings"
-          >
-            Settings
-          </Link>
-        </nav>
         <div className="mx-auto max-w-7xl px-5 py-6 md:px-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>

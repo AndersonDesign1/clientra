@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import logoUrl from "/logo.webp";
@@ -76,37 +77,21 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-stone-50">
-        <header className="border-b bg-stone-100/80 px-4 py-3 md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              <img
-                alt="Clientra Logo"
-                className="h-5 w-auto"
-                height={20}
-                src={logoUrl}
-                width={20}
-              />
-              <p className="font-semibold tracking-tight">Clientra Portal</p>
-            </div>
-            <SignOutButton />
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-stone-100/80 px-4 backdrop-blur-md md:hidden">
+          <SidebarTrigger />
+          <div className="h-4 w-px bg-border" />
+          <div className="flex flex-1 items-center gap-1.5">
+            <img
+              alt="Clientra Logo"
+              className="h-5 w-auto"
+              height={20}
+              src={logoUrl}
+              width={20}
+            />
+            <p className="font-semibold text-sm tracking-tight">
+              Clientra Portal
+            </p>
           </div>
-          <nav className="mt-3 flex flex-wrap gap-2">
-            {portalNav.map((item) => (
-              <Link
-                activeOptions={
-                  item.href === "/portal" ? { exact: true } : undefined
-                }
-                activeProps={{
-                  className: "border-slate-900 bg-white text-zinc-950",
-                }}
-                className="rounded-md border border-transparent px-2 py-1 text-sm"
-                key={item.href}
-                to={item.href}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
         </header>
         <main className="mx-auto max-w-5xl px-6 py-7">{children}</main>
       </SidebarInset>
