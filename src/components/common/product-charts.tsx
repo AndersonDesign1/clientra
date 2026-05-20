@@ -1,7 +1,7 @@
 "use client";
 
 import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
-import { EvilBarChart } from "@/components/evilcharts/charts/bar-chart";
+import { EvilComposedChart } from "@/components/evilcharts/charts/composed-chart";
 import {
   EvilPieChart,
   Legend,
@@ -126,17 +126,17 @@ export function DeadlineAreaChart({
   );
 }
 
-// ── Budget Horizontal Bar Chart ───────────────────────────────────────────────
-export function BudgetBarChart({
+// ── Budget Composed Chart ─────────────────────────────────────────────────────
+export function BudgetComposedChart({
   data,
   isLoading,
 }: {
-  data: Array<{ status: string; budget: number }>;
+  data: Array<{ status: string; budget: number; count: number }>;
   isLoading?: boolean;
 }) {
   return (
-    <EvilBarChart
-      barRadius={4}
+    <EvilComposedChart
+      barDataKey="budget"
       chartConfig={{
         budget: {
           colors: {
@@ -145,18 +145,26 @@ export function BudgetBarChart({
           },
           label: "Budget ($)",
         },
+        count: {
+          colors: {
+            light: ["#d97706"],
+            dark: ["#f59e0b"],
+          },
+          label: "Projects",
+        },
       }}
       className="h-[180px]"
       data={data}
-      enableHoverHighlight
-      hideLegend
       isLoading={isLoading}
-      layout="horizontal"
+      lineDataKey="count"
       tooltipVariant="frosted-glass"
       xDataKey="status"
-      yAxisProps={{
+      yAxisLeftProps={{
         tickFormatter: (v: number) =>
           v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`,
+      }}
+      yAxisRightProps={{
+        tickFormatter: (v: number) => String(v),
       }}
     />
   );

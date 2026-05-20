@@ -6,7 +6,7 @@ import {
   ProjectFormDialog,
 } from "@/components/admin/crud-dialogs";
 import {
-  BudgetBarChart,
+  BudgetComposedChart,
   DeadlineAreaChart,
   ProjectStatusPieChart,
 } from "@/components/common/product-charts";
@@ -110,7 +110,7 @@ function ProjectsPage() {
               <DeadlineAreaChart
                 data={getDeadlineData(projectsQuery.data ?? [])}
               />
-              <BudgetBarChart
+              <BudgetComposedChart
                 data={getBudgetByStatusData(projectsQuery.data ?? [])}
               />
             </div>

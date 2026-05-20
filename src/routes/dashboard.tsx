@@ -10,7 +10,7 @@ import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   ActivityRadialChart,
-  BudgetBarChart,
+  BudgetComposedChart,
   DeadlineAreaChart,
   ProjectStatusPieChart,
 } from "@/components/common/product-charts";
@@ -193,7 +193,7 @@ function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0 pt-0">
-            <BudgetBarChart
+            <BudgetComposedChart
               data={getBudgetByStatusData(projects)}
               isLoading={isLoading}
             />

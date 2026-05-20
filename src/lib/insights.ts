@@ -55,6 +55,7 @@ export function getBudgetByStatusData(projects: Project[]) {
       .filter((project) => project.status === status)
       .reduce((total, project) => total + project.budget, 0),
     status: formatStatusText(status),
+    count: projects.filter((project) => project.status === status).length,
   }));
 }
 
