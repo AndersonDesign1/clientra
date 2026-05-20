@@ -9,7 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
-  ActivityPieChart,
+  ActivitySankeyChart,
   BudgetComposedChart,
   DeadlineAreaChart,
   ProjectStatusPieChart,
@@ -35,7 +35,7 @@ import {
   useProjectsData,
 } from "@/lib/api";
 import {
-  getActivityTypeData,
+  getActivitySankeyData,
   getBudgetByStatusData,
   getDeadlineData,
   getDeadlineLabel,
@@ -141,7 +141,7 @@ function DashboardPage() {
         description="Status, deadline, budget, and activity distribution from live workspace data."
         title="Delivery shape"
       >
-        {/* Row 1: Project Status + Deadlines */}
+        {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
@@ -159,29 +159,29 @@ function DashboardPage() {
           <Card className="md:col-span-2 ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
-                Deadlines
+                Activity Flow
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <DeadlineAreaChart
-                data={getDeadlineData(projects)}
+              <ActivitySankeyChart
+                data={getActivitySankeyData(activity)}
                 isLoading={isLoading}
               />
             </CardContent>
           </Card>
         </div>
 
-        {/* Row 2: Activity + Budget + Recent Activity */}
+        {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
-                Activity
+                Deadlines
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <ActivityPieChart
-                data={getActivityTypeData(activity)}
+              <DeadlineAreaChart
+                data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />
             </CardContent>

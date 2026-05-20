@@ -8,7 +8,15 @@ import {
   Pie,
   Tooltip,
 } from "@/components/evilcharts/charts/pie-chart";
+import {
+  EvilSankeyChart,
+  Link,
+  Node,
+  NodeLabel,
+  Tooltip as SankeyTooltip,
+} from "@/components/evilcharts/charts/sankey-chart";
 import type { ChartConfig } from "@/components/evilcharts/ui/chart";
+import type { SankeyData } from "recharts";
 
 // ── Shared palette ────────────────────────────────────────────────────────────
 const palette = {
@@ -222,3 +230,79 @@ export function ActivityPieChart({
   );
 }
 
+// ── Activity Sankey Chart ────────────────────────────────────────────────────
+export function ActivitySankeyChart({
+  data,
+  isLoading,
+}: {
+  data: SankeyData;
+  isLoading?: boolean;
+}) {
+  // Build chartConfig from nodes — types get brand colors, projects get softer tones
+  const typeColors: Record<string, { light: string[]; dark: string[] }> = {
+    Clients: {
+      light: ["#15803d"],
+      dark: ["#22c55e"],
+    },
+    Projects: {
+      light: ["#047857"],
+      dark: ["#10b981"],
+    },
+    Comments: {
+      light: ["#0284c7"],
+      dark: ["#38bdf8"],
+    },
+    Files: {
+      light: ["#d97706"],
+      dark: ["#f59e0b"],
+    },
+    Onboarding: {
+      light: ["#0d9488"],
+      dark: ["#2dd4bf"],
+    },
+  };
+
+  // Soft teal tones for project nodes
+  const projectPalette = [
+    { light: ["#0d9488"], dark: ["#2dd4bf"] },
+    { light: ["#0e7490"], dark: ["#22d3ee"] },
+    { light: ["#059669"], dark: ["#34d399"] },
+    { light: ["#4f46e5"], dark: ["#818cf8"] },
+  ];
+
+  const chartConfig: ChartConfig = {};
+  let projectIndex = 0;
+
+  for (const node of data.nodes) {
+    if (typeColors[node.name]) {
+      chartConfig[node.name] = {
+        label: node.name,
+        colors: typeColors[node.name],
+      };
+    } else {
+      const colors = projectPalette[projectIndex % projectPalette.length];
+      chartConfig[node.name] = {
+        label: node.name,
+        colors,
+      };
+      projectIndex++;
+    }
+  }
+
+  return (
+    <EvilSankeyChart
+      className="h-[240px] w-full"
+      config={chartConfig}
+      data={data}
+      isLoading={isLoading}
+      nodePadding={16}
+      nodeWidth={14}
+    >
+      <Node>
+        <NodeLabel position="outside" showValues />
+      </Node>
+      <Link variant="source" />
+      <SankeyTooltip variant="frosted-glass" />
+    </EvilSankeyChart>
+  );
+}
