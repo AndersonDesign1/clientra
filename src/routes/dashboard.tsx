@@ -143,7 +143,7 @@ function DashboardPage() {
       >
         {/* Row 1: Project Status + Deadlines */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
+          <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
                 Project Status
@@ -156,7 +156,7 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-2 ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
                 Deadlines
@@ -173,7 +173,7 @@ function DashboardPage() {
 
         {/* Row 2: Activity + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Card>
+          <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
                 Activity
@@ -186,7 +186,7 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
                 Budget by Status
@@ -199,7 +199,7 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card>
+          <Card className="ring-foreground/[0.04]">
             <CardHeader className="pb-2">
               <CardTitle className="font-semibold text-sm">
                 Recent activity

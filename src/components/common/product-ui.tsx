@@ -97,7 +97,7 @@ export function MetricLedger({
     <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item) => (
         <div
-          className="rounded-xl border border-border bg-card px-6 py-5"
+          className="rounded-xl bg-card px-6 py-5 ring-1 ring-foreground/[0.04]"
           key={item.label}
         >
           <dt className="text-muted-foreground text-xs">{item.label}</dt>
