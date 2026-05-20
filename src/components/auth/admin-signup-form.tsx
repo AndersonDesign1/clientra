@@ -200,7 +200,7 @@ export function AdminSignupForm() {
             <FieldError>{state.error}</FieldError>
             <Field>
               <Button
-                className="mt-2 h-10 w-full px-4 text-sm"
+                className="mt-2 h-10 w-full bg-primary px-4 font-semibold text-primary-foreground text-sm shadow-sm transition-all duration-150 hover:bg-primary/90"
                 disabled={state.isSubmitting}
                 type="submit"
               >
@@ -210,7 +210,10 @@ export function AdminSignupForm() {
               </Button>
               <FieldDescription className="mt-2 text-center text-slate-500">
                 Already have access?{" "}
-                <Link className="font-medium text-slate-900" to="/login">
+                <Link
+                  className="font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary"
+                  to="/login"
+                >
                   Sign in instead
                 </Link>
               </FieldDescription>

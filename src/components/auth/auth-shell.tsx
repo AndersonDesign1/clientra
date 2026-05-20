@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import logoUrl from "/logo.webp";
+import logoWhiteUrl from "/logo-white.webp";
 
 export function AuthShell({
   asideDescription,
@@ -25,7 +26,7 @@ export function AuthShell({
               alt="Clientra Logo"
               className="h-8 w-auto"
               height={32}
-              src={logoUrl}
+              src={logoWhiteUrl}
               width={32}
             />
             Clientra

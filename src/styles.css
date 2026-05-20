@@ -11,7 +11,7 @@
   --foreground: oklch(0.145 0 0);
   --card: oklch(0.993 0.003 155);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.993 0.003 155);
   --popover-foreground: oklch(0.145 0 0);
 
   /* ── Green accent ── only these carry the brand hue ── */

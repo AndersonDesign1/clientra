@@ -136,7 +136,7 @@ export function LoginForm() {
             <Field>
               <div className="grid grid-cols-2 gap-4">
                 <Button
-                  className="relative h-10 w-full px-4 font-medium text-sm"
+                  className="relative h-10 w-full bg-card px-4 font-medium text-sm shadow-xs hover:bg-accent hover:text-accent-foreground"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("google");
@@ -155,7 +155,7 @@ export function LoginForm() {
                   )}
                 </Button>
                 <Button
-                  className="relative h-10 w-full px-4 font-medium text-sm"
+                  className="relative h-10 w-full bg-card px-4 font-medium text-sm shadow-xs hover:bg-accent hover:text-accent-foreground"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("github");
@@ -219,7 +219,7 @@ export function LoginForm() {
             <FieldError>{state.error}</FieldError>
             <Field>
               <Button
-                className="mt-2 h-10 w-full px-4 text-sm"
+                className="mt-2 h-10 w-full bg-primary px-4 font-semibold text-primary-foreground text-sm shadow-sm transition-all duration-150 hover:bg-primary/90"
                 disabled={state.isSubmitting || state.activeProvider !== null}
                 type="submit"
               >
@@ -227,7 +227,10 @@ export function LoginForm() {
               </Button>
               <FieldDescription className="mt-2 text-center text-slate-500">
                 Need admin access?{" "}
-                <Link className="font-medium text-slate-900" to="/signup">
+                <Link
+                  className="font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary"
+                  to="/signup"
+                >
                   Create an admin account
                 </Link>
               </FieldDescription>

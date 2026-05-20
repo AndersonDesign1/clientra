@@ -10,7 +10,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -169,7 +169,7 @@ function SidebarNav() {
 function NavUser() {
   const session = authClient.useSession();
   const user = session.data?.user as
-    | { email?: string; name?: string; role?: string }
+    | { email?: string; name?: string; role?: string; image?: string }
     | undefined;
 
   const router = useRouter();
@@ -191,17 +191,22 @@ function NavUser() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button
-          className="relative ml-auto h-8 w-8 rounded-full"
-          variant="ghost"
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-emerald-100 font-medium text-emerald-800 text-xs">
-              {user.name?.[0]?.toUpperCase() ?? "U"}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="relative ml-auto h-8 w-8 rounded-full"
+            variant="ghost"
+          />
+        }
+      >
+        <Avatar className="h-8 w-8">
+          {user.image && (
+            <AvatarImage alt={user.name ?? "User avatar"} src={user.image} />
+          )}
+          <AvatarFallback className="border border-border bg-card font-medium text-card-foreground text-xs shadow-xs">
+            {user.name?.[0]?.toUpperCase() ?? "U"}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>

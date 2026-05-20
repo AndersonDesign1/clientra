@@ -18,7 +18,7 @@ export function ClientAccessDialog() {
       <DialogTrigger
         render={
           <button
-            className="cursor-pointer font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-slate-700"
+            className="cursor-pointer font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary"
             type="button"
           />
         }
