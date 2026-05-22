@@ -1,3 +1,13 @@
+import {
+  ArrowRight01Icon,
+  CallIcon,
+  Delete02Icon,
+  GlobalIcon,
+  Mail01Icon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
@@ -5,11 +15,24 @@ import {
   ClientFormDialog,
   DeleteClientDialog,
 } from "@/components/admin/crud-dialogs";
-import { PageHeader } from "@/components/common/product-ui";
+import {
+  BudgetComposedChart,
+  ProjectStatusPieChart,
+} from "@/components/common/product-charts";
+import { MetricLedger, PageHeader } from "@/components/common/product-ui";
 import { ClientDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getDeadlineLabel } from "@/lib/insights";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +58,7 @@ import {
   ensureProjectsData,
   type LoadableData,
   type PendingInvite,
+  projectMilestonesQueryOptions,
   useClientsData,
   usePendingInvitesData,
   useProjectsData,
@@ -43,7 +67,6 @@ import {
   useUpdateClientMutation,
 } from "@/lib/api";
 import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
-import { getDeadlineLabel } from "@/lib/insights";
 import { getProjectPathParams } from "@/lib/project-slugs";
 import { cn } from "@/lib/utils";
 
@@ -99,10 +122,6 @@ function ClientDetailPage() {
     );
   }
 
-  const linkedProjects =
-    projectsQuery.data?.filter((project) => project.clientId === client?.id) ??
-    [];
-
   if (!client) {
     return (
       <AppShell>
@@ -113,6 +132,42 @@ function ClientDetailPage() {
       </AppShell>
     );
   }
+
+  const linkedProjects =
+    projectsQuery.data?.filter((project) => project.clientId === client.id) ??
+    [];
+
+  // Dynamic milestones aggregation hook query (unconditional list mapping via useQueries)
+  const milestoneQueries = useQueries({
+    queries: linkedProjects.map((project) =>
+      projectMilestonesQueryOptions(project.id)
+    ),
+  });
+
+  const milestonesLoading = milestoneQueries.some((q) => q.isLoading);
+
+  let totalMilestones = 0;
+  let completedMilestones = 0;
+  for (const q of milestoneQueries) {
+    if (q.data) {
+      totalMilestones += q.data.length;
+      completedMilestones += q.data.filter((m) => m.status === "done").length;
+    }
+  }
+
+  const overallMilestoneProgress =
+    totalMilestones > 0
+      ? Math.round((completedMilestones / totalMilestones) * 100)
+      : 0;
+
+  // Investment and count stats
+  const totalInvestment = linkedProjects.reduce((acc, p) => acc + p.budget, 0);
+  const activeProjectsCount = linkedProjects.filter(
+    (p) => p.status === "in_progress"
+  ).length;
+  const completedProjectsCount = linkedProjects.filter(
+    (p) => p.status === "completed"
+  ).length;
 
   const selectedClient = client;
 
@@ -131,6 +186,68 @@ function ClientDetailPage() {
       },
     });
   }
+
+  // Construct charts data
+  const statusCounts: Record<string, number> = {};
+  for (const p of linkedProjects) {
+    const statusLabel =
+      p.status === "in_progress"
+        ? "In Progress"
+        : p.status === "planning"
+          ? "Planning"
+          : p.status === "completed"
+            ? "Completed"
+            : p.status;
+    statusCounts[statusLabel] = (statusCounts[statusLabel] || 0) + 1;
+  }
+  const statusPieData = Object.entries(statusCounts).map(([status, total]) => ({
+    status,
+    total,
+  }));
+
+  const statusBudgets: Record<string, { budget: number; count: number }> = {};
+  for (const p of linkedProjects) {
+    const statusLabel =
+      p.status === "in_progress"
+        ? "In Progress"
+        : p.status === "planning"
+          ? "Planning"
+          : p.status === "completed"
+            ? "Completed"
+            : p.status;
+    if (!statusBudgets[statusLabel]) {
+      statusBudgets[statusLabel] = { budget: 0, count: 0 };
+    }
+    statusBudgets[statusLabel].budget += p.budget;
+    statusBudgets[statusLabel].count += 1;
+  }
+  const budgetComposedData = Object.entries(statusBudgets).map(
+    ([status, info]) => ({
+      status,
+      budget: info.budget,
+      count: info.count,
+    })
+  );
+
+  const ledgerItems = [
+    {
+      label: "Total Investment",
+      value: `$${totalInvestment.toLocaleString()}`,
+      detail: `Across ${linkedProjects.length} linked project${linkedProjects.length === 1 ? "" : "s"}`,
+    },
+    {
+      label: "Project Inventory",
+      value: `${activeProjectsCount} Active`,
+      detail: `${completedProjectsCount} completed project${completedProjectsCount === 1 ? "" : "s"}`,
+    },
+    {
+      label: "Milestone Velocity",
+      value: milestonesLoading ? "..." : `${overallMilestoneProgress}%`,
+      detail: milestonesLoading
+        ? "Aggregating milestone records..."
+        : `${completedMilestones} of ${totalMilestones} deliverables completed`,
+    },
+  ];
 
   return (
     <AppShell>
@@ -199,100 +316,161 @@ function ClientDetailPage() {
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Client Record definitions (Dossier) */}
-        <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none md:col-span-1">
-          <h2 className="font-semibold text-foreground text-sm">
-            Client Record
-          </h2>
-          <div className="space-y-3">
-            {[
-              { label: "Contact", value: client.name },
-              {
-                label: "Email",
-                value: client.email,
-                isLink: true,
-                href: `mailto:${client.email}`,
-              },
-              { label: "Phone", value: client.phone || "No phone" },
-              {
-                label: "Website",
-                value: client.website || "No website",
-                isLink: true,
-                href: client.website?.startsWith("http")
-                  ? client.website
-                  : `https://${client.website}`,
-              },
-              { label: "Notes", value: client.notes || "No notes" },
-              {
-                label: "Tags",
-                value: client.tags,
-                isTags: true,
-              },
-            ].map((item) => {
-              const renderValue = () => {
-                if (item.isTags) {
-                  return (
-                    <div className="flex flex-wrap gap-1.5 pt-0.5">
-                      {Array.isArray(item.value) && item.value.length > 0 ? (
-                        item.value.map((tag) => (
-                          <span
-                            className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 font-semibold text-primary text-xs"
-                            key={tag}
-                          >
-                            {tag}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="font-medium text-muted-foreground text-sm">
-                          No tags
-                        </span>
-                      )}
-                    </div>
-                  );
-                }
+        {/* Left Column: Client Record Dossier Card */}
+        <div className="h-fit space-y-6 rounded-xl border border-border/60 bg-card p-6 shadow-none md:col-span-1">
+          {/* Avatar and Primary Identity */}
+          <div className="flex flex-col items-center border-border/40 border-b pb-6 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-2xl text-white shadow-sm ring-4 ring-primary/10">
+              {client.company
+                .split(" ")
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </div>
+            <h2 className="mt-4 font-bold text-[#08361f] text-xl leading-tight dark:text-primary">
+              {client.company}
+            </h2>
+            <p className="mt-1 font-medium text-muted-foreground text-sm">
+              {client.name}
+            </p>
+          </div>
 
-                if (
-                  item.isLink &&
-                  item.href &&
-                  typeof item.value === "string" &&
-                  item.value !== "No email" &&
-                  item.value !== "No website"
-                ) {
-                  return (
-                    <p className="font-medium text-sm">
+          <div className="space-y-4">
+            <h3 className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
+              Client Dossier
+            </h3>
+
+            <div className="space-y-4">
+              {[
+                {
+                  label: "Primary Contact",
+                  value: client.name,
+                  icon: UserGroupIcon,
+                },
+                {
+                  label: "Email Address",
+                  value: client.email,
+                  isLink: true,
+                  href: `mailto:${client.email}`,
+                  icon: Mail01Icon,
+                },
+                {
+                  label: "Phone Number",
+                  value: client.phone || "No phone number",
+                  isLink: client.phone ? true : false,
+                  href: client.phone ? `tel:${client.phone}` : undefined,
+                  icon: CallIcon,
+                },
+                {
+                  label: "Website URL",
+                  value: client.website || "No website URL",
+                  isLink: client.website ? true : false,
+                  href: client.website
+                    ? client.website.startsWith("http")
+                      ? client.website
+                      : `https://${client.website}`
+                    : undefined,
+                  icon: GlobalIcon,
+                },
+              ].map((item) => (
+                <div className="flex items-start gap-3" key={item.label}>
+                  <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-lg border border-border/50 bg-secondary/50 text-muted-foreground">
+                    <HugeiconsIcon icon={item.icon} size={14} />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <span className="block font-semibold text-[10px] text-muted-foreground uppercase leading-none tracking-wider">
+                      {item.label}
+                    </span>
+                    {item.isLink && item.href ? (
                       <a
-                        className="text-primary transition-colors hover:underline"
+                        className="block truncate font-semibold text-primary text-sm transition-colors hover:underline"
                         href={item.href}
                         rel="noreferrer"
-                        target={item.label === "Website" ? "_blank" : undefined}
+                        target={
+                          item.label.includes("Website") ? "_blank" : undefined
+                        }
                       >
                         {item.value}
                       </a>
-                    </p>
-                  );
-                }
-
-                return (
-                  <p className="font-medium text-foreground text-sm">
-                    {typeof item.value === "string" ? item.value : ""}
-                  </p>
-                );
-              };
-
-              return (
-                <div className="space-y-1" key={item.label}>
-                  <span className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {item.label}
-                  </span>
-                  {renderValue()}
+                    ) : (
+                      <p className="block truncate font-semibold text-foreground text-sm">
+                        {item.value}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
+              ))}
+
+              {/* Notes block */}
+              <div className="space-y-1.5 border-border/40 border-t pt-4">
+                <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Client Notes
+                </span>
+                <div className="rounded-lg border border-border/40 border-l-4 border-l-primary/40 bg-secondary/20 p-3 text-muted-foreground/95 text-xs italic leading-relaxed">
+                  {client.notes || "No notes available for this client."}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-1.5 border-border/40 border-t pt-4">
+                <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Tags & Segments
+                </span>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {Array.isArray(client.tags) && client.tags.length > 0 ? (
+                    client.tags.map((tag) => (
+                      <span
+                        className="inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 font-semibold text-primary text-xs"
+                        key={tag}
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-muted-foreground text-xs italic">
+                      No tags
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Linked Projects & Pending Invites in separate panels */}
+        {/* Right Column: Metrics, Charts, Linked Projects, Invites */}
         <div className="space-y-6 md:col-span-2">
+          {/* Top Metric Ledger */}
+          <MetricLedger items={ledgerItems} />
+
+          {/* Client Analytics Section */}
+          {linkedProjects.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col rounded-xl border border-border/60 bg-card p-5 shadow-none">
+                <h3 className="mb-3 font-semibold text-foreground text-sm">
+                  Project Status Distribution
+                </h3>
+                <div className="relative flex min-h-[220px] flex-1 items-center justify-center">
+                  <ProjectStatusPieChart
+                    data={statusPieData}
+                    isLoading={projectsQuery.isLoading}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col rounded-xl border border-border/60 bg-card p-5 shadow-none">
+                <h3 className="mb-3 font-semibold text-foreground text-sm">
+                  Budget & Project Allocation
+                </h3>
+                <div className="relative flex min-h-[220px] flex-1 items-center justify-center">
+                  <BudgetComposedChart
+                    data={budgetComposedData}
+                    isLoading={projectsQuery.isLoading}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {/* Linked Projects */}
           <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
             <h2 className="font-semibold text-foreground text-sm">
@@ -303,36 +481,99 @@ function ClientDetailPage() {
                 No projects are linked to this client yet.
               </p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {linkedProjects.map((project) => {
-                  const { clientSlug, projectSlug } = getProjectPathParams(
-                    project,
-                    [client]
-                  );
+              <div className="overflow-x-auto rounded-xl border border-border/50 bg-card/30">
+                <Table>
+                  <TableHeader className="bg-stone-50/50">
+                    <TableRow>
+                      <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Project</TableHead>
+                      <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Velocity</TableHead>
+                      <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Budget</TableHead>
+                      <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Deadline</TableHead>
+                      <TableHead className="text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {linkedProjects.map((project, idx) => {
+                      const { clientSlug, projectSlug } = getProjectPathParams(
+                        project,
+                        [client]
+                      );
 
-                  return (
-                    <div
-                      className="group flex flex-col justify-between gap-3 rounded-xl border border-border/50 bg-card/40 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40"
-                      key={project.id}
-                    >
-                      <div className="space-y-1">
-                        <Link
-                          className="font-semibold text-foreground text-sm transition-colors duration-200 hover:text-primary"
-                          params={{ clientSlug, projectSlug }}
-                          to="/projects/$clientSlug/$projectSlug"
-                        >
-                          {project.title}
-                        </Link>
-                        <p className="text-muted-foreground text-xs">
-                          {getDeadlineLabel(project.deadline)}
-                        </p>
-                      </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <StatusBadge value={project.status} />
-                      </div>
-                    </div>
-                  );
-                })}
+                      const projectMilestones = milestoneQueries[idx]?.data ?? [];
+                      const completed = projectMilestones.filter((m) => m.status === "done").length;
+                      const total = projectMilestones.length;
+                      let progress = 0;
+                      if (total > 0) {
+                        progress = Math.round((completed / total) * 100);
+                      } else if (project.status === "completed") {
+                        progress = 100;
+                      } else if (project.status === "in_progress") {
+                        progress = 60;
+                      } else {
+                        progress = 20; // planning
+                      }
+
+                      let progressColor = "bg-amber-500";
+                      if (progress === 100) {
+                        progressColor = "bg-emerald-600";
+                      } else if (progress >= 50) {
+                        progressColor = "bg-primary";
+                      }
+
+                      return (
+                        <TableRow key={project.id} className="transition-colors hover:bg-secondary/5">
+                          <TableCell className="max-w-[240px]">
+                            <Link
+                              className="block truncate font-bold text-[#08361f] text-sm hover:underline dark:text-foreground"
+                              params={{ clientSlug, projectSlug }}
+                              to="/projects/$clientSlug/$projectSlug"
+                            >
+                              {project.title}
+                            </Link>
+                            {project.description && (
+                              <p className="line-clamp-1 mt-0.5 text-muted-foreground text-xs font-normal">
+                                {project.description}
+                              </p>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge value={project.status} />
+                          </TableCell>
+                          <TableCell className="w-[180px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="font-semibold text-muted-foreground">{progress}%</span>
+                                <span className="text-muted-foreground/85">({completed}/{total})</span>
+                              </div>
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                                <div
+                                  className={cn("h-full rounded-full transition-all duration-500 ease-out", progressColor)}
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-semibold text-emerald-700 text-xs dark:text-emerald-400 tabular-nums">
+                            ${project.budget.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="font-medium text-muted-foreground text-xs">
+                            {getDeadlineLabel(project.deadline ?? "")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Link
+                              className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-border/50 bg-secondary/50 px-3 font-semibold text-xs text-primary transition-all hover:bg-primary hover:text-primary-foreground hover:scale-[1.02] active:scale-[0.98]"
+                              params={{ clientSlug, projectSlug }}
+                              to="/projects/$clientSlug/$projectSlug"
+                            >
+                              Dossier →
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </div>
@@ -383,7 +624,7 @@ export function PendingInvitesPanel({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
+    <div className="animate-slide-up-fade space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground text-sm">
           Pending Invites
@@ -406,28 +647,30 @@ export function PendingInvitesPanel({
       ) : null}
 
       {pendingInvites.isLoading ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="animate-pulse text-muted-foreground text-xs">
           Loading pending invites...
         </p>
       ) : null}
 
       {!(pendingInvites.isLoading || pendingInvites.error) &&
       invites.length === 0 ? (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-xs italic">
           No pending invites for this client.
         </p>
       ) : null}
 
       {invites.length > 0 ? (
-        <div className="divide-y divide-border/60 border-border/60 border-t">
-          {invites.map((invite) => (
-            <InviteRow
-              invite={invite}
-              key={invite.id}
-              resendInvite={resendInvite}
-              revokeInvite={revokeInvite}
-            />
-          ))}
+        <div className="overflow-hidden rounded-xl border border-border/50 bg-card/30">
+          <div className="divide-y divide-border/60">
+            {invites.map((invite) => (
+              <InviteRow
+                invite={invite}
+                key={invite.id}
+                resendInvite={resendInvite}
+                revokeInvite={revokeInvite}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
     </div>
@@ -458,23 +701,29 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
   }
 
   return (
-    <div className="grid items-center gap-2 py-3 text-xs sm:grid-cols-[minmax(0,1fr)_6rem_8rem_8rem_9rem]">
-      <p className="font-semibold text-foreground">{invite.email}</p>
+    <div className="grid items-center gap-3 p-4 text-xs transition-colors duration-200 hover:bg-secondary/15 sm:grid-cols-[minmax(0,1.2fr)_0.8fr_1fr_1fr_1.2fr]">
+      <p className="truncate font-semibold text-foreground">{invite.email}</p>
       <div>
         <StatusBadge value="pending" />
       </div>
-      <time className="text-muted-foreground" dateTime={invite.createdAt}>
+      <time
+        className="font-medium text-muted-foreground"
+        dateTime={invite.createdAt}
+      >
         Created: {formatInviteDate(invite.createdAt)}
       </time>
-      <time className="text-muted-foreground" dateTime={invite.expiresAt}>
+      <time
+        className="font-medium text-muted-foreground"
+        dateTime={invite.expiresAt}
+      >
         Expires: {formatInviteDate(invite.expiresAt)}
       </time>
-      <div className="flex items-center justify-end gap-2 sm:justify-start">
+      <div className="flex items-center justify-end gap-2">
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
-                className="h-8 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex h-8 items-center gap-1.5 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 disabled={isResending || isRevoking}
                 onClick={() => {
                   resendInvite.reset();
@@ -489,6 +738,7 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
                 type="button"
                 variant="outline"
               >
+                <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
                 {isResending ? "Sending" : "Resend"}
               </Button>
             }
@@ -499,12 +749,13 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
           <AlertDialogTrigger
             render={
               <Button
-                className="h-8 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex h-8 items-center gap-1.5 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 disabled={isResending || isRevoking}
                 size="sm"
                 type="button"
                 variant="destructive"
               >
+                <HugeiconsIcon icon={Delete02Icon} size={12} />
                 Revoke
               </Button>
             }
@@ -542,7 +793,7 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
         </AlertDialog>
       </div>
       {rowError ? (
-        <FieldError className="sm:col-span-5">{rowError}</FieldError>
+        <FieldError className="mt-1 sm:col-span-5">{rowError}</FieldError>
       ) : null}
     </div>
   );

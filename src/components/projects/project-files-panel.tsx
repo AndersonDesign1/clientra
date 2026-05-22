@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  Delete02Icon,
+  Download01Icon,
+  FileChartColumnIcon,
+  FileEmpty01Icon,
+  FileImageIcon,
+  Pdf01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import {
@@ -14,6 +24,7 @@ import {
   useDeleteProjectFileMutation,
   useProjectFilesData,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { useUploadThing } from "@/uploadthing/client";
 
 const fileInputAccept = "image/*,.pdf,.txt,.csv";
@@ -70,6 +81,52 @@ function getUploadValidationError(files: File[]) {
   }
 
   return null;
+}
+
+function getFileIcon(mimeType: string, fileName: string) {
+  const name = fileName.toLowerCase();
+  const mime = mimeType.toLowerCase();
+
+  if (mime.startsWith("image/")) {
+    return FileImageIcon;
+  }
+  if (mime === "application/pdf" || name.endsWith(".pdf")) {
+    return Pdf01Icon;
+  }
+  if (
+    mime.includes("spreadsheet") ||
+    mime.includes("csv") ||
+    mime.includes("excel") ||
+    name.endsWith(".csv") ||
+    name.endsWith(".xls") ||
+    name.endsWith(".xlsx")
+  ) {
+    return FileChartColumnIcon;
+  }
+  return FileEmpty01Icon;
+}
+
+function getFileIconColor(mimeType: string, fileName: string) {
+  const name = fileName.toLowerCase();
+  const mime = mimeType.toLowerCase();
+
+  if (mime.startsWith("image/")) {
+    return "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900";
+  }
+  if (mime === "application/pdf" || name.endsWith(".pdf")) {
+    return "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900";
+  }
+  if (
+    mime.includes("spreadsheet") ||
+    mime.includes("csv") ||
+    mime.includes("excel") ||
+    name.endsWith(".csv") ||
+    name.endsWith(".xls") ||
+    name.endsWith(".xlsx")
+  ) {
+    return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900";
+  }
+  return "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900";
 }
 
 interface ProjectFilesPanelProps {
@@ -161,97 +218,173 @@ export function ProjectFilesPanel({
     Boolean(filesQuery.error && visibleFiles.length === 0);
 
   return (
-    <section>
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+    <section className="space-y-5">
+      {/* Panel Header */}
+      <div className="flex flex-col gap-4 border-border/40 border-b pb-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="font-medium text-slate-900">Project files</h2>
-          <p className="mt-1 text-slate-600 text-sm">
-            Upload project documents, PDFs, text notes, and images up to 32MB,
-            with up to 6 files per upload.
+          <h2 className="animate-slide-up-fade font-semibold text-foreground text-base">
+            Project Files
+          </h2>
+          <p className="mt-1 animate-slide-up-fade text-muted-foreground text-xs leading-relaxed">
+            Share and retrieve assets, templates, or documents securely.
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            accept={fileInputAccept}
-            className="hidden"
-            multiple
-            onChange={(event) => {
-              handleFileSelection(event.target.files);
-            }}
-            ref={inputRef}
-            type="file"
-          />
-          <Button
-            disabled={isUploading}
-            onClick={() => {
-              inputRef.current?.click();
-            }}
-            type="button"
-          >
-            {isUploading ? "Uploading..." : "Upload files"}
-          </Button>
         </div>
       </div>
 
+      <input
+        accept={fileInputAccept}
+        className="hidden"
+        multiple
+        onChange={(event) => {
+          handleFileSelection(event.target.files).catch(() => undefined);
+        }}
+        ref={inputRef}
+        type="file"
+      />
+
+      {/* Dashed Premium Dropzone Upload Area */}
+      <div
+        className={cn(
+          "group relative flex animate-slide-up-fade flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center transition-all duration-300",
+          isUploading
+            ? "animate-pulse border-primary bg-primary/5"
+            : "cursor-pointer border-border/80 bg-secondary/15 hover:border-primary/40 hover:bg-secondary/35"
+        )}
+        onClick={() => {
+          if (!isUploading) {
+            inputRef.current?.click();
+          }
+        }}
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+          <HugeiconsIcon icon={Upload01Icon} size={15} />
+        </div>
+        <p className="mt-2 font-semibold text-foreground text-xs">
+          {isUploading
+            ? "Uploading files to server..."
+            : "Drag & drop or click here to upload"}
+        </p>
+        <p className="mt-0.5 max-w-sm text-muted-foreground text-[10px] leading-relaxed">
+          Images, PDFs, CSVs, or text files up to 32MB. Max 6 files at once.
+        </p>
+      </div>
+
       {mutationError ? (
-        <div className="mb-4 border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
+        <div className="animate-slide-up-fade rounded-lg border border-rose-200/50 bg-rose-50/10 p-2.5 text-rose-700 text-xs">
           {mutationError}
         </div>
       ) : null}
 
+      {/* Loading & Error States */}
       {filesQuery.isLoading && visibleFiles.length === 0 ? (
-        <LoadingPanel />
+        <div className="py-4">
+          <LoadingPanel />
+        </div>
       ) : null}
       {!filesQuery.isLoading &&
       filesQuery.error &&
       visibleFiles.length === 0 ? (
-        <ErrorPanel description={filesQuery.error} />
+        <div className="py-4">
+          <ErrorPanel description={filesQuery.error} />
+        </div>
       ) : null}
+
+      {/* Empty State */}
       {!hasBlockingState && visibleFiles.length === 0 ? (
-        <EmptyPanel
-          description="Files shared on this project will appear here once someone uploads them."
-          title="No files yet"
-        />
+        <div className="rounded-xl border border-border/40 bg-secondary/5 py-4">
+          <EmptyPanel
+            description="All shared files on this project will be listed here."
+            title="No files yet"
+          />
+        </div>
       ) : null}
+
+      {/* Shared Files Table Register */}
       {visibleFiles.length > 0 ? (
-        <div className="divide-y divide-slate-200 border-slate-200 border-y">
-          {visibleFiles.map((file) => (
-            <div
-              className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between"
-              key={file.id}
-            >
-              <div>
-                <p className="font-medium text-slate-900">{file.fileName}</p>
-                <p className="mt-1 text-slate-500 text-sm">
-                  Uploaded by {file.uploaderName} ·{" "}
-                  {new Date(file.createdAt).toLocaleString()} ·{" "}
-                  {formatFileSize(file.fileSize)}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  className="inline-flex h-8 items-center justify-center rounded-md border border-border px-2 text-xs/relaxed hover:bg-input/50"
-                  href={file.fileUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Download
-                </a>
-                {canDelete ? (
-                  <Button
-                    disabled={pendingDeleteId === file.id}
-                    onClick={() => {
-                      handleDelete(file);
-                    }}
-                    type="button"
-                    variant="destructive"
+        <div className="overflow-x-auto rounded-lg border border-border/40">
+          <table className="w-full border-collapse text-left text-xs">
+            <thead>
+              <tr className="border-b border-border/40 bg-secondary/10 font-semibold text-muted-foreground uppercase tracking-wider text-[9px]">
+                <th className="px-4 py-2.5">File Name</th>
+                <th className="px-4 py-2.5">Size</th>
+                <th className="px-4 py-2.5">Uploaded By</th>
+                <th className="px-4 py-2.5">Date</th>
+                <th className="px-4 py-2.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/15">
+              {visibleFiles.map((file) => {
+                const IconComponent = getFileIcon(file.mimeType, file.fileName);
+                const colorStyles = getFileIconColor(
+                  file.mimeType,
+                  file.fileName
+                );
+
+                return (
+                  <tr
+                    className="group hover:bg-secondary/10 transition-colors duration-150"
+                    key={file.id}
                   >
-                    {pendingDeleteId === file.id ? "Deleting..." : "Delete"}
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-          ))}
+                    <td className="px-4 py-2 font-semibold text-foreground">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={cn(
+                            "flex h-7 w-7 shrink-0 items-center justify-center rounded border text-sm",
+                            colorStyles
+                          )}
+                        >
+                          <HugeiconsIcon icon={IconComponent} size={13} />
+                        </div>
+                        <span className="truncate max-w-[200px] sm:max-w-[320px] font-bold text-[#08361f] dark:text-foreground text-xs">
+                          {file.fileName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                      {formatFileSize(file.fileSize)}
+                    </td>
+                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                      {file.uploaderName}
+                    </td>
+                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                      {new Date(file.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <a
+                          className="inline-flex h-7 items-center justify-center gap-1 rounded border border-border/60 bg-background px-2.5 font-bold text-foreground text-[10px] transition-all duration-200 hover:scale-[1.02] hover:bg-secondary/40 active:scale-[0.98]"
+                          href={file.fileUrl}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <HugeiconsIcon icon={Download01Icon} size={10} />
+                          Download
+                        </a>
+                        {canDelete ? (
+                          <Button
+                            className="h-7 w-7 shrink-0 p-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                            disabled={pendingDeleteId === file.id}
+                            onClick={() => {
+                              handleDelete(file).catch(() => undefined);
+                            }}
+                            type="button"
+                            variant="destructive"
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={10} />
+                            <span className="sr-only">
+                              {pendingDeleteId === file.id
+                                ? "Deleting"
+                                : "Delete"}
+                            </span>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : null}
     </section>

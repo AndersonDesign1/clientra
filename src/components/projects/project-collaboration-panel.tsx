@@ -1,3 +1,11 @@
+import {
+  Briefcase01Icon,
+  Clock01Icon,
+  Comment01Icon,
+  File01Icon,
+  UserGroupIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type FormEvent, useState } from "react";
 import {
   EmptyPanel,
@@ -11,6 +19,7 @@ import {
   useCreateProjectCommentMutation,
   useProjectCollaborationData,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 interface ProjectCollaborationPanelProps {
   projectId: string;
@@ -30,11 +39,11 @@ export function formatEventTitle(event: ProjectActivityEvent) {
     case "project_created":
       return "Project created";
     case "note_added":
-      return `${event.authorName} added a comment`;
+      return `${event.authorName} commented`;
     case "file_uploaded":
-      return `${event.authorName} uploaded ${event.fileName}`;
+      return `${event.authorName} uploaded a file`;
     case "project_update":
-      return `${event.authorName} published ${event.title}`;
+      return `${event.authorName} published an update`;
     default:
       return "Project activity";
   }
@@ -47,11 +56,41 @@ export function formatEventDescription(event: ProjectActivityEvent) {
     case "note_added":
       return event.contentPreview;
     case "file_uploaded":
-      return "File shared with everyone who can access this project.";
+      return `Shared file: ${event.fileName}`;
     case "project_update":
-      return `Status report marked ${event.status.replaceAll("_", " ")}.`;
+      return `Status report marked ${event.status.replaceAll("_", " ")}: "${event.title}"`;
     default:
       return "Project activity was updated.";
+  }
+}
+
+function getEventIcon(type: string) {
+  switch (type) {
+    case "project_created":
+      return Briefcase01Icon;
+    case "note_added":
+      return Comment01Icon;
+    case "file_uploaded":
+      return File01Icon;
+    case "project_update":
+      return Clock01Icon;
+    default:
+      return UserGroupIcon;
+  }
+}
+
+function getEventIconColor(type: string) {
+  switch (type) {
+    case "project_created":
+      return "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900";
+    case "note_added":
+      return "text-primary bg-primary/10 border-primary/20";
+    case "file_uploaded":
+      return "text-amber-600 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900";
+    case "project_update":
+      return "text-blue-600 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900";
+    default:
+      return "text-muted-foreground bg-secondary/50 border-border/50";
   }
 }
 
@@ -64,76 +103,117 @@ export function ProjectCollaborationView({
   onSubmit,
 }: ProjectCollaborationViewProps) {
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-      <section className="border-slate-200 border-y py-4">
-        <div className="mb-4">
-          <h2 className="font-medium text-lg text-slate-900">
-            Project discussion
+    <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+      {/* Discussion Column */}
+      <section className="space-y-5">
+        <div className="border-border/40 border-b pb-4">
+          <h2 className="font-semibold text-foreground text-base">
+            Project Discussion
           </h2>
-          <p className="mt-1 text-slate-600 text-sm">
-            Share updates and decisions with everyone who can access this
-            project.
+          <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+            Share updates, ask questions, or leave feedback with the team.
           </p>
         </div>
 
         <form className="space-y-3" onSubmit={onSubmit}>
           <textarea
-            className="min-h-28 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-slate-900"
+            className="min-h-[96px] w-full rounded-lg border border-border/80 bg-background px-3 py-2 text-xs outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
             onChange={(event) => onContentChange(event.target.value)}
-            placeholder="Post an update, ask a question, or leave feedback..."
+            placeholder="Write a message or paste notes here..."
             value={content}
           />
           {formError ? (
-            <div className="border border-rose-200 bg-rose-50 p-3 text-rose-700 text-sm">
+            <div className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-2.5 text-rose-700 text-xs">
               {formError}
             </div>
           ) : null}
           <div className="flex items-center justify-between gap-3">
-            <p className="text-slate-500 text-xs">
-              Plain-text comments only for v1.
+            <p className="text-muted-foreground/75 text-[10px] italic">
+              Plain-text messages only
             </p>
-            <Button disabled={isPosting} type="submit">
-              {isPosting ? "Posting..." : "Post comment"}
+            <Button disabled={isPosting} size="sm" type="submit">
+              {isPosting ? "Posting..." : "Send Message"}
             </Button>
           </div>
         </form>
 
-        <div className="mt-6 divide-y divide-slate-200 border-slate-200 border-y">
+        <div className="space-y-4 border-border/20 border-t pt-4">
           {collaboration.comments.length === 0 ? (
             <EmptyPanel
               description="Be the first person to post an update on this project."
               title="No discussion yet"
             />
           ) : (
-            collaboration.comments.map((comment) => (
-              <article className="py-4" key={comment.id}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-slate-900">
-                    {comment.authorName}
-                  </p>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px]">
-                    {comment.authorRole}
-                  </span>
-                  <span className="text-slate-500 text-xs">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p className="mt-3 whitespace-pre-wrap text-slate-700 text-sm leading-6">
-                  {comment.content}
-                </p>
-              </article>
-            ))
+            <div className="divide-y divide-border/15">
+              {collaboration.comments.map((comment) => {
+                const isAdmin = comment.authorRole?.toLowerCase() === "admin";
+                const initials = comment.authorName
+                  ? comment.authorName
+                      .split(" ")
+                      .map((w) => w[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()
+                  : "U";
+
+                return (
+                  <article
+                    className="flex animate-slide-up-fade items-start gap-3.5 py-4 first:pt-0 last:pb-0"
+                    key={comment.id}
+                  >
+                    {/* Circle Avatar Initials with beautiful gradient */}
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-white text-[10px] shadow-sm",
+                        isAdmin
+                          ? "bg-gradient-to-br from-emerald-600 to-teal-800"
+                          : "bg-gradient-to-br from-blue-600 to-sky-700"
+                      )}
+                    >
+                      {initials}
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#08361f] dark:text-foreground text-xs">
+                            {comment.authorName}
+                          </span>
+                          <span
+                            className={cn(
+                              "rounded px-1 py-0.2 font-bold text-[8px] uppercase tracking-wider",
+                              isAdmin
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                : "bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                            )}
+                          >
+                            {comment.authorRole}
+                          </span>
+                        </div>
+                        <span className="font-medium text-[9px] text-muted-foreground">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="whitespace-pre-wrap font-normal text-muted-foreground text-xs leading-relaxed">
+                        {comment.content}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           )}
         </div>
       </section>
 
-      <section className="border-slate-200 border-y py-4">
-        <div className="mb-4">
-          <h2 className="font-medium text-lg text-slate-900">
-            Activity timeline
+      {/* Activity Timeline Column */}
+      <section className="space-y-5">
+        <div className="border-border/40 border-b pb-4">
+          <h2 className="font-semibold text-foreground text-base">
+            Activity Timeline
           </h2>
-          <p className="mt-1 text-slate-600 text-sm">
-            Follow the latest project events in one place.
+          <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+            A comprehensive chronological view of project milestones.
           </p>
         </div>
 
@@ -143,23 +223,43 @@ export function ProjectCollaborationView({
             title="No activity yet"
           />
         ) : (
-          <ol className="divide-y divide-slate-200 border-slate-200 border-y">
-            {collaboration.activity.map((event) => (
-              <li className="py-4" key={event.id}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-slate-900">
-                    {formatEventTitle(event)}
-                  </p>
-                  <span className="text-slate-500 text-xs">
-                    {new Date(event.createdAt).toLocaleString()}
-                  </span>
+          <div className="relative ml-2.5 space-y-4 border-border/25 border-l pl-5 mt-2">
+            {collaboration.activity.map((event) => {
+              const IconComponent = getEventIcon(event.type);
+              const iconStyles = getEventIconColor(event.type);
+
+              return (
+                <div
+                  className="group relative animate-slide-up-fade space-y-0.5"
+                  key={event.id}
+                >
+                  {/* Event Node Icon */}
+                  <div
+                    className={cn(
+                      "absolute top-0.5 -left-[27.5px] flex h-4.5 w-4.5 items-center justify-center rounded-full border bg-background ring-4 ring-background transition-all duration-300",
+                      iconStyles
+                    )}
+                  >
+                    <HugeiconsIcon icon={IconComponent} size={8} />
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-bold text-foreground text-xs leading-tight">
+                        {formatEventTitle(event)}
+                      </span>
+                      <span className="font-medium text-[9px] text-muted-foreground">
+                        {new Date(event.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 font-normal text-muted-foreground text-[11px] leading-relaxed">
+                      {formatEventDescription(event)}
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-2 text-slate-600 text-sm leading-6">
-                  {formatEventDescription(event)}
-                </p>
-              </li>
-            ))}
-          </ol>
+              );
+            })}
+          </div>
         )}
       </section>
     </div>
@@ -203,14 +303,14 @@ export function ProjectCollaborationPanel({
 
   if (collaborationQuery.isLoading && !collaborationQuery.data) {
     return (
-      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <section className="border-slate-200 border-y py-4">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        <section className="rounded-xl border border-border/60 bg-card p-6 shadow-none">
           <LoadingPanel
             description="Loading the latest discussion for this project."
             title="Loading discussion"
           />
         </section>
-        <section className="border-slate-200 border-y py-4">
+        <section className="rounded-xl border border-border/60 bg-card p-6 shadow-none">
           <LoadingPanel
             description="Loading recent project activity."
             title="Loading activity"

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { requireClientSession } from "@/auth/guards";
 import {
   DeadlineAreaChart,
@@ -15,7 +16,6 @@ import {
   ErrorPanel,
   LoadingPanel,
 } from "@/components/common/state-panel";
-import { StatusBadge } from "@/components/common/status-badge";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -142,26 +142,44 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
             title="No active projects"
           />
         ) : (
-          <div className="divide-y divide-slate-200 border-slate-200 border-y">
+          <div className="divide-y divide-border/15 rounded-xl border border-border/40 bg-card/20">
             {summary.activeProjects.map((project) => {
               const projectSlug = getProjectPathParam(project);
 
               return (
-                <article
-                  className="grid gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_9rem_10rem] sm:items-center"
+                <Link
+                  className="group flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-secondary/30"
                   key={project.id}
+                  params={{
+                    clientSlug: project.clientSlug,
+                    projectSlug,
+                  }}
+                  to="/portal/projects/$clientSlug/$projectSlug"
                 >
-                  <a
-                    className="font-medium text-zinc-950 hover:underline"
-                    href={`/portal/projects/${project.clientSlug}/${projectSlug}`}
-                  >
-                    {project.title}
-                  </a>
-                  <StatusBadge value={project.status} />
-                  <p className="text-slate-600">
-                    {getDeadlineLabel(project.deadline)}
-                  </p>
-                </article>
+                  <div
+                    className={cn(
+                      "h-2 w-2 shrink-0 rounded-full",
+                      project.status === "completed"
+                        ? "bg-emerald-500"
+                        : project.status === "in_progress"
+                          ? "bg-amber-500"
+                          : "bg-muted-foreground/40"
+                    )}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-bold text-[#08361f] text-sm group-hover:text-primary dark:text-foreground dark:group-hover:text-primary">
+                      {project.title}
+                    </p>
+                    {project.description ? (
+                      <p className="mt-0.5 truncate text-muted-foreground text-xs">
+                        {project.description}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {getDeadlineLabel(project.deadline ?? "")}
+                  </span>
+                </Link>
               );
             })}
           </div>

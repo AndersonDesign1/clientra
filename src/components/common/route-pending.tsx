@@ -103,14 +103,6 @@ function TimelineCardSkeleton() {
   );
 }
 
-function DetailSummarySkeleton() {
-  return (
-    <div className="mb-4 border-slate-200 border-y py-4 text-sm">
-      <Skeleton className="h-4 w-72 max-w-full" />
-    </div>
-  );
-}
-
 export function DashboardPendingPage() {
   return (
     <AdminPendingShell testId="dashboard-route-pending">
@@ -297,18 +289,27 @@ export function ClientDetailPendingPage() {
             <h2 className="font-semibold text-foreground text-sm">
               Linked Projects
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {projectSkeletons.map((id) => (
                 <div
-                  className="flex flex-col justify-between gap-3 rounded-xl border border-border/50 bg-card/40 p-4"
+                  className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
                   key={id}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-2/3" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-3 w-5/6" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
                   </div>
-                  <div className="mt-1 flex items-center justify-between">
-                    <Skeleton className="h-5 w-16" />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2 border-border/40 border-t pt-3">
+                      <Skeleton className="h-3.5 w-20" />
+                      <div className="flex items-center gap-1.5">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-5 w-16" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -371,77 +372,426 @@ export function ProjectsPendingPage() {
 }
 
 export function ProjectDetailPendingPage() {
+  const milestonesSkeletons = ["milestone-s-1", "milestone-s-2"];
+  const commentSkeletons = ["comment-s-1", "comment-s-2", "comment-s-3"];
+  const fileSkeletons = ["file-s-1", "file-s-2"];
+  const updateSkeletons = ["update-s-1", "update-s-2"];
+
   return (
     <AdminPendingShell testId="project-detail-route-pending">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <Skeleton className="h-8 w-56" />
-          <Skeleton className="h-4 w-full max-w-xl" />
+          <Skeleton className="h-4 w-64" />
         </div>
-        <Skeleton className="h-6 w-24" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-8 w-14" />
+          <Skeleton className="h-8 w-16" />
+        </div>
       </div>
-      <DetailSummarySkeleton />
-      <TimelineCardSkeleton />
-      <section className="border-slate-200 border-y py-4">
-        <Skeleton className="h-5 w-28" />
-        <div className="mt-4 space-y-3">
-          {["1", "2", "3"].map((key) => (
-            <Skeleton className="h-12 w-full" key={key} />
-          ))}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Column Skeletons */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Project Overview skeleton */}
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-none">
+            <Skeleton className="h-4.5 w-32" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="h-3.5 w-8" />
+              </div>
+              <Skeleton className="h-2 w-full" />
+            </div>
+          </div>
+
+          {/* Milestones list skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-3.5 w-48" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {milestonesSkeletons.map((id) => (
+                <div
+                  className="space-y-3 rounded-xl border border-slate-200 p-4"
+                  key={id}
+                >
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3.5 w-full" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Collaboration list skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-3.5 w-40" />
+            </div>
+            <div className="space-y-3">
+              {commentSkeletons.map((id) => (
+                <div
+                  className="flex items-start gap-3 border-border/40 border-b py-3 last:border-0"
+                  key={id}
+                >
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                  <div className="w-full space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3.5 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </section>
+
+        {/* Sidebar Column Skeletons */}
+        <div className="space-y-6 lg:col-span-1">
+          {/* Budget Widget skeleton */}
+          <div className="space-y-3 rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-6">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-36" />
+            <Skeleton className="h-3 w-full" />
+          </div>
+
+          {/* Timeline Widget skeleton */}
+          <div className="space-y-3 rounded-xl border border-border/60 bg-card p-6">
+            <Skeleton className="h-3 w-24" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+            <Skeleton className="h-3.5 w-28" />
+          </div>
+
+          {/* Parent Client Widget skeleton */}
+          <div className="space-y-4 rounded-xl border border-border/50 bg-card/30 p-5">
+            <Skeleton className="h-3 w-20" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-11 w-11 shrink-0 rounded-lg" />
+              <div className="w-full space-y-1.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-border/40 border-t pt-3">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-12" />
+            </div>
+          </div>
+
+          {/* Files Panel skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3.5 w-40" />
+            </div>
+            <div className="space-y-2">
+              {fileSkeletons.map((id) => (
+                <div
+                  className="flex items-center justify-between border-border/40 border-b py-2 last:border-0"
+                  key={id}
+                >
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <Skeleton className="h-7 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Updates Panel skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-3.5 w-36" />
+            </div>
+            <div className="space-y-3">
+              {updateSkeletons.map((id) => (
+                <div
+                  className="flex items-start gap-3 border-border/40 border-b py-2 last:border-0"
+                  key={id}
+                >
+                  <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
+                  <div className="w-full space-y-1">
+                    <Skeleton className="h-3.5 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </AdminPendingShell>
   );
 }
 
 export function PortalHomePendingPage() {
+  const cardSkeletons = ["active-s-1", "active-s-2"];
+
   return (
     <PortalPendingShell testId="portal-home-route-pending">
-      <PendingHeader descriptionWidth="w-56" title="Client Portal" />
-      <Skeleton className="h-4 w-32" />
-      <section className="border-slate-200 border-y py-4">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="mt-3 h-4 w-full max-w-sm" />
-      </section>
+      <PageHeader
+        actions={<Skeleton className="h-4 w-32" />}
+        description={<Skeleton className="mt-1.5 h-4 w-80" />}
+        title="Client Portal"
+      />
+
+      {/* Metrics Skeleton */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {["metrics-1", "metrics-2", "metrics-3"].map((key) => (
+          <div className="border-slate-200 border-y py-4" key={key}>
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-4 h-10 w-20" />
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Skeleton */}
+      <div className="mt-6 border-slate-200 border-y py-4">
+        <Skeleton className="h-5 w-36" />
+        <div className="mt-4 grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-[240px] w-full" />
+          <Skeleton className="h-[240px] w-full" />
+        </div>
+      </div>
+
+      {/* Active Work Skeleton */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-6 w-28" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {cardSkeletons.map((id) => (
+            <div
+              className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
+              key={id}
+            >
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-3/4" />
+                <div className="space-y-1">
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2 border-border/40 border-t pt-3">
+                  <Skeleton className="h-3.5 w-20" />
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </PortalPendingShell>
   );
 }
 
 export function PortalProjectsPendingPage() {
+  const cardSkeletons = ["proj-s-1", "proj-s-2", "proj-s-3"];
   return (
     <PortalPendingShell testId="portal-projects-route-pending">
-      <PendingHeader descriptionWidth="w-60" title="Your Projects" />
-      <div className="grid gap-3">
-        {["1", "2", "3"].map((key) => (
-          <section className="border-slate-200 border-y py-4" key={key}>
-            <div className="flex items-center justify-between gap-4">
-              <Skeleton className="h-5 w-44" />
-              <Skeleton className="h-6 w-24" />
+      <PageHeader
+        description={<Skeleton className="mt-1.5 h-4 w-60" />}
+        title="Your Projects"
+      />
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-32" />
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {cardSkeletons.map((id) => (
+            <div
+              className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
+              key={id}
+            >
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-3/4" />
+                <div className="space-y-1">
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2 border-border/40 border-t pt-3">
+                  <Skeleton className="h-3.5 w-20" />
+                  <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <Skeleton className="mt-3 h-4 w-40" />
-          </section>
-        ))}
+          ))}
+        </div>
       </div>
     </PortalPendingShell>
   );
 }
 
 export function PortalProjectDetailPendingPage() {
+  const milestonesSkeletons = ["milestone-s-1", "milestone-s-2"];
+  const commentSkeletons = ["comment-s-1", "comment-s-2"];
+  const fileSkeletons = ["file-s-1", "file-s-2"];
+  const updateSkeletons = ["update-s-1", "update-s-2"];
+
   return (
     <PortalPendingShell testId="portal-project-detail-route-pending">
       <div className="space-y-2">
         <Skeleton className="h-8 w-52" />
         <Skeleton className="h-4 w-full max-w-xl" />
       </div>
-      <TimelineCardSkeleton />
-      <section className="border-slate-200 border-y py-4">
-        <Skeleton className="h-5 w-28" />
-        <div className="mt-4 space-y-3">
-          {["1", "2", "3"].map((key) => (
-            <Skeleton className="h-12 w-full" key={key} />
-          ))}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Column Skeletons */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Project Overview skeleton */}
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-none">
+            <Skeleton className="h-4.5 w-32" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="h-3.5 w-8" />
+              </div>
+              <Skeleton className="h-2 w-full" />
+            </div>
+          </div>
+
+          {/* Milestones list skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-3.5 w-48" />
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {milestonesSkeletons.map((id) => (
+                <div
+                  className="space-y-3 rounded-xl border border-slate-200 p-4"
+                  key={id}
+                >
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3.5 w-full" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Collaboration list skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-3.5 w-40" />
+            </div>
+            <div className="space-y-3">
+              {commentSkeletons.map((id) => (
+                <div
+                  className="flex items-start gap-3 border-border/40 border-b py-3 last:border-0"
+                  key={id}
+                >
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                  <div className="w-full space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3.5 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </section>
+
+        {/* Sidebar Column Skeletons */}
+        <div className="space-y-6 lg:col-span-1">
+          {/* Budget Widget skeleton */}
+          <div className="space-y-3 rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-6">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-36" />
+            <Skeleton className="h-3 w-full" />
+          </div>
+
+          {/* Timeline Widget skeleton */}
+          <div className="space-y-3 rounded-xl border border-border/60 bg-card p-6">
+            <Skeleton className="h-3 w-24" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+            <Skeleton className="h-3.5 w-28" />
+          </div>
+
+          {/* Files Panel skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3.5 w-40" />
+            </div>
+            <div className="space-y-2">
+              {fileSkeletons.map((id) => (
+                <div
+                  className="flex items-center justify-between border-border/40 border-b py-2 last:border-0"
+                  key={id}
+                >
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <Skeleton className="h-7 w-16" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Updates Panel skeleton */}
+          <div className="space-y-4 rounded-xl border bg-white p-4">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-3.5 w-36" />
+            </div>
+            <div className="space-y-3">
+              {updateSkeletons.map((id) => (
+                <div
+                  className="flex items-start gap-3 border-border/40 border-b py-2 last:border-0"
+                  key={id}
+                >
+                  <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
+                  <div className="w-full space-y-1">
+                    <Skeleton className="h-3.5 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </PortalPendingShell>
   );
 }
