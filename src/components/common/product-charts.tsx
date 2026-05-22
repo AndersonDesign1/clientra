@@ -1,5 +1,6 @@
 "use client";
 
+import type { SankeyData } from "recharts";
 import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
 import { EvilComposedChart } from "@/components/evilcharts/charts/composed-chart";
 import {
@@ -16,7 +17,6 @@ import {
   Tooltip as SankeyTooltip,
 } from "@/components/evilcharts/charts/sankey-chart";
 import type { ChartConfig } from "@/components/evilcharts/ui/chart";
-import type { SankeyData } from "recharts";
 
 // ── Shared palette ────────────────────────────────────────────────────────────
 const palette = {

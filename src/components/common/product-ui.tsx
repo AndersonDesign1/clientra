@@ -14,18 +14,18 @@ export function PageHeader({
   title: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-6 flex animate-slide-up-fade flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="mb-1 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+          <p className="mb-1 font-semibold text-[10px] text-primary uppercase tracking-widest">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="font-bold text-3xl text-foreground tracking-tight">
+        <h1 className="font-bold text-3xl text-[#08361f] tracking-tight dark:text-primary">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-muted-foreground text-sm leading-relaxed">
+          <p className="mt-1.5 max-w-2xl font-normal text-muted-foreground text-sm leading-relaxed">
             {description}
           </p>
         ) : null}
@@ -95,32 +95,35 @@ export function MetricLedger({
 
   return (
     <dl className={cn("grid gap-4", columnClass)}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <div
-          className="rounded-xl bg-card px-6 py-5 ring-1 ring-foreground/[0.04]"
+          className="group relative animate-slide-up-fade overflow-hidden rounded-xl border border-border/70 bg-card p-6 shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
           key={item.label}
+          style={{ animationDelay: `${index * 70}ms` }}
         >
-          <dt className="text-muted-foreground text-xs">{item.label}</dt>
+          <dt className="font-semibold text-[10px] text-muted-foreground/80 uppercase leading-none tracking-wider">
+            {item.label}
+          </dt>
           {isLoading ? (
-            <>
-              <Skeleton className="mt-2 h-8 w-16" />
+            <div className="mt-3.5 space-y-2">
+              <Skeleton className="h-8 w-16" />
               {item.detail ? (
-                <Skeleton className="mt-2 h-3.5 w-24" />
+                <Skeleton className="h-3.5 w-24" />
               ) : (
-                <div className="mt-2 h-3.5" />
+                <div className="h-3.5" />
               )}
-            </>
+            </div>
           ) : (
-            <>
-              <dd className="mt-2 font-bold text-3xl text-foreground tabular-nums tracking-tight">
+            <div className="mt-3 flex flex-col gap-1">
+              <dd className="font-bold text-3xl text-[#08361f] tabular-nums leading-none tracking-tight md:text-4xl dark:text-primary">
                 {item.value}
               </dd>
               {item.detail ? (
-                <dd className="mt-1 text-muted-foreground text-xs">
+                <dd className="mt-0.5 font-normal text-muted-foreground text-xs leading-normal">
                   {item.detail}
                 </dd>
               ) : null}
-            </>
+            </div>
           )}
         </div>
       ))}

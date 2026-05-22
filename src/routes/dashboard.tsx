@@ -143,9 +143,12 @@ function DashboardPage() {
       >
         {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="ring-foreground/[0.04]">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-semibold text-sm">
+          <Card
+            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            style={{ animationDelay: "150ms" }}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
                 Project Status
               </CardTitle>
             </CardHeader>
@@ -156,9 +159,12 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card className="md:col-span-2 ring-foreground/[0.04]">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-semibold text-sm">
+          <Card
+            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none md:col-span-2"
+            style={{ animationDelay: "200ms" }}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
                 Activity Flow
               </CardTitle>
             </CardHeader>
@@ -173,9 +179,12 @@ function DashboardPage() {
 
         {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Card className="ring-foreground/[0.04]">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-semibold text-sm">
+          <Card
+            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            style={{ animationDelay: "250ms" }}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
                 Deadlines
               </CardTitle>
             </CardHeader>
@@ -186,9 +195,12 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card className="ring-foreground/[0.04]">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-semibold text-sm">
+          <Card
+            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            style={{ animationDelay: "300ms" }}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
                 Budget by Status
               </CardTitle>
             </CardHeader>
@@ -199,9 +211,12 @@ function DashboardPage() {
               />
             </CardContent>
           </Card>
-          <Card className="ring-foreground/[0.04]">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-semibold text-sm">
+          <Card
+            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            style={{ animationDelay: "350ms" }}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
                 Recent activity
               </CardTitle>
             </CardHeader>

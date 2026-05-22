@@ -1,5 +1,32 @@
 "use client";
 
+import { motion } from "motion/react";
+import {
+  Children,
+  createContext,
+  type FC,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+  use,
+  useCallback,
+  useId,
+  useMemo,
+  useState,
+} from "react";
+import {
+  Layer,
+  Sankey as RechartsSankey,
+  type SankeyNode as RechartsSankeyNode,
+  type SankeyData,
+  type SankeyLinkProps,
+  type SankeyNodeProps,
+  type SankeyProps,
+} from "recharts";
+import {
+  type BackgroundVariant,
+  ChartBackground,
+} from "@/components/evilcharts/ui/background";
 import {
   type ChartConfig,
   ChartContainer,
@@ -12,30 +39,6 @@ import {
   type TooltipRoundness,
   type TooltipVariant,
 } from "@/components/evilcharts/ui/tooltip";
-import { ChartBackground, type BackgroundVariant } from "@/components/evilcharts/ui/background";
-import {
-  Children,
-  createContext,
-  isValidElement,
-  use,
-  useCallback,
-  useId,
-  useMemo,
-  useState,
-  type FC,
-  type ReactElement,
-  type ReactNode,
-} from "react";
-import {
-  Sankey as RechartsSankey,
-  Layer,
-  type SankeyProps,
-  type SankeyNodeProps,
-  type SankeyLinkProps,
-  type SankeyData,
-  type SankeyNode as RechartsSankeyNode,
-} from "recharts";
-import { motion } from "motion/react";
 
 // Constants
 const LOADING_ANIMATION_DURATION = 2000; // full loading cycle duration in milliseconds
@@ -74,7 +77,7 @@ function useSankeyChart() {
 
   if (!context) {
     throw new Error(
-      "Sankey chart parts (<Node />, <Link />, <Tooltip />, …) must be used within <EvilSankeyChart />",
+      "Sankey chart parts (<Node />, <Link />, <Tooltip />, …) must be used within <EvilSankeyChart />"
     );
   }
 
@@ -100,7 +103,9 @@ type EvilSankeyChartBaseProps = {
   verticalAlign?: "justify" | "top"; // vertical node alignment strategy
   backgroundVariant?: BackgroundVariant; // background pattern behind the chart
   defaultSelectedNode?: string | null; // node selected on first render
-  onSelectionChange?: (selection: { dataKey: string; value: number } | null) => void; // fires when the selected node changes
+  onSelectionChange?: (
+    selection: { dataKey: string; value: number } | null
+  ) => void; // fires when the selected node changes
   isLoading?: boolean; // shows the animated loading skeleton
 };
 
@@ -131,28 +136,35 @@ export function EvilSankeyChart({
   isLoading = false,
 }: EvilSankeyChartProps) {
   const chartId = useId().replace(/:/g, ""); // colon-free id keeps CSS/SVG selectors valid
-  const [selectedNode, setSelectedNode] = useState<string | null>(defaultSelectedNode);
+  const [selectedNode, setSelectedNode] = useState<string | null>(
+    defaultSelectedNode
+  );
 
   // Updates selection state and notifies the parent with the node's flow value
   const selectNode = useCallback(
     (nodeName: string | null) => {
       setSelectedNode(nodeName);
 
-      if (!onSelectionChange) return;
+      if (!onSelectionChange) {
+        return;
+      }
 
       if (nodeName === null) {
         onSelectionChange(null);
         return;
       }
 
-      onSelectionChange({ dataKey: nodeName, value: getNodeValue(data, nodeName) });
+      onSelectionChange({
+        dataKey: nodeName,
+        value: getNodeValue(data, nodeName),
+      });
     },
-    [onSelectionChange, data],
+    [onSelectionChange, data]
   );
 
   const contextValue = useMemo<SankeyChartContextValue>(
     () => ({ data, config, chartId, isLoading, selectedNode, selectNode }),
-    [data, config, chartId, isLoading, selectedNode, selectNode],
+    [data, config, chartId, isLoading, selectedNode, selectNode]
   );
 
   return (
@@ -162,31 +174,31 @@ export function EvilSankeyChart({
         {backgroundVariant && <ChartBackground variant={backgroundVariant} />}
         {!isLoading && (
           <RechartsSankey
-            id={chartId}
-            data={data}
-            nodeWidth={nodeWidth}
-            nodePadding={nodePadding}
-            linkCurvature={linkCurvature}
-            iterations={iterations}
-            sort={sort}
             align={align}
+            data={data}
+            id={chartId}
+            iterations={iterations}
+            linkCurvature={linkCurvature}
+            nodePadding={nodePadding}
+            nodeWidth={nodeWidth}
+            sort={sort}
             verticalAlign={verticalAlign}
             {...resolveSankeyRenderers(children)}
             {...sankeyProps}
           >
             {children}
             <defs>
-              <NodeColorGradients config={config} chartId={chartId} />
+              <NodeColorGradients chartId={chartId} config={config} />
             </defs>
           </RechartsSankey>
         )}
         {isLoading && (
           <svg
-            viewBox="0 0 500 250"
-            preserveAspectRatio="xMidYMid meet"
-            width="100%"
-            height="100%"
             className="absolute inset-0"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+            viewBox="0 0 500 250"
+            width="100%"
           >
             <LoadingSankey />
           </svg>
@@ -252,14 +264,21 @@ type TooltipProps = {
 export function Tooltip({ variant, roundness, defaultIndex }: TooltipProps) {
   const { isLoading } = useSankeyChart();
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ChartTooltip
-      defaultIndex={defaultIndex}
       content={
-        <ChartTooltipContent nameKey="name" hideLabel roundness={roundness} variant={variant} />
+        <ChartTooltipContent
+          hideLabel
+          nameKey="name"
+          roundness={roundness}
+          variant={variant}
+        />
       }
+      defaultIndex={defaultIndex}
     />
   );
 }
@@ -271,7 +290,9 @@ export function Tooltip({ variant, roundness, defaultIndex }: TooltipProps) {
 // Sums a node's outgoing flow, falling back to incoming flow for leaf nodes
 const getNodeValue = (data: SankeyData, nodeName: string): number => {
   const nodeIndex = data.nodes.findIndex((node) => node.name === nodeName);
-  if (nodeIndex === -1) return 0;
+  if (nodeIndex === -1) {
+    return 0;
+  }
 
   const outgoing = data.links
     .filter((link) => link.source === nodeIndex)
@@ -285,13 +306,15 @@ const getNodeValue = (data: SankeyData, nodeName: string): number => {
 
 // Reads composed <Node /> and <Link /> children into the Sankey `node`/`link` render props
 const resolveSankeyRenderers = (
-  children: ReactNode,
+  children: ReactNode
 ): Pick<SankeyProps, "node" | "link"> => {
   let nodeProps: NodeProps | null = null;
   let linkProps: LinkProps | null = null;
 
   Children.forEach(children, (child) => {
-    if (!isValidElement(child)) return;
+    if (!isValidElement(child)) {
+      return;
+    }
 
     if (child.type === Node) {
       nodeProps = (child as ReactElement<NodeProps>).props;
@@ -303,8 +326,12 @@ const resolveSankeyRenderers = (
   });
 
   return {
-    node: (props: SankeyNodeProps) => <SankeyNode {...props} nodeConfig={nodeProps} />,
-    link: (props: SankeyLinkProps) => <SankeyLink {...props} linkConfig={linkProps} />,
+    node: (props: SankeyNodeProps) => (
+      <SankeyNode {...props} nodeConfig={nodeProps} />
+    ),
+    link: (props: SankeyLinkProps) => (
+      <SankeyLink {...props} linkConfig={linkProps} />
+    ),
   };
 };
 
@@ -333,7 +360,14 @@ type SankeyNodeRendererProps = SankeyNodeProps & {
  * Renders a single sankey node rectangle, plus its optional label and value.
  * The root passes one of these per node, configured from the composed <Node />.
  */
-const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRendererProps) => {
+const SankeyNode = ({
+  x,
+  y,
+  width,
+  height,
+  payload,
+  nodeConfig,
+}: SankeyNodeRendererProps) => {
   const { config, chartId, data, selectedNode, selectNode } = useSankeyChart();
 
   const radius = nodeConfig?.radius ?? 0;
@@ -351,7 +385,8 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
   const configLabel = config[nodeName]?.label ?? nodeName;
   const dimmed = isClickable && !isHighlighted;
 
-  const valueFormatter = label?.valueFormatter ?? ((value: number) => value.toLocaleString());
+  const valueFormatter =
+    label?.valueFormatter ?? ((value: number) => value.toLocaleString());
   const showValues = label?.showValues ?? false;
 
   const labelX = x + width / 2;
@@ -363,21 +398,29 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
   return (
     <Layer>
       <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        rx={radius}
-        ry={radius}
-        fill={hasConfigColor ? `url(#${chartId}-sankey-colors-${nodeName})` : "currentColor"}
-        fillOpacity={dimmed ? 0.3 : 0.9}
-        filter={isGlowing ? `url(#${chartId}-node-glow-${nodeName})` : undefined}
         className="transition-opacity duration-200"
-        style={isClickable ? { cursor: "pointer" } : undefined}
+        fill={
+          hasConfigColor
+            ? `url(#${chartId}-sankey-colors-${nodeName})`
+            : "currentColor"
+        }
+        fillOpacity={dimmed ? 0.3 : 0.9}
+        filter={
+          isGlowing ? `url(#${chartId}-node-glow-${nodeName})` : undefined
+        }
+        height={height}
         onClick={() => {
-          if (!isClickable) return;
+          if (!isClickable) {
+            return;
+          }
           selectNode(selectedNode === nodeName ? null : nodeName);
         }}
+        rx={radius}
+        ry={radius}
+        style={isClickable ? { cursor: "pointer" } : undefined}
+        width={width}
+        x={x}
+        y={y}
       />
       {isGlowing && (
         <defs>
@@ -387,51 +430,51 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
       {label?.position === "inside" && (
         <>
           <rect
-            x={x + 1}
-            y={y + 1}
-            width={width - 2}
+            className="fill-white/50 transition-opacity duration-200 dark:fill-black/60"
             height={height - 2}
+            opacity={dimmed ? 0.3 : 1}
             rx={Math.max(0, radius - 1)}
             ry={Math.max(0, radius - 1)}
-            opacity={dimmed ? 0.3 : 1}
-            className="fill-white/50 transition-opacity duration-200 dark:fill-black/60"
             style={{ pointerEvents: "none" }}
+            width={width - 2}
+            x={x + 1}
+            y={y + 1}
           />
           {nodeIcon && (
             <foreignObject
-              x={labelX - 8}
-              y={labelY - 30}
-              width={16}
+              className="transition-opacity duration-200"
               height={16}
               opacity={dimmed ? 0.3 : 1}
-              className="transition-opacity duration-200"
               style={{ pointerEvents: "none" }}
+              width={16}
+              x={labelX - 8}
+              y={labelY - 30}
             >
-              <div className="text-foreground/80 flex items-center justify-center dark:text-white/80">
+              <div className="flex items-center justify-center text-foreground/80 dark:text-white/80">
                 {nodeIcon}
               </div>
             </foreignObject>
           )}
           <text
-            x={labelX}
-            y={nodeIcon ? labelY - 4 : labelY}
-            textAnchor="middle"
+            className="fill-foreground font-medium text-[10px] transition-opacity duration-200 dark:fill-white"
             dominantBaseline="middle"
-            className="fill-foreground text-[10px] font-medium transition-opacity duration-200 dark:fill-white"
             opacity={dimmed ? 0.3 : 1}
             style={{ pointerEvents: "none" }}
+            textAnchor="middle"
+            x={labelX}
+            y={nodeIcon ? labelY - 4 : labelY}
           >
             {configLabel}
           </text>
           {showValues && (
             <text
-              x={labelX}
-              y={valueY}
-              textAnchor="middle"
+              className="fill-foreground/60 font-medium font-mono text-xs tabular-nums transition-opacity duration-200 dark:fill-white"
               dominantBaseline="middle"
-              className="fill-foreground/60 font-mono text-xs font-medium tabular-nums transition-opacity duration-200 dark:fill-white"
               opacity={dimmed ? 0.3 : 0.6}
               style={{ pointerEvents: "none" }}
+              textAnchor="middle"
+              x={labelX}
+              y={valueY}
             >
               {valueFormatter(nodeValue)}
             </text>
@@ -441,24 +484,24 @@ const SankeyNode = ({ x, y, width, height, payload, nodeConfig }: SankeyNodeRend
       {label?.position === "outside" && (
         <>
           <text
+            className="fill-muted-foreground font-medium text-sm"
+            dominantBaseline="middle"
+            style={{ pointerEvents: "none" }}
+            textAnchor="start"
             x={outsideLabelX}
             y={outsideLabelY - (showValues ? 8 : 0)}
-            textAnchor="start"
-            dominantBaseline="middle"
-            className="fill-muted-foreground text-sm font-medium"
-            style={{ pointerEvents: "none" }}
           >
             {configLabel}
           </text>
           {showValues && (
             <text
-              x={outsideLabelX}
-              y={outsideLabelY + 8}
-              textAnchor="start"
+              className="fill-muted-foreground font-mono text-sm tabular-nums dark:fill-white/60"
               dominantBaseline="middle"
               opacity={0.5}
-              className="fill-muted-foreground font-mono text-sm tabular-nums dark:fill-white/60"
               style={{ pointerEvents: "none" }}
+              textAnchor="start"
+              x={outsideLabelX}
+              y={outsideLabelY + 8}
             >
               {valueFormatter(nodeValue)}
             </text>
@@ -503,7 +546,9 @@ const SankeyLink = ({
   const targetName = payload.target.name;
 
   const isConnected =
-    selectedNode === null || selectedNode === sourceName || selectedNode === targetName;
+    selectedNode === null ||
+    selectedNode === sourceName ||
+    selectedNode === targetName;
   const isGlowing = glow.includes(index);
 
   const paddedLinkWidth = Math.max(1, linkWidth - verticalPadding);
@@ -521,26 +566,37 @@ const SankeyLink = ({
         {variant === "gradient" && (
           <LinkGradient
             chartId={chartId}
-            index={index}
             config={config}
+            index={index}
             sourceName={sourceName}
             targetName={targetName}
           />
         )}
         <LinkStrokeGradient chartId={chartId} index={index} />
-        {isGlowing && <GlowFilter chartId={chartId} name={String(index)} type="link" />}
+        {isGlowing && (
+          <GlowFilter chartId={chartId} name={String(index)} type="link" />
+        )}
       </defs>
       <path
-        d={linkAreaPath}
-        fill={getLinkFill(variant, chartId, index, config, sourceName, targetName)}
-        fillOpacity={isConnected ? 0.4 : 0.1}
-        stroke={
-          selectedNode !== null && isConnected ? `url(#${chartId}-link-stroke-${index})` : "none"
-        }
-        strokeWidth={1}
-        strokeOpacity={0.3}
-        filter={isGlowing ? `url(#${chartId}-link-glow-${index})` : undefined}
         className="transition-opacity duration-200"
+        d={linkAreaPath}
+        fill={getLinkFill(
+          variant,
+          chartId,
+          index,
+          config,
+          sourceName,
+          targetName
+        )}
+        fillOpacity={isConnected ? 0.4 : 0.1}
+        filter={isGlowing ? `url(#${chartId}-link-glow-${index})` : undefined}
+        stroke={
+          selectedNode !== null && isConnected
+            ? `url(#${chartId}-link-stroke-${index})`
+            : "none"
+        }
+        strokeOpacity={0.3}
+        strokeWidth={1}
       />
     </Layer>
   );
@@ -550,17 +606,21 @@ const SankeyLink = ({
 const isNodeConnected = (
   data: SankeyData,
   selectedNode: string | null,
-  nodeName: string,
+  nodeName: string
 ): boolean => {
-  if (selectedNode === null || selectedNode === nodeName) return true;
+  if (selectedNode === null || selectedNode === nodeName) {
+    return true;
+  }
 
-  const selectedIdx = data.nodes.findIndex((node) => node.name === selectedNode);
+  const selectedIdx = data.nodes.findIndex(
+    (node) => node.name === selectedNode
+  );
   const nodeIdx = data.nodes.findIndex((node) => node.name === nodeName);
 
   return data.links.some(
     (link) =>
       (link.source === selectedIdx && link.target === nodeIdx) ||
-      (link.source === nodeIdx && link.target === selectedIdx),
+      (link.source === nodeIdx && link.target === selectedIdx)
   );
 };
 
@@ -571,15 +631,19 @@ const getLinkFill = (
   index: number,
   config: ChartConfig,
   sourceName: string,
-  targetName: string,
+  targetName: string
 ): string => {
   switch (variant) {
     case "gradient":
       return `url(#${chartId}-link-gradient-${index})`;
     case "source":
-      return sourceName in config ? `url(#${chartId}-sankey-colors-${sourceName})` : "currentColor";
+      return sourceName in config
+        ? `url(#${chartId}-sankey-colors-${sourceName})`
+        : "currentColor";
     case "target":
-      return targetName in config ? `url(#${chartId}-sankey-colors-${targetName})` : "currentColor";
+      return targetName in config
+        ? `url(#${chartId}-sankey-colors-${targetName})`
+        : "currentColor";
     case "solid":
     default:
       return "currentColor";
@@ -605,11 +669,11 @@ const NodeColorGradients = ({
 
         return (
           <linearGradient
-            key={`${chartId}-sankey-colors-${dataKey}`}
             id={`${chartId}-sankey-colors-${dataKey}`}
+            key={`${chartId}-sankey-colors-${dataKey}`}
             x1="0"
-            y1="0"
             x2="0"
+            y1="0"
             y2="1"
           >
             {colorsCount === 1 ? (
@@ -650,11 +714,19 @@ const LinkGradient = ({
   sourceName: string;
   targetName: string;
 }) => {
-  const sourceColor = sourceName in config ? `var(--color-${sourceName}-0)` : "currentColor";
-  const targetColor = targetName in config ? `var(--color-${targetName}-0)` : "currentColor";
+  const sourceColor =
+    sourceName in config ? `var(--color-${sourceName}-0)` : "currentColor";
+  const targetColor =
+    targetName in config ? `var(--color-${targetName}-0)` : "currentColor";
 
   return (
-    <linearGradient id={`${chartId}-link-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="0%">
+    <linearGradient
+      id={`${chartId}-link-gradient-${index}`}
+      x1="0%"
+      x2="100%"
+      y1="0%"
+      y2="0%"
+    >
       <stop offset="0%" stopColor={sourceColor} stopOpacity={0.2} />
       <stop offset="50%" stopColor={sourceColor} stopOpacity={0.5} />
       <stop offset="100%" stopColor={targetColor} stopOpacity={0.2} />
@@ -663,9 +735,21 @@ const LinkGradient = ({
 };
 
 /** Primary-colored stroke gradient highlighting a link connected to the selection. */
-const LinkStrokeGradient = ({ chartId, index }: { chartId: string; index: number }) => {
+const LinkStrokeGradient = ({
+  chartId,
+  index,
+}: {
+  chartId: string;
+  index: number;
+}) => {
   return (
-    <linearGradient id={`${chartId}-link-stroke-${index}`} x1="0%" y1="0%" x2="100%" y2="0%">
+    <linearGradient
+      id={`${chartId}-link-stroke-${index}`}
+      x1="0%"
+      x2="100%"
+      y1="0%"
+      y2="0%"
+    >
       <stop offset="0%" stopColor="var(--primary)" stopOpacity={0} />
       <stop offset="15%" stopColor="var(--primary)" stopOpacity={0.8} />
       <stop offset="50%" stopColor="var(--primary)" stopOpacity={1} />
@@ -687,18 +771,18 @@ const GlowFilter = ({
 }) => {
   return (
     <filter
+      height="400%"
       id={`${chartId}-${type}-glow-${name}`}
+      width="400%"
       x="-200%"
       y="-200%"
-      width="400%"
-      height="400%"
     >
-      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="6" />
       <feColorMatrix
         in="blur"
+        result="glow"
         type="matrix"
         values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.6 0"
-        result="glow"
       />
       <feMerge>
         <feMergeNode in="glow" />
@@ -761,38 +845,38 @@ const LoadingSankey = () => {
     <>
       {links.map((link, i) => (
         <motion.path
-          key={`loading-link-${link.from}-${link.to}`}
+          animate={{ opacity: [0.04, 0.14, 0.04] }}
           d={getLinkPath(link.from, link.to)}
           fill="none"
+          initial={{ opacity: 0.04 }}
+          key={`loading-link-${link.from}-${link.to}`}
           stroke="currentColor"
           strokeWidth={link.width}
-          initial={{ opacity: 0.04 }}
-          animate={{ opacity: [0.04, 0.14, 0.04] }}
           transition={{
             duration: baseDuration * (0.8 + (i % 3) * 0.2),
             delay: link.delay,
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
         />
       ))}
       {nodes.map((node, i) => (
         <motion.rect
-          key={`loading-node-${node.x}-${node.y}`}
-          x={node.x}
-          y={node.y}
-          width={node.width}
-          height={node.height}
-          rx={2}
-          fill="currentColor"
-          initial={{ opacity: 0.15 }}
           animate={{ opacity: [0.15, 0.4, 0.15] }}
+          fill="currentColor"
+          height={node.height}
+          initial={{ opacity: 0.15 }}
+          key={`loading-node-${node.x}-${node.y}`}
+          rx={2}
           transition={{
             duration: baseDuration * (0.9 + (i % 4) * 0.1),
             delay: node.delay,
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
+          width={node.width}
+          x={node.x}
+          y={node.y}
         />
       ))}
     </>

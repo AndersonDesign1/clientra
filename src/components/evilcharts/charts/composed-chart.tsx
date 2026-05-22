@@ -194,7 +194,11 @@ export function EvilComposedChart<
         {/* Line Series: Project Count */}
         <Line
           activeDot={
-            <ChartDot chartId={chartId} dataKey={lineDataKey} type="colored-border" />
+            <ChartDot
+              chartId={chartId}
+              dataKey={lineDataKey}
+              type="colored-border"
+            />
           }
           dataKey={lineDataKey as any}
           dot={

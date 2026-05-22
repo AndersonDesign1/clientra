@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/common/product-ui";
 import { AppShell } from "@/components/layout/app-shell";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -184,32 +185,167 @@ export function UsersPendingPage() {
 }
 
 export function ClientsPendingPage() {
+  const cardSkeletons = [
+    "client-s-1",
+    "client-s-2",
+    "client-s-3",
+    "client-s-4",
+    "client-s-5",
+    "client-s-6",
+  ];
+
   return (
     <AdminPendingShell testId="clients-route-pending">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="font-semibold text-2xl">Clients</h1>
-        <Skeleton className="h-10 w-64" />
-      </div>
-      <TableCardSkeleton
-        columns={["Name", "Company", "Email", "Status"]}
-        rows={6}
+      <PageHeader
+        actions={
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        }
+        description="Manage client records, linked projects, and invite-ready accounts."
+        title="Clients"
       />
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {cardSkeletons.map((id) => (
+          <div
+            className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/60 bg-card p-5"
+            key={id}
+          >
+            <div className="space-y-4">
+              {/* Card Header Skeleton */}
+              <div className="flex items-start justify-between gap-4">
+                <Skeleton className="h-11 w-11 shrink-0 rounded-lg" />
+                <Skeleton className="h-5 w-16" />
+              </div>
+
+              {/* Card Body Skeleton */}
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-32" />
+                <div className="space-y-1">
+                  <Skeleton className="h-3.5 w-24" />
+                  <Skeleton className="h-3.5 w-40" />
+                </div>
+              </div>
+            </div>
+
+            {/* Separator / Footer Skeleton */}
+            <div className="mt-5 flex items-center justify-between gap-4 border-border/60 border-t pt-4">
+              {/* Projects Pill Skeleton */}
+              <Skeleton className="h-6 w-20" />
+
+              {/* Actions Skeleton */}
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-14" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </AdminPendingShell>
   );
 }
 
 export function ClientDetailPendingPage() {
+  const dossierItems = [
+    "dossier-s-1",
+    "dossier-s-2",
+    "dossier-s-3",
+    "dossier-s-4",
+    "dossier-s-5",
+    "dossier-s-6",
+  ];
+  const projectSkeletons = ["project-s-1", "project-s-2"];
+  const inviteSkeletons = ["invite-s-1", "invite-s-2"];
+
   return (
     <AdminPendingShell testId="client-detail-route-pending">
-      <div className="flex items-center justify-between gap-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-6 w-20" />
+      <PageHeader
+        actions={
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-8 w-14" />
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        }
+        description={<Skeleton className="mt-1.5 h-4 w-32" />}
+        title={<Skeleton className="h-9 w-48" />}
+      />
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Left Column - Dossier */}
+        <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none md:col-span-1">
+          <h2 className="font-semibold text-foreground text-sm">
+            Client Record
+          </h2>
+          <div className="space-y-3">
+            {dossierItems.map((id) => (
+              <div className="space-y-1" key={id}>
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column - Linked Projects & Pending Invites */}
+        <div className="space-y-6 md:col-span-2">
+          {/* Linked Projects */}
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
+            <h2 className="font-semibold text-foreground text-sm">
+              Linked Projects
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {projectSkeletons.map((id) => (
+                <div
+                  className="flex flex-col justify-between gap-3 rounded-xl border border-border/50 bg-card/40 p-4"
+                  key={id}
+                >
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <Skeleton className="h-5 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pending Invites */}
+          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-foreground text-sm">
+                Pending Invites
+              </h2>
+              <Skeleton className="h-5 w-16" />
+            </div>
+
+            <div className="divide-y divide-border/60 border-border/60 border-t">
+              {inviteSkeletons.map((id) => (
+                <div
+                  className="grid items-center gap-2 py-3 text-xs sm:grid-cols-[minmax(0,1fr)_6rem_8rem_8rem_9rem]"
+                  key={id}
+                >
+                  <Skeleton className="h-4 w-32" />
+                  <div>
+                    <Skeleton className="h-5 w-14" />
+                  </div>
+                  <Skeleton className="h-3.5 w-24" />
+                  <Skeleton className="h-3.5 w-24" />
+                  <div className="flex items-center justify-end gap-2 sm:justify-start">
+                    <Skeleton className="h-8 w-14" />
+                    <Skeleton className="h-8 w-14" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-      <section className="space-y-4 border-slate-200 border-y py-4 text-sm">
-        {["contact", "email", "phone", "website", "notes"].map((key) => (
-          <Skeleton className="h-4 w-full max-w-xl" key={key} />
-        ))}
-      </section>
     </AdminPendingShell>
   );
 }

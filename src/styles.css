@@ -161,3 +161,19 @@ div[data-slot="sidebar"]:not(.fixed) {
   justify-content: center;
   padding-inline: 0;
 }
+
+/* ── Custom Premium Animations ── */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

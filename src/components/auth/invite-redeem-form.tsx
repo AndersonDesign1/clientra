@@ -126,7 +126,7 @@ export function InviteRedeemForm({
       asideDescription="Finish your account setup and you’ll land straight in your Clientra portal with the projects your team invited you to review."
       asideTitle="Your client portal is almost ready."
     >
-      <Card className="rounded-lg border-border bg-card shadow-xs">
+      <Card className="rounded-lg shadow-none">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Accept invite</CardTitle>
           <CardDescription className="text-slate-600">
