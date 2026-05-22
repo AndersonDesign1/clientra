@@ -7,28 +7,33 @@ export function PageHeader({
   description,
   eyebrow,
   title,
+  avatar,
 }: {
   actions?: ReactNode;
   description?: ReactNode;
   eyebrow?: string;
   title: ReactNode;
+  avatar?: ReactNode;
 }) {
   return (
     <div className="mb-6 flex animate-slide-up-fade flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        {eyebrow ? (
-          <p className="mb-1 font-semibold text-[10px] text-primary uppercase tracking-widest">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h1 className="font-bold text-3xl text-[#08361f] tracking-tight dark:text-primary">
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-1.5 max-w-2xl font-normal text-muted-foreground text-sm leading-relaxed">
-            {description}
-          </p>
-        ) : null}
+      <div className="flex min-w-0 items-start gap-4 sm:items-center">
+        {avatar}
+        <div className="min-w-0">
+          {eyebrow ? (
+            <p className="mb-1 font-semibold text-[10px] text-primary uppercase tracking-widest">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1 className="font-bold text-3xl text-brand-heading tracking-tight">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-1.5 max-w-2xl font-normal text-muted-foreground text-sm leading-relaxed">
+              {description}
+            </p>
+          ) : null}
+        </div>
       </div>
       {actions ? (
         <div className="flex flex-wrap items-center gap-2">{actions}</div>
@@ -97,34 +102,36 @@ export function MetricLedger({
     <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item, index) => (
         <div
-          className="group relative animate-slide-up-fade overflow-hidden rounded-xl border border-border/70 bg-card p-6 shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+          className="group relative flex animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
           key={item.label}
           style={{ animationDelay: `${index * 70}ms` }}
         >
-          <dt className="font-semibold text-[10px] text-muted-foreground/80 uppercase leading-none tracking-wider">
-            {item.label}
-          </dt>
-          {isLoading ? (
-            <div className="mt-3.5 space-y-2">
-              <Skeleton className="h-8 w-16" />
-              {item.detail ? (
-                <Skeleton className="h-3.5 w-24" />
-              ) : (
-                <div className="h-3.5" />
-              )}
-            </div>
-          ) : (
-            <div className="mt-3 flex flex-col gap-1">
-              <dd className="font-bold text-3xl text-[#08361f] tabular-nums leading-none tracking-tight md:text-4xl dark:text-primary">
-                {item.value}
-              </dd>
-              {item.detail ? (
-                <dd className="mt-0.5 font-normal text-muted-foreground text-xs leading-normal">
-                  {item.detail}
+          <div>
+            <dt className="font-semibold text-[10px] text-muted-foreground/80 uppercase leading-none tracking-wider">
+              {item.label}
+            </dt>
+            {isLoading ? (
+              <div className="mt-3.5 space-y-2">
+                <Skeleton className="h-8 w-16" />
+                {item.detail ? (
+                  <Skeleton className="h-3.5 w-24" />
+                ) : (
+                  <div className="h-3.5" />
+                )}
+              </div>
+            ) : (
+              <div className="mt-3.5 flex flex-col gap-1">
+                <dd className="font-bold text-3xl text-brand-heading tabular-nums leading-none tracking-tight md:text-4xl">
+                  {item.value}
                 </dd>
-              ) : null}
-            </div>
-          )}
+                {item.detail ? (
+                  <dd className="mt-0.5 font-normal text-muted-foreground text-xs leading-normal">
+                    {item.detail}
+                  </dd>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
       ))}
     </dl>

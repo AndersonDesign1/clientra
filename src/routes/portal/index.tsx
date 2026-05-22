@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
 import { requireClientSession } from "@/auth/guards";
 import {
   DeadlineAreaChart,
@@ -30,6 +29,7 @@ import {
   getProjectStatusData,
 } from "@/lib/insights";
 import { getProjectPathParam } from "@/lib/project-slugs";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portal/")({
   beforeLoad: requireClientSession,

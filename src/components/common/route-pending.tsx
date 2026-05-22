@@ -201,7 +201,7 @@ export function ClientsPendingPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {cardSkeletons.map((id) => (
           <div
-            className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/60 bg-card p-5"
+            className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/40 bg-card p-5"
             key={id}
           >
             <div className="space-y-4">
@@ -268,7 +268,7 @@ export function ClientDetailPendingPage() {
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Left Column - Dossier */}
-        <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none md:col-span-1">
+        <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] md:col-span-1">
           <h2 className="font-semibold text-foreground text-sm">
             Client Record
           </h2>
@@ -285,14 +285,14 @@ export function ClientDetailPendingPage() {
         {/* Right Column - Linked Projects & Pending Invites */}
         <div className="space-y-6 md:col-span-2">
           {/* Linked Projects */}
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
+          <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <h2 className="font-semibold text-foreground text-sm">
               Linked Projects
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {projectSkeletons.map((id) => (
                 <div
-                  className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
+                  className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card/30 p-4.5"
                   key={id}
                 >
                   <div className="space-y-1.5">
@@ -317,7 +317,7 @@ export function ClientDetailPendingPage() {
           </div>
 
           {/* Pending Invites */}
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5 shadow-none">
+          <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-foreground text-sm">
                 Pending Invites
@@ -397,7 +397,7 @@ export function ProjectDetailPendingPage() {
         {/* Main Column Skeletons */}
         <div className="space-y-6 lg:col-span-2">
           {/* Project Overview skeleton */}
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-none">
+          <div className="space-y-4 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <Skeleton className="h-4.5 w-32" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
@@ -469,7 +469,7 @@ export function ProjectDetailPendingPage() {
           </div>
 
           {/* Timeline Widget skeleton */}
-          <div className="space-y-3 rounded-xl border border-border/60 bg-card p-6">
+          <div className="space-y-3 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <Skeleton className="h-3 w-24" />
             <div className="flex items-center gap-2">
               <Skeleton className="h-5 w-5" />
@@ -479,7 +479,7 @@ export function ProjectDetailPendingPage() {
           </div>
 
           {/* Parent Client Widget skeleton */}
-          <div className="space-y-4 rounded-xl border border-border/50 bg-card/30 p-5">
+          <div className="space-y-4 rounded-xl border border-border/40 bg-card/30 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <Skeleton className="h-3 w-20" />
             <div className="flex items-center gap-3">
               <Skeleton className="h-11 w-11 shrink-0 rounded-lg" />
@@ -582,7 +582,7 @@ export function PortalHomePendingPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {cardSkeletons.map((id) => (
             <div
-              className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
+              className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card/30 p-4.5"
               key={id}
             >
               <div className="space-y-1.5">
@@ -622,7 +622,7 @@ export function PortalProjectsPendingPage() {
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {cardSkeletons.map((id) => (
             <div
-              className="flex flex-col justify-between gap-4 rounded-xl border border-border/50 bg-card/30 p-4.5"
+              className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card/30 p-4.5"
               key={id}
             >
               <div className="space-y-1.5">
@@ -666,7 +666,7 @@ export function PortalProjectDetailPendingPage() {
         {/* Main Column Skeletons */}
         <div className="space-y-6 lg:col-span-2">
           {/* Project Overview skeleton */}
-          <div className="space-y-4 rounded-xl border border-border/60 bg-card p-6 shadow-none">
+          <div className="space-y-4 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <Skeleton className="h-4.5 w-32" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-full" />
@@ -738,7 +738,7 @@ export function PortalProjectDetailPendingPage() {
           </div>
 
           {/* Timeline Widget skeleton */}
-          <div className="space-y-3 rounded-xl border border-border/60 bg-card p-6">
+          <div className="space-y-3 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
             <Skeleton className="h-3 w-24" />
             <div className="flex items-center gap-2">
               <Skeleton className="h-5 w-5" />

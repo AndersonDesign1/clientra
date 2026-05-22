@@ -79,7 +79,7 @@ export function EnhancedProjectCard({
   return (
     <div
       className={cn(
-        "group flex animate-slide-up-fade flex-col justify-between gap-5 rounded-xl border border-border/50 bg-card/30 p-5 shadow-none transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:bg-card/75 hover:shadow-[0_8px_30px_rgba(0,0,0,0.015)]",
+        "group flex animate-slide-up-fade flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]",
         className
       )}
       style={{ animationDelay: `${delayMs}ms` }}
@@ -89,7 +89,7 @@ export function EnhancedProjectCard({
         <div className="flex items-start justify-between gap-3">
           {isPortal ? (
             <Link
-              className="line-clamp-1 flex-1 font-bold text-[#08361f] text-base leading-snug transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
+              className="line-clamp-1 flex-1 font-bold text-brand-heading text-base leading-snug transition-colors duration-200 hover:text-primary"
               params={{ clientSlug, projectSlug }}
               to="/portal/projects/$clientSlug/$projectSlug"
             >
@@ -97,7 +97,7 @@ export function EnhancedProjectCard({
             </Link>
           ) : (
             <Link
-              className="line-clamp-1 flex-1 font-bold text-[#08361f] text-base leading-snug transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
+              className="line-clamp-1 flex-1 font-bold text-brand-heading text-base leading-snug transition-colors duration-200 hover:text-primary"
               params={{ clientSlug, projectSlug }}
               to="/projects/$clientSlug/$projectSlug"
             >

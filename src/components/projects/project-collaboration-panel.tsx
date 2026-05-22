@@ -39,7 +39,7 @@ export function formatEventTitle(event: ProjectActivityEvent) {
     case "project_created":
       return "Project created";
     case "note_added":
-      return `${event.authorName} commented`;
+      return `${event.authorName} added a comment`;
     case "file_uploaded":
       return `${event.authorName} uploaded a file`;
     case "project_update":
@@ -107,7 +107,7 @@ export function ProjectCollaborationView({
       {/* Discussion Column */}
       <section className="space-y-5">
         <div className="border-border/40 border-b pb-4">
-          <h2 className="font-semibold text-foreground text-base">
+          <h2 className="font-semibold text-base text-foreground">
             Project Discussion
           </h2>
           <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
@@ -119,7 +119,7 @@ export function ProjectCollaborationView({
           <textarea
             className="min-h-[96px] w-full rounded-lg border border-border/80 bg-background px-3 py-2 text-xs outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
             onChange={(event) => onContentChange(event.target.value)}
-            placeholder="Write a message or paste notes here..."
+            placeholder="Post an update, ask a question, or leave feedback..."
             value={content}
           />
           {formError ? (
@@ -128,11 +128,11 @@ export function ProjectCollaborationView({
             </div>
           ) : null}
           <div className="flex items-center justify-between gap-3">
-            <p className="text-muted-foreground/75 text-[10px] italic">
+            <p className="text-[10px] text-muted-foreground/75 italic">
               Plain-text messages only
             </p>
             <Button disabled={isPosting} size="sm" type="submit">
-              {isPosting ? "Posting..." : "Send Message"}
+              {isPosting ? "Posting..." : "Post comment"}
             </Button>
           </div>
         </form>
@@ -164,7 +164,7 @@ export function ProjectCollaborationView({
                     {/* Circle Avatar Initials with beautiful gradient */}
                     <div
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-white text-[10px] shadow-sm",
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-[10px] text-white shadow-sm",
                         isAdmin
                           ? "bg-gradient-to-br from-emerald-600 to-teal-800"
                           : "bg-gradient-to-br from-blue-600 to-sky-700"
@@ -176,7 +176,7 @@ export function ProjectCollaborationView({
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#08361f] dark:text-foreground text-xs">
+                          <span className="font-bold text-[#08361f] text-xs dark:text-foreground">
                             {comment.authorName}
                           </span>
                           <span
@@ -209,7 +209,7 @@ export function ProjectCollaborationView({
       {/* Activity Timeline Column */}
       <section className="space-y-5">
         <div className="border-border/40 border-b pb-4">
-          <h2 className="font-semibold text-foreground text-base">
+          <h2 className="font-semibold text-base text-foreground">
             Activity Timeline
           </h2>
           <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
@@ -223,7 +223,7 @@ export function ProjectCollaborationView({
             title="No activity yet"
           />
         ) : (
-          <div className="relative ml-2.5 space-y-4 border-border/25 border-l pl-5 mt-2">
+          <div className="relative mt-2 ml-2.5 space-y-4 border-border/25 border-l pl-5">
             {collaboration.activity.map((event) => {
               const IconComponent = getEventIcon(event.type);
               const iconStyles = getEventIconColor(event.type);
@@ -252,7 +252,7 @@ export function ProjectCollaborationView({
                         {new Date(event.createdAt).toLocaleString()}
                       </span>
                     </div>
-                    <p className="mt-0.5 font-normal text-muted-foreground text-[11px] leading-relaxed">
+                    <p className="mt-0.5 font-normal text-[11px] text-muted-foreground leading-relaxed">
                       {formatEventDescription(event)}
                     </p>
                   </div>

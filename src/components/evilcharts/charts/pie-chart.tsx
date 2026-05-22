@@ -67,15 +67,15 @@ type LabelListProps = ComponentProps<typeof RechartsLabelList>;
  * <Pie />, <Tooltip />, <Legend />, and friends can read it without prop drilling.
  * Sub-components are composed freely — the provider is the single source of truth.
  */
-type PieChartContextValue = {
+interface PieChartContextValue {
   config: ChartConfig; // colors + labels for every sector
   data: Record<string, unknown>[]; // rows rendered by the chart
   dataKey: string; // key holding each sector's numeric value
-  nameKey: string; // key holding each sector's name
   isLoading: boolean; // whether the chart shows its loading skeleton
+  nameKey: string; // key holding each sector's name
   selectedSector: string | null; // currently selected sector name, or null when none
   selectSector: (sectorName: string | null) => void; // sets the selected sector
-};
+}
 
 const PieChartContext = createContext<PieChartContextValue | null>(null);
 
@@ -96,20 +96,20 @@ function usePieChart() {
 // Root container
 // ─────────────────────────────────────────────────────────────────────────────
 
-type EvilPieChartProps<TData extends Record<string, unknown>> = {
+interface EvilPieChartProps<TData extends Record<string, unknown>> {
+  chartProps?: ComponentProps<typeof RechartsPieChart>; // escape hatch for the raw Recharts chart
+  children: ReactNode; // composed parts — <Pie />, <Tooltip />, <Legend />, …
+  className?: string; // extra classes for the chart container
   config: ChartConfig; // sector colors + labels
   data: TData[]; // rows rendered by the chart
   dataKey: keyof TData & string; // key holding each sector's numeric value
-  nameKey: keyof TData & string; // key holding each sector's name
-  children: ReactNode; // composed parts — <Pie />, <Tooltip />, <Legend />, …
-  className?: string; // extra classes for the chart container
-  chartProps?: ComponentProps<typeof RechartsPieChart>; // escape hatch for the raw Recharts chart
   defaultSelectedSector?: string | null; // sector selected on first render
+  isLoading?: boolean; // shows the animated loading skeleton
+  nameKey: keyof TData & string; // key holding each sector's name
   onSelectionChange?: (
     selection: { dataKey: string; value: number } | null
   ) => void; // fires when the selected sector changes
-  isLoading?: boolean; // shows the animated loading skeleton
-};
+}
 
 /**
  * Root of the composible pie chart. Owns the data, the shared context, and the
@@ -190,22 +190,22 @@ export function EvilPieChart<TData extends Record<string, unknown>>({
 // Composible parts
 // ─────────────────────────────────────────────────────────────────────────────
 
-type PieProps = {
-  variant?: PieVariant; // fill style for the pie's sectors
-  innerRadius?: number | string; // inner radius — set above 0 for a donut
-  outerRadius?: number | string; // outer radius of the pie
-  cornerRadius?: number; // border-radius of each sector in pixels
-  paddingAngle?: number; // gap between sectors in degrees — negative overlaps them
-  startAngle?: number; // angle the pie starts drawing from
-  endAngle?: number; // angle the pie stops drawing at
-  isClickable?: boolean; // lets sectors be selected by clicking them
-  glowingSectors?: string[]; // sector names that render with a soft outer glow
+interface PieProps {
   children?: ReactNode; // optional <Label /> composition for sector labels
+  cornerRadius?: number; // border-radius of each sector in pixels
+  endAngle?: number; // angle the pie stops drawing at
+  glowingSectors?: string[]; // sector names that render with a soft outer glow
+  innerRadius?: number | string; // inner radius — set above 0 for a donut
+  isClickable?: boolean; // lets sectors be selected by clicking them
+  outerRadius?: number | string; // outer radius of the pie
+  paddingAngle?: number; // gap between sectors in degrees — negative overlaps them
   pieProps?: Omit<
     ComponentProps<typeof RechartsPie>,
     "data" | "dataKey" | "nameKey"
   >; // escape hatch for raw Recharts Pie props
-};
+  startAngle?: number; // angle the pie starts drawing from
+  variant?: PieVariant; // fill style for the pie's sectors
+}
 
 /**
  * The pie series. Self-contained: it generates its own radial color gradients
@@ -321,10 +321,10 @@ export function Pie({
   );
 }
 
-type LabelProps = {
+interface LabelProps {
   dataKey?: string; // data key for the label text — defaults to the pie's value key
   labelListProps?: Omit<LabelListProps, "dataKey">; // escape hatch for raw Recharts LabelList props
-};
+}
 
 /**
  * Declares per-sector labels for the <Pie /> it is composed inside. It renders
@@ -333,11 +333,11 @@ type LabelProps = {
  */
 export const Label: FC<LabelProps> = () => null;
 
-type TooltipProps = {
-  variant?: TooltipVariant; // visual style of the tooltip surface
-  roundness?: TooltipRoundness; // border-radius of the tooltip
+interface TooltipProps {
   defaultIndex?: number; // sector index shown by default with no hover
-};
+  roundness?: TooltipRoundness; // border-radius of the tooltip
+  variant?: TooltipVariant; // visual style of the tooltip surface
+}
 
 /**
  * The hover tooltip. Hidden automatically while the chart is loading.
@@ -364,12 +364,12 @@ export function Tooltip({ variant, roundness, defaultIndex }: TooltipProps) {
   );
 }
 
-type LegendProps = {
-  variant?: ChartLegendVariant; // visual style of the legend indicators
+interface LegendProps {
   align?: "left" | "center" | "right"; // horizontal placement
-  verticalAlign?: "top" | "middle" | "bottom"; // vertical placement
   isClickable?: boolean; // lets each entry toggle selection of its sector
-};
+  variant?: ChartLegendVariant; // visual style of the legend indicators
+  verticalAlign?: "top" | "middle" | "bottom"; // vertical placement
+}
 
 /**
  * The sector legend. When `isClickable` is set, each entry toggles selection of
@@ -400,9 +400,9 @@ export function Legend({
   );
 }
 
-type BackgroundProps = {
+interface BackgroundProps {
   variant?: BackgroundVariant; // background pattern style
-};
+}
 
 /**
  * An optional decorative pattern drawn behind the pie. Compose it before the

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import logoUrl from "/logo.webp";
+
+const logoUrl = "/logo.webp";
 
 export const Route = createFileRoute("/unauthorized")({
   component: UnauthorizedPage,

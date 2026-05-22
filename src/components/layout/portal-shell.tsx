@@ -17,7 +17,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import logoUrl from "/logo.webp";
+
+const logoUrl = "/logo.webp";
 
 const portalNav = [
   { href: "/portal", label: "Overview" },

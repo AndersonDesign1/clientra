@@ -1,8 +1,30 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PortalSummary } from "@/lib/api";
+
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@tanstack/react-router")>();
+  return {
+    ...actual,
+    Link: ({ children, to, params, ...props }: any) => {
+      let href = to || "";
+      if (params) {
+        for (const [key, value] of Object.entries(params)) {
+          href = href.replace(`$${key}`, value);
+        }
+      }
+      return (
+        <a href={href} {...props}>
+          {children}
+        </a>
+      );
+    },
+  };
+});
+
 import { PortalSummaryView } from "@/routes/portal/index";
 
 const summary: PortalSummary = {
@@ -81,7 +103,9 @@ describe("PortalSummaryView", () => {
     expect(screen.getByText("brief.pdf")).toBeTruthy();
     expect(screen.getByText("1 active / 1 total")).toBeTruthy();
     expect(
-      screen.getByRole("link", { name: "Delivery Portal" }).getAttribute("href")
+      screen
+        .getAllByRole("link", { name: /Delivery Portal/ })[0]
+        .getAttribute("href")
     ).toBe("/portal/projects/acme-inc/delivery-portal");
   });
 

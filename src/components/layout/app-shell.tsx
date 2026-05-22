@@ -37,7 +37,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import logoUrl from "/logo.webp";
+
+const logoUrl = "/logo.webp";
 
 const adminNav = [
   {

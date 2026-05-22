@@ -23,7 +23,6 @@ import { DashboardPendingPage } from "@/components/common/route-pending";
 import { EmptyPanel, ErrorPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   type DashboardActivityEvent,
@@ -143,87 +142,77 @@ function DashboardPage() {
       >
         {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card
-            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+          <div
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             style={{ animationDelay: "150ms" }}
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-                Project Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Project Status
+            </div>
+            <div>
               <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
-          <Card
-            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none md:col-span-2"
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)] md:col-span-2"
             style={{ animationDelay: "200ms" }}
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-                Activity Flow
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Activity Flow
+            </div>
+            <div>
               <ActivitySankeyChart
                 data={getActivitySankeyData(activity)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Card
-            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+          <div
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             style={{ animationDelay: "250ms" }}
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-                Deadlines
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Deadlines
+            </div>
+            <div>
               <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
-          <Card
-            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             style={{ animationDelay: "300ms" }}
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-                Budget by Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Budget by Status
+            </div>
+            <div>
               <BudgetComposedChart
                 data={getBudgetByStatusData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
-          <Card
-            className="animate-slide-up-fade border border-border/70 bg-card shadow-none transition-all duration-300 hover:border-border hover:shadow-none"
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             style={{ animationDelay: "350ms" }}
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-                Recent activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Recent activity
+            </div>
+            <div>
               <CompactActivityList activity={activity} isLoading={isLoading} />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </DataSection>
     </AppShell>

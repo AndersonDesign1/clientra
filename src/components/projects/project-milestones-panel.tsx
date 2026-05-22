@@ -139,10 +139,14 @@ export function ProjectMilestoneList({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className={cn(
-                    "font-bold text-sm leading-tight transition-colors",
-                    isDone ? "text-muted-foreground/80 line-through font-medium" : "text-[#08361f] dark:text-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      "font-bold text-sm leading-tight transition-colors",
+                      isDone
+                        ? "font-medium text-muted-foreground/80 line-through"
+                        : "text-[#08361f] dark:text-foreground"
+                    )}
+                  >
                     {milestone.title}
                   </span>
                   <Badge
@@ -170,7 +174,7 @@ export function ProjectMilestoneList({
               </div>
 
               {canManage ? (
-                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 self-center">
+                <div className="flex items-center gap-1 self-center opacity-0 transition-opacity group-hover:opacity-100">
                   <Button
                     className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
                     onClick={() => onEdit(milestone)}

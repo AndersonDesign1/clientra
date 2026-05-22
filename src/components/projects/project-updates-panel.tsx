@@ -142,7 +142,7 @@ export function ProjectUpdateList({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="font-bold text-[#08361f] dark:text-foreground text-sm leading-tight">
+                  <span className="font-bold text-[#08361f] text-sm leading-tight dark:text-foreground">
                     {update.title}
                   </span>
                   <Badge
@@ -170,7 +170,7 @@ export function ProjectUpdateList({
               </div>
 
               {canManage ? (
-                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 self-center">
+                <div className="flex items-center gap-1 self-center opacity-0 transition-opacity group-hover:opacity-100">
                   <Button
                     className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
                     onClick={() => onEdit(update)}
@@ -358,7 +358,7 @@ export function ProjectUpdatesPanel({
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4 border-border/40 border-b pb-4">
         <div>
-          <h2 className="animate-slide-up-fade font-semibold text-foreground text-base">
+          <h2 className="animate-slide-up-fade font-semibold text-base text-foreground">
             Project Updates
           </h2>
           <p className="mt-1 animate-slide-up-fade text-muted-foreground text-xs leading-relaxed">

@@ -14,7 +14,7 @@ import {
   ProjectFormDialog,
 } from "@/components/admin/crud-dialogs";
 import { ProjectStatusPieChart } from "@/components/common/product-charts";
-import { MetricLedger } from "@/components/common/product-ui";
+import { MetricLedger, PageHeader } from "@/components/common/product-ui";
 import { ProjectDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import {
@@ -40,6 +40,7 @@ import type { Project } from "@/features/projects/mock-data";
 import {
   ensureClientsData,
   ensureProjectsData,
+  type ProjectMilestone,
   useClientsData,
   useProjectMilestonesData,
   useProjectsData,
@@ -91,14 +92,13 @@ function getInitials(name: string) {
   return (parts[0][0] + parts.at(-1)?.[0]).toUpperCase();
 }
 
-
 interface ParentClientWidgetProps {
   client: Client;
 }
 
 function ParentClientWidget({ client }: ParentClientWidgetProps) {
   return (
-    <div className="group rounded-xl border border-border/50 bg-card/30 p-5 shadow-none transition-all duration-300 hover:border-primary/30 hover:bg-card/70 hover:shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+    <div className="group rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
       <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
         Parent Client
       </span>
@@ -108,7 +108,7 @@ function ParentClientWidget({ client }: ParentClientWidgetProps) {
         </div>
         <div className="min-w-0">
           <Link
-            className="block truncate font-bold text-[#08361f] text-sm leading-tight transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
+            className="block truncate font-bold text-brand-heading text-sm leading-tight transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
             params={{ id: getClientPathParam(client) }}
             to="/clients/$id"
           >
@@ -133,6 +133,46 @@ function ParentClientWidget({ client }: ParentClientWidgetProps) {
   );
 }
 
+interface MilestoneAnalyticsWidgetProps {
+  isLoading: boolean;
+  milestones: ProjectMilestone[];
+}
+
+function MilestoneAnalyticsWidget({
+  milestones,
+  isLoading,
+}: MilestoneAnalyticsWidgetProps) {
+  if (milestones.length === 0) {
+    return null;
+  }
+
+  const completedMilestones = milestones.filter(
+    (m) => m.status === "done"
+  ).length;
+  const pieData = [
+    { status: "Completed", total: completedMilestones },
+    {
+      status: "In Progress",
+      total: milestones.filter((m) => m.status === "in_progress").length,
+    },
+    {
+      status: "Planning",
+      total: milestones.filter((m) => m.status === "todo").length,
+    },
+  ];
+
+  return (
+    <div className="group rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+      <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
+        Milestone Status Shape
+      </span>
+      <div className="relative mt-3 flex h-[180px] w-full items-center justify-center">
+        <ProjectStatusPieChart data={pieData} isLoading={isLoading} />
+      </div>
+    </div>
+  );
+}
+
 export function AdminProjectDetailPage({
   clientSlug,
   projectSlug,
@@ -147,8 +187,8 @@ export function AdminProjectDetailPage({
     status: Project["status"];
   } | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "milestones" | "discussions" | "files" | "updates"
-  >("overview");
+    "milestones" | "discussions" | "files" | "updates"
+  >("milestones");
 
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
@@ -256,18 +296,6 @@ export function AdminProjectDetailPage({
       "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400";
   }
 
-  const pieData = [
-    { status: "Completed", total: completedMilestones },
-    {
-      status: "In Progress",
-      total: milestones.filter((m) => m.status === "in_progress").length,
-    },
-    {
-      status: "Planning",
-      total: milestones.filter((m) => m.status === "todo").length,
-    },
-  ];
-
   const ledgerItems = [
     {
       detail: "Committed project ledger budget",
@@ -290,16 +318,108 @@ export function AdminProjectDetailPage({
         >
           {pulseStatus.replace("_", " ")}
         </span>
-      ) as any,
+      ),
     },
   ];
 
   return (
     <AppShell>
-      {/* Identity Header */}
-      <div className="mb-6 flex flex-col gap-6 border-border/50 border-b pb-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-white text-xl shadow-sm ring-4 ring-primary/10">
+      <PageHeader
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              items={PROJECT_STATUS_OPTIONS}
+              onValueChange={(value) =>
+                setStatusDraft({
+                  projectId: selectedProject.id,
+                  status: value as Project["status"],
+                })
+              }
+              value={currentStatusDraft}
+            >
+              <SelectTrigger className="w-36" size="sm">
+                <SelectValue>
+                  {formatStatusLabel(currentStatusDraft)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {PROJECT_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button
+              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              disabled={!hasStatusChange || updateProject.isPending}
+              onClick={() => {
+                saveStatus().catch(() => undefined);
+              }}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {updateProject.isPending ? "Saving..." : "Save status"}
+            </Button>
+            <ProjectFormDialog
+              clients={clients}
+              onOpenChange={setIsEditOpen}
+              onSaved={(updatedProject) => {
+                const {
+                  clientSlug: nextClientSlug,
+                  projectSlug: nextProjectSlug,
+                } = getProjectPathParams(updatedProject, clients);
+
+                if (
+                  nextClientSlug !== clientSlug ||
+                  nextProjectSlug !== projectSlug
+                ) {
+                  navigate({
+                    params: {
+                      clientSlug: nextClientSlug,
+                      projectSlug: nextProjectSlug,
+                    },
+                    replace: true,
+                    to: "/projects/$clientSlug/$projectSlug",
+                  }).catch(() => undefined);
+                }
+              }}
+              open={isEditOpen}
+              project={project}
+              trigger={
+                <Button
+                  className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Edit
+                </Button>
+              }
+            />
+            <DeleteProjectDialog
+              onDeleted={() => {
+                navigate({ to: "/projects" }).catch(() => undefined);
+              }}
+              project={project}
+              trigger={
+                <Button
+                  className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  size="sm"
+                  type="button"
+                  variant="destructive"
+                >
+                  Delete
+                </Button>
+              }
+            />
+          </div>
+        }
+        avatar={
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-white text-xl shadow-sm ring-4 ring-primary/10 transition-all duration-300 hover:scale-105">
             {project.title
               .split(" ")
               .map((w) => w[0])
@@ -307,99 +427,38 @@ export function AdminProjectDetailPage({
               .join("")
               .toUpperCase()}
           </div>
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-extrabold text-2xl text-[#08361f] tracking-tight dark:text-foreground">
-                {project.title}
-              </h1>
-              <StatusBadge value={project.status} />
-            </div>
-            <p className="font-semibold text-muted-foreground text-sm uppercase tracking-wider">
-              Internal Project Ledger
-            </p>
+        }
+        description={
+          <div className="space-y-2">
+            {project.description && (
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {project.description}
+              </p>
+            )}
+            {project.deadline && (
+              <div className="flex items-center gap-1.5 pt-0.5 font-semibold text-muted-foreground text-xs">
+                <HugeiconsIcon
+                  className="h-3.5 w-3.5 text-primary"
+                  icon={Calendar01Icon}
+                />
+                <span>
+                  Target Deadline: {getDeadlineLabel(project.deadline)}
+                </span>
+                <span className="font-normal text-[10px]">
+                  ({project.deadline})
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Select
-            items={PROJECT_STATUS_OPTIONS}
-            onValueChange={(value) =>
-              setStatusDraft({
-                projectId: selectedProject.id,
-                status: value as Project["status"],
-              })
-            }
-            value={currentStatusDraft}
-          >
-            <SelectTrigger className="w-36" size="sm">
-              <SelectValue>{formatStatusLabel(currentStatusDraft)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {PROJECT_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Button
-            disabled={!hasStatusChange || updateProject.isPending}
-            onClick={() => {
-              saveStatus().catch(() => undefined);
-            }}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
-            {updateProject.isPending ? "Saving..." : "Save status"}
-          </Button>
-          <ProjectFormDialog
-            clients={clients}
-            onOpenChange={setIsEditOpen}
-            onSaved={(updatedProject) => {
-              const {
-                clientSlug: nextClientSlug,
-                projectSlug: nextProjectSlug,
-              } = getProjectPathParams(updatedProject, clients);
-
-              if (
-                nextClientSlug !== clientSlug ||
-                nextProjectSlug !== projectSlug
-              ) {
-                navigate({
-                  params: {
-                    clientSlug: nextClientSlug,
-                    projectSlug: nextProjectSlug,
-                  },
-                  replace: true,
-                  to: "/projects/$clientSlug/$projectSlug",
-                }).catch(() => undefined);
-              }
-            }}
-            open={isEditOpen}
-            project={project}
-            trigger={
-              <Button size="sm" type="button" variant="outline">
-                Edit
-              </Button>
-            }
-          />
-          <DeleteProjectDialog
-            onDeleted={() => {
-              navigate({ to: "/projects" }).catch(() => undefined);
-            }}
-            project={project}
-            trigger={
-              <Button size="sm" type="button" variant="destructive">
-                Delete
-              </Button>
-            }
-          />
-        </div>
-      </div>
+        }
+        eyebrow="Internal Project Ledger"
+        title={
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{project.title}</span>
+            <StatusBadge value={project.status} />
+          </div>
+        }
+      />
 
       {/* Metrics Ledger */}
       <div className="mb-6">
@@ -412,7 +471,6 @@ export function AdminProjectDetailPage({
           {/* Dynamic Tab Bar */}
           <div className="mb-2 flex flex-wrap gap-6 border-border/40 border-b pb-px">
             {[
-              { id: "overview", label: "Overview", icon: Calendar01Icon },
               {
                 id: "milestones",
                 label: "Milestones",
@@ -435,7 +493,6 @@ export function AdminProjectDetailPage({
                   onClick={() =>
                     setActiveTab(
                       tab.id as
-                        | "overview"
                         | "milestones"
                         | "discussions"
                         | "files"
@@ -453,57 +510,6 @@ export function AdminProjectDetailPage({
 
           {/* Active Tab Panel */}
           <div className="min-h-[200px] animate-slide-up-fade">
-            {activeTab === "overview" && (
-              <div className="space-y-4">
-                {/* Compact overview: description + progress + deadline */}
-                <div className="space-y-3 border-border/25 border-b pb-4">
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {project.description || "No project overview description provided."}
-                  </p>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-muted-foreground uppercase tracking-wider">
-                        Milestone Velocity
-                      </span>
-                      <span className="font-bold text-primary">{progressPercentage}%</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-                        style={{ width: `${progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <HugeiconsIcon className="h-3.5 w-3.5 text-primary" icon={Calendar01Icon} />
-                      <span className="font-semibold">{getDeadlineLabel(project.deadline)}</span>
-                      {project.deadline ? (
-                        <span className="text-[10px]">· {project.deadline}</span>
-                      ) : null}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <HugeiconsIcon className="h-3.5 w-3.5" icon={CheckmarkCircle01Icon} />
-                      <span className="font-semibold">{completedMilestones}/{totalMilestones} milestones done</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Milestone status chart — inline, no card box */}
-                <div>
-                  <h3 className="mb-2 font-bold text-[10px] text-muted-foreground uppercase tracking-widest">
-                    Milestone Status Shape
-                  </h3>
-                  <div className="relative flex h-[180px] w-full items-center justify-center">
-                    <ProjectStatusPieChart
-                      data={pieData}
-                      isLoading={milestonesQuery.isLoading}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
             {activeTab === "milestones" && (
               <ProjectMilestonesPanel canManage projectId={project.id} />
             )}
@@ -526,6 +532,11 @@ export function AdminProjectDetailPage({
         <div className="space-y-6 lg:col-span-1">
           {/* Parent Client Widget */}
           {client ? <ParentClientWidget client={client} /> : null}
+          {/* Milestone Status Pie Chart Widget */}
+          <MilestoneAnalyticsWidget
+            isLoading={milestonesQuery.isLoading}
+            milestones={milestones}
+          />
         </div>
       </div>
     </AppShell>

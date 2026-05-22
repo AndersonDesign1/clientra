@@ -179,14 +179,14 @@ function getClientsContent({
           : "border-border bg-muted/50 text-muted-foreground group-hover:border-primary/10 group-hover:bg-primary/5 group-hover:text-primary";
         return (
           <div
-            className="group relative flex animate-slide-up-fade flex-col justify-between overflow-hidden rounded-xl border border-border/60 bg-card p-5 shadow-none transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.015)]"
+            className="group relative flex animate-slide-up-fade flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             key={client.id}
             style={{ animationDelay: `${index * 40}ms` }}
           >
             <div className="space-y-4">
               {/* Card Header: Avatar + Status */}
               <div className="flex items-start justify-between gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 font-bold text-[#08361f] text-base transition-all duration-300 group-hover:scale-105 group-hover:border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground dark:text-primary">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 font-bold text-brand-heading text-base transition-all duration-300 group-hover:scale-105 group-hover:border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground">
                   {initials}
                 </div>
                 <StatusBadge value={client.status} />
@@ -195,7 +195,7 @@ function getClientsContent({
               {/* Card Body: Details */}
               <div className="space-y-1">
                 <Link
-                  className="block font-bold text-[#08361f] text-base transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
+                  className="block font-bold text-brand-heading text-base transition-colors duration-200 hover:text-primary"
                   params={{ id: getClientPathParam(client) }}
                   to="/clients/$id"
                 >
@@ -209,7 +209,7 @@ function getClientsContent({
             </div>
 
             {/* Separator / Footer actions */}
-            <div className="mt-5 flex items-center justify-between gap-4 border-border/60 border-t pt-4">
+            <div className="mt-5 flex items-center justify-between gap-4 border-border/20 border-t pt-4">
               {/* Projects Pill */}
               <div
                 className={cn(
@@ -294,7 +294,7 @@ function ProjectMatchesSection({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {matchedProjects.map((project) => (
           <div
-            className="group flex flex-col justify-between gap-3 rounded-xl border border-border/60 bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40"
+            className="group flex flex-col justify-between gap-3 rounded-xl border border-border/40 bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
             key={project.id}
           >
             <div className="space-y-1">

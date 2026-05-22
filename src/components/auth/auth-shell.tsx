@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import logoUrl from "/logo.webp";
-import logoWhiteUrl from "/logo-white.webp";
+
+const logoUrl = "/logo.webp";
+const logoWhiteUrl = "/logo-white.webp";
 
 export function AuthShell({
   asideDescription,

@@ -11,6 +11,8 @@ import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
+export type { Client } from "@/features/clients/mock-data";
+export type { Project } from "@/features/projects/mock-data";
 export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
 export interface SearchResults {

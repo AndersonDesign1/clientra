@@ -69,11 +69,7 @@ function ProjectListRow({
   }
 
   const barColor =
-    pct === 100
-      ? "bg-emerald-500"
-      : pct >= 50
-        ? "bg-primary"
-        : "bg-amber-500";
+    pct === 100 ? "bg-emerald-500" : pct >= 50 ? "bg-primary" : "bg-amber-500";
 
   return (
     <Link

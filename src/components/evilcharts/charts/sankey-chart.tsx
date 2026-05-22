@@ -60,14 +60,14 @@ type NodeLabelPosition = "inside" | "outside";
  * A sankey chart's data is rigid — the root passes `nodes`/`links` straight to
  * Recharts — so the parts here configure how those nodes and links render.
  */
-type SankeyChartContextValue = {
-  data: SankeyData; // the nodes + links rendered by the chart
-  config: ChartConfig; // colors + labels keyed by node name
+interface SankeyChartContextValue {
   chartId: string; // colon-free id scoping this chart's SVG defs
+  config: ChartConfig; // colors + labels keyed by node name
+  data: SankeyData; // the nodes + links rendered by the chart
   isLoading: boolean; // whether the chart shows its loading skeleton
   selectedNode: string | null; // currently selected node name, or null when none
   selectNode: (nodeName: string | null) => void; // sets the selected node
-};
+}
 
 const SankeyChartContext = createContext<SankeyChartContextValue | null>(null);
 
@@ -88,26 +88,26 @@ function useSankeyChart() {
 // Root container
 // ─────────────────────────────────────────────────────────────────────────────
 
-type EvilSankeyChartBaseProps = {
-  data: SankeyData; // nodes + links rendered by the chart
-  config: ChartConfig; // node colors + labels keyed by node name
+interface EvilSankeyChartBaseProps {
+  align?: "left" | "justify"; // horizontal node alignment strategy
+  backgroundVariant?: BackgroundVariant; // background pattern behind the chart
   children: ReactNode; // composed parts — <Node />, <Link />, <Tooltip />, …
   className?: string; // extra classes for the chart container
-  sankeyProps?: Omit<SankeyProps, "data">; // escape hatch for the raw Recharts Sankey
-  nodeWidth?: number; // width of each node in pixels
-  nodePadding?: number; // vertical gap between nodes in pixels
-  linkCurvature?: number; // link curve amount, 0 (straight) to 1 (maximum)
-  iterations?: number; // layout iterations — higher is more accurate
-  sort?: boolean; // sorts nodes automatically for an optimal layout
-  align?: "left" | "justify"; // horizontal node alignment strategy
-  verticalAlign?: "justify" | "top"; // vertical node alignment strategy
-  backgroundVariant?: BackgroundVariant; // background pattern behind the chart
+  config: ChartConfig; // node colors + labels keyed by node name
+  data: SankeyData; // nodes + links rendered by the chart
   defaultSelectedNode?: string | null; // node selected on first render
+  isLoading?: boolean; // shows the animated loading skeleton
+  iterations?: number; // layout iterations — higher is more accurate
+  linkCurvature?: number; // link curve amount, 0 (straight) to 1 (maximum)
+  nodePadding?: number; // vertical gap between nodes in pixels
+  nodeWidth?: number; // width of each node in pixels
   onSelectionChange?: (
     selection: { dataKey: string; value: number } | null
   ) => void; // fires when the selected node changes
-  isLoading?: boolean; // shows the animated loading skeleton
-};
+  sankeyProps?: Omit<SankeyProps, "data">; // escape hatch for the raw Recharts Sankey
+  sort?: boolean; // sorts nodes automatically for an optimal layout
+  verticalAlign?: "justify" | "top"; // vertical node alignment strategy
+}
 
 type EvilSankeyChartProps = EvilSankeyChartBaseProps;
 
@@ -212,12 +212,12 @@ export function EvilSankeyChart({
 // Composible parts
 // ─────────────────────────────────────────────────────────────────────────────
 
-type NodeProps = {
-  radius?: number; // corner radius of node rectangles in pixels
-  isClickable?: boolean; // lets nodes be selected by clicking them
-  glow?: string[]; // node names that get a soft outer glow
+interface NodeProps {
   children?: ReactNode; // optional <NodeLabel /> composition
-};
+  glow?: string[]; // node names that get a soft outer glow
+  isClickable?: boolean; // lets nodes be selected by clicking them
+  radius?: number; // corner radius of node rectangles in pixels
+}
 
 /**
  * Configures how the sankey nodes render. It is a configuration slot — the root
@@ -226,11 +226,11 @@ type NodeProps = {
  */
 export const Node: FC<NodeProps> = () => null;
 
-type NodeLabelProps = {
+interface NodeLabelProps {
   position?: NodeLabelPosition; // places labels inside or beside the nodes
   showValues?: boolean; // appends each node's total flow value
   valueFormatter?: (value: number) => string; // formats node values when shown
-};
+}
 
 /**
  * Declares labels for the <Node /> it is composed inside. Like <Node />, it is a
@@ -238,11 +238,11 @@ type NodeLabelProps = {
  */
 export const NodeLabel: FC<NodeLabelProps> = () => null;
 
-type LinkProps = {
+interface LinkProps {
+  glow?: number[]; // link indices that get a soft outer glow
   variant?: LinkVariant; // coloring strategy for the link bands
   verticalPadding?: number; // shrinks link width where it meets a node
-  glow?: number[]; // link indices that get a soft outer glow
-};
+}
 
 /**
  * Configures how the sankey links render. Like <Node />, it is a configuration
@@ -251,11 +251,11 @@ type LinkProps = {
  */
 export const Link: FC<LinkProps> = () => null;
 
-type TooltipProps = {
-  variant?: TooltipVariant; // visual style of the tooltip surface
-  roundness?: TooltipRoundness; // border-radius of the tooltip
+interface TooltipProps {
   defaultIndex?: number; // data index shown by default with no hover
-};
+  roundness?: TooltipRoundness; // border-radius of the tooltip
+  variant?: TooltipVariant; // visual style of the tooltip surface
+}
 
 /**
  * The hover tooltip. Reads the chart's loading state from context and is hidden
@@ -644,7 +644,6 @@ const getLinkFill = (
       return targetName in config
         ? `url(#${chartId}-sankey-colors-${targetName})`
         : "currentColor";
-    case "solid":
     default:
       return "currentColor";
   }

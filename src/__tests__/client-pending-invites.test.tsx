@@ -68,7 +68,7 @@ describe("PendingInvitesPanel", () => {
       />
     );
 
-    expect(screen.getByText("Pending invites")).toBeTruthy();
+    expect(screen.getByText("Pending Invites")).toBeTruthy();
     expect(screen.getByText("jordan@example.com")).toBeTruthy();
     expect(screen.getByText("1 pending")).toBeTruthy();
     expect(screen.getByText("Pending")).toBeTruthy();

@@ -8,7 +8,9 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import type { ReactNode } from "react";
-import logoUrl from "/logo.webp";
+
+const logoUrl = "/logo.webp";
+
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{

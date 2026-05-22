@@ -17,6 +17,24 @@ import {
   SettingsPendingPage,
 } from "@/components/common/route-pending";
 import { createQueryClient } from "@/lib/query-client";
+
+vi.mock("uploadthing/server", () => {
+  return {
+    createUploadthing: () => () => ({
+      input: () => ({
+        middleware: () => ({
+          onUploadComplete: () => ({}),
+        }),
+      }),
+    }),
+    createRouteHandler: () => ({}),
+    UploadThingError: class extends Error {},
+    UTApi: class {
+      deleteFiles = async () => {};
+    },
+  };
+});
+
 import { getRouter } from "@/router";
 import { Route as PortalProjectsRoute } from "@/routes/portal/projects/index";
 import { Route as SettingsRoute } from "@/routes/settings";

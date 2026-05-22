@@ -222,7 +222,7 @@ export function ProjectFilesPanel({
       {/* Panel Header */}
       <div className="flex flex-col gap-4 border-border/40 border-b pb-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="animate-slide-up-fade font-semibold text-foreground text-base">
+          <h2 className="animate-slide-up-fade font-semibold text-base text-foreground">
             Project Files
           </h2>
           <p className="mt-1 animate-slide-up-fade text-muted-foreground text-xs leading-relaxed">
@@ -264,7 +264,7 @@ export function ProjectFilesPanel({
             ? "Uploading files to server..."
             : "Drag & drop or click here to upload"}
         </p>
-        <p className="mt-0.5 max-w-sm text-muted-foreground text-[10px] leading-relaxed">
+        <p className="mt-0.5 max-w-sm text-[10px] text-muted-foreground leading-relaxed">
           Images, PDFs, CSVs, or text files up to 32MB. Max 6 files at once.
         </p>
       </div>
@@ -304,7 +304,7 @@ export function ProjectFilesPanel({
         <div className="overflow-x-auto rounded-lg border border-border/40">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-border/40 bg-secondary/10 font-semibold text-muted-foreground uppercase tracking-wider text-[9px]">
+              <tr className="border-border/40 border-b bg-secondary/10 font-semibold text-[9px] text-muted-foreground uppercase tracking-wider">
                 <th className="px-4 py-2.5">File Name</th>
                 <th className="px-4 py-2.5">Size</th>
                 <th className="px-4 py-2.5">Uploaded By</th>
@@ -322,11 +322,11 @@ export function ProjectFilesPanel({
 
                 return (
                   <tr
-                    className="group hover:bg-secondary/10 transition-colors duration-150"
+                    className="group transition-colors duration-150 hover:bg-secondary/10"
                     key={file.id}
                   >
                     <td className="px-4 py-2 font-semibold text-foreground">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         <div
                           className={cn(
                             "flex h-7 w-7 shrink-0 items-center justify-center rounded border text-sm",
@@ -335,24 +335,24 @@ export function ProjectFilesPanel({
                         >
                           <HugeiconsIcon icon={IconComponent} size={13} />
                         </div>
-                        <span className="truncate max-w-[200px] sm:max-w-[320px] font-bold text-[#08361f] dark:text-foreground text-xs">
+                        <span className="max-w-[200px] truncate font-bold text-[#08361f] text-xs sm:max-w-[320px] dark:text-foreground">
                           {file.fileName}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                    <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
                       {formatFileSize(file.fileSize)}
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                    <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
                       {file.uploaderName}
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground whitespace-nowrap text-xs font-semibold">
+                    <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
                       {new Date(file.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <a
-                          className="inline-flex h-7 items-center justify-center gap-1 rounded border border-border/60 bg-background px-2.5 font-bold text-foreground text-[10px] transition-all duration-200 hover:scale-[1.02] hover:bg-secondary/40 active:scale-[0.98]"
+                          className="inline-flex h-7 items-center justify-center gap-1 rounded border border-border/60 bg-background px-2.5 font-bold text-[10px] text-foreground transition-all duration-200 hover:scale-[1.02] hover:bg-secondary/40 active:scale-[0.98]"
                           href={file.fileUrl}
                           rel="noreferrer"
                           target="_blank"
