@@ -37,6 +37,26 @@ export const Route = createFileRoute("/portal/projects/")({
   component: PortalProjectsPage,
 });
 
+function getBarColor(pct: number): string {
+  if (pct === 100) {
+    return "bg-emerald-500";
+  }
+  if (pct >= 50) {
+    return "bg-primary";
+  }
+  return "bg-amber-500";
+}
+
+function getProjectStatusDotClass(status: string): string {
+  if (status === "completed") {
+    return "bg-emerald-500";
+  }
+  if (status === "in_progress") {
+    return "bg-amber-500";
+  }
+  return "bg-muted-foreground/40";
+}
+
 function ProjectListRow({
   project,
   clientSlug,
@@ -68,8 +88,7 @@ function ProjectListRow({
     pct = 20;
   }
 
-  const barColor =
-    pct === 100 ? "bg-emerald-500" : pct >= 50 ? "bg-primary" : "bg-amber-500";
+  const barColor = getBarColor(pct);
 
   return (
     <Link
@@ -81,11 +100,7 @@ function ProjectListRow({
       <div
         className={cn(
           "h-2 w-2 shrink-0 rounded-full",
-          project.status === "completed"
-            ? "bg-emerald-500"
-            : project.status === "in_progress"
-              ? "bg-amber-500"
-              : "bg-muted-foreground/40"
+          getProjectStatusDotClass(project.status)
         )}
       />
 

@@ -30,7 +30,9 @@ vi.mock("uploadthing/server", () => {
     createRouteHandler: () => ({}),
     UploadThingError: class extends Error {},
     UTApi: class {
-      deleteFiles = async () => {};
+      deleteFiles = async () => {
+        // noop mock
+      };
     },
   };
 });

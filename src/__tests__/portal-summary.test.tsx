@@ -4,6 +4,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PortalSummary } from "@/lib/api";
 
+const DELIVERY_PORTAL_REGEX = /Delivery Portal/;
+
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("@tanstack/react-router")>();
@@ -104,7 +106,7 @@ describe("PortalSummaryView", () => {
     expect(screen.getByText("1 active / 1 total")).toBeTruthy();
     expect(
       screen
-        .getAllByRole("link", { name: /Delivery Portal/ })[0]
+        .getAllByRole("link", { name: DELIVERY_PORTAL_REGEX })[0]
         .getAttribute("href")
     ).toBe("/portal/projects/acme-inc/delivery-portal");
   });

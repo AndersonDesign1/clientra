@@ -186,7 +186,7 @@ function getClientsContent({
             <div className="space-y-4">
               {/* Card Header: Avatar + Status */}
               <div className="flex items-start justify-between gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 font-bold text-brand-heading text-base transition-all duration-300 group-hover:scale-105 group-hover:border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/60 font-bold text-base text-brand-heading transition-all duration-300 group-hover:scale-105 group-hover:border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground">
                   {initials}
                 </div>
                 <StatusBadge value={client.status} />
@@ -195,7 +195,7 @@ function getClientsContent({
               {/* Card Body: Details */}
               <div className="space-y-1">
                 <Link
-                  className="block font-bold text-brand-heading text-base transition-colors duration-200 hover:text-primary"
+                  className="block font-bold text-base text-brand-heading transition-colors duration-200 hover:text-primary"
                   params={{ id: getClientPathParam(client) }}
                   to="/clients/$id"
                 >

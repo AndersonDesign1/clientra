@@ -149,7 +149,7 @@ function DashboardPage() {
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Project Status
             </div>
-            <div className="flex-1 flex items-center justify-center w-full">
+            <div className="flex w-full flex-1 items-center justify-center">
               <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
@@ -163,7 +163,7 @@ function DashboardPage() {
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Activity Flow
             </div>
-            <div className="flex-1 flex items-center justify-center w-full">
+            <div className="flex w-full flex-1 items-center justify-center">
               <ActivitySankeyChart
                 data={getActivitySankeyData(activity)}
                 isLoading={isLoading}
@@ -181,7 +181,7 @@ function DashboardPage() {
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Deadlines
             </div>
-            <div className="flex-1 flex items-center justify-center w-full">
+            <div className="flex w-full flex-1 items-center justify-center">
               <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
@@ -195,7 +195,7 @@ function DashboardPage() {
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Budget by Status
             </div>
-            <div className="flex-1 flex items-center justify-center w-full">
+            <div className="flex w-full flex-1 items-center justify-center">
               <BudgetComposedChart
                 data={getBudgetByStatusData(projects)}
                 isLoading={isLoading}

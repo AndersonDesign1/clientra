@@ -89,7 +89,7 @@ export function EnhancedProjectCard({
         <div className="flex items-start justify-between gap-3">
           {isPortal ? (
             <Link
-              className="line-clamp-1 flex-1 font-bold text-brand-heading text-base leading-snug transition-colors duration-200 hover:text-primary"
+              className="line-clamp-1 flex-1 font-bold text-base text-brand-heading leading-snug transition-colors duration-200 hover:text-primary"
               params={{ clientSlug, projectSlug }}
               to="/portal/projects/$clientSlug/$projectSlug"
             >
@@ -97,7 +97,7 @@ export function EnhancedProjectCard({
             </Link>
           ) : (
             <Link
-              className="line-clamp-1 flex-1 font-bold text-brand-heading text-base leading-snug transition-colors duration-200 hover:text-primary"
+              className="line-clamp-1 flex-1 font-bold text-base text-brand-heading leading-snug transition-colors duration-200 hover:text-primary"
               params={{ clientSlug, projectSlug }}
               to="/projects/$clientSlug/$projectSlug"
             >

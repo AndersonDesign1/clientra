@@ -1,4 +1,5 @@
 import {
+  ArrowLeft01Icon,
   Calendar01Icon,
   CheckmarkCircle01Icon,
   Clock01Icon,
@@ -47,7 +48,6 @@ import {
   useProjectUpdatesData,
   useUpdateProjectMutation,
 } from "@/lib/api";
-import { getClientPathParam } from "@/lib/client-slugs";
 import { getDeadlineLabel } from "@/lib/insights";
 import {
   findProjectByClientAndProjectPathParams,
@@ -73,64 +73,224 @@ const PROJECT_STATUS_OPTIONS = [
   { label: "Completed", value: "completed" },
 ] as const;
 
+function getProgressPercentage(
+  totalMilestones: number,
+  completedMilestones: number,
+  status: string
+): number {
+  if (totalMilestones > 0) {
+    return Math.round((completedMilestones / totalMilestones) * 100);
+  }
+  if (status === "completed") {
+    return 100;
+  }
+  if (status === "in_progress") {
+    return 60;
+  }
+  return 20;
+}
+
+function getPulseColor(pulseStatus: string): string {
+  if (pulseStatus === "at_risk") {
+    return "text-amber-700 bg-amber-500/10 border-amber-500/20 dark:text-amber-400";
+  }
+  if (pulseStatus === "blocked") {
+    return "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400";
+  }
+  return "text-emerald-700 bg-emerald-500/10 border-emerald-500/20";
+}
+
+function getPulseStatus(
+  latestUpdateStatus: string | undefined,
+  projectStatus: string
+): string {
+  return (
+    latestUpdateStatus ??
+    (projectStatus === "completed" ? "complete" : "on_track")
+  );
+}
+
+function ProjectDetailTabs({ projectId }: { projectId: string }) {
+  const [activeTab, setActiveTab] = useState<
+    "milestones" | "discussions" | "files" | "updates"
+  >("milestones");
+
+  return (
+    <>
+      <div className="mb-2 flex flex-wrap gap-6 border-border/40 border-b pb-px">
+        {[
+          {
+            id: "milestones",
+            label: "Milestones",
+            icon: CheckmarkCircle01Icon,
+          },
+          { id: "discussions", label: "Discussions", icon: Comment01Icon },
+          { id: "files", label: "Files", icon: File01Icon },
+          { id: "updates", label: "Updates", icon: Clock01Icon },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              className={cn(
+                "flex select-none items-center gap-1.5 border-b-2 px-1 pt-1.5 pb-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-250",
+                isActive
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-primary"
+              )}
+              key={tab.id}
+              onClick={() =>
+                setActiveTab(
+                  tab.id as "milestones" | "discussions" | "files" | "updates"
+                )
+              }
+              type="button"
+            >
+              <HugeiconsIcon className="h-3.5 w-3.5" icon={tab.icon} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="min-h-50 animate-slide-up-fade">
+        {activeTab === "milestones" && (
+          <ProjectMilestonesPanel canManage projectId={projectId} />
+        )}
+
+        {activeTab === "discussions" && (
+          <ProjectCollaborationPanel projectId={projectId} />
+        )}
+
+        {activeTab === "files" && (
+          <ProjectFilesPanel canDelete projectId={projectId} />
+        )}
+
+        {activeTab === "updates" && (
+          <ProjectUpdatesPanel canManage projectId={projectId} />
+        )}
+      </div>
+    </>
+  );
+}
+
+interface ProjectDetailActionsProps {
+  clientSlug?: string;
+  clients: Client[];
+  currentStatusDraft: Project["status"];
+  hasStatusChange: boolean;
+  onSaveStatus: () => Promise<void>;
+  onStatusChange: (projectId: string, status: Project["status"]) => void;
+  project: Project;
+  projectSlug: string;
+  updateProjectPending: boolean;
+}
+
+function ProjectDetailActions({
+  clients,
+  clientSlug,
+  projectSlug,
+  project,
+  currentStatusDraft,
+  hasStatusChange,
+  updateProjectPending,
+  onStatusChange,
+  onSaveStatus,
+}: ProjectDetailActionsProps) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Select
+        items={PROJECT_STATUS_OPTIONS}
+        onValueChange={(value) =>
+          onStatusChange(project.id, value as Project["status"])
+        }
+        value={currentStatusDraft}
+      >
+        <SelectTrigger className="w-36" size="sm">
+          <SelectValue>{formatStatusLabel(currentStatusDraft)}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {PROJECT_STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button
+        className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        disabled={!hasStatusChange || updateProjectPending}
+        onClick={() => {
+          onSaveStatus().catch(() => undefined);
+        }}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        {updateProjectPending ? "Saving..." : "Save status"}
+      </Button>
+      <ProjectFormDialog
+        clients={clients}
+        onOpenChange={setIsEditOpen}
+        onSaved={(updatedProject) => {
+          const { clientSlug: nextClientSlug, projectSlug: nextProjectSlug } =
+            getProjectPathParams(updatedProject, clients);
+
+          if (
+            nextClientSlug !== clientSlug ||
+            nextProjectSlug !== projectSlug
+          ) {
+            navigate({
+              params: {
+                clientSlug: nextClientSlug,
+                projectSlug: nextProjectSlug,
+              },
+              replace: true,
+              to: "/projects/$clientSlug/$projectSlug",
+            }).catch(() => undefined);
+          }
+        }}
+        open={isEditOpen}
+        project={project}
+        trigger={
+          <Button
+            className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Edit
+          </Button>
+        }
+      />
+      <DeleteProjectDialog
+        onDeleted={() => {
+          navigate({ to: "/projects" }).catch(() => undefined);
+        }}
+        project={project}
+        trigger={
+          <Button
+            className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            size="sm"
+            type="button"
+            variant="destructive"
+          >
+            Delete
+          </Button>
+        }
+      />
+    </div>
+  );
+}
+
 function LegacyAdminProjectDetailRoute() {
   const { id } = Route.useParams();
 
   return <AdminProjectDetailPage projectSlug={id} />;
-}
-
-const WHITESPACE_REGEX = /\s+/;
-
-function getInitials(name: string) {
-  const parts = name.split(WHITESPACE_REGEX).filter(Boolean);
-  if (parts.length === 0) {
-    return "";
-  }
-  if (parts.length === 1) {
-    return parts[0].substring(0, 2).toUpperCase();
-  }
-  return (parts[0][0] + parts.at(-1)?.[0]).toUpperCase();
-}
-
-interface ParentClientWidgetProps {
-  client: Client;
-}
-
-function ParentClientWidget({ client }: ParentClientWidgetProps) {
-  return (
-    <div className="group rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
-      <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
-        Parent Client
-      </span>
-      <div className="mt-3.5 flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-sm text-white shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:ring-4 group-hover:ring-primary/10">
-          {getInitials(client.name)}
-        </div>
-        <div className="min-w-0">
-          <Link
-            className="block truncate font-bold text-brand-heading text-sm leading-tight transition-colors duration-200 hover:text-primary dark:text-foreground dark:hover:text-primary"
-            params={{ id: getClientPathParam(client) }}
-            to="/clients/$id"
-          >
-            {client.name}
-          </Link>
-          <span className="mt-0.5 block truncate font-semibold text-muted-foreground text-xs">
-            {client.company}
-          </span>
-        </div>
-      </div>
-      <div className="mt-4 flex items-center justify-between border-border/40 border-t pt-3 text-[11px] text-muted-foreground">
-        <span className="truncate pr-2">{client.email}</span>
-        <Link
-          className="shrink-0 font-semibold text-primary transition-colors hover:underline"
-          params={{ id: getClientPathParam(client) }}
-          to="/clients/$id"
-        >
-          Dossier →
-        </Link>
-      </div>
-    </div>
-  );
 }
 
 interface MilestoneAnalyticsWidgetProps {
@@ -166,7 +326,7 @@ function MilestoneAnalyticsWidget({
       <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
         Milestone Status Shape
       </span>
-      <div className="relative mt-3 flex h-[180px] w-full items-center justify-center">
+      <div className="relative mt-3 flex h-70 w-full items-center justify-center">
         <ProjectStatusPieChart data={pieData} isLoading={isLoading} />
       </div>
     </div>
@@ -180,15 +340,10 @@ export function AdminProjectDetailPage({
   clientSlug?: string;
   projectSlug: string;
 }) {
-  const navigate = useNavigate();
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [statusDraft, setStatusDraft] = useState<{
     projectId: string;
     status: Project["status"];
   } | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "milestones" | "discussions" | "files" | "updates"
-  >("milestones");
 
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
@@ -260,41 +415,21 @@ export function AdminProjectDetailPage({
     });
     setStatusDraft(null);
   }
-
-  const client = clients.find((c) => c.id === project.clientId);
-
   const milestones = milestonesQuery.data ?? [];
   const completedMilestones = milestones.filter(
     (m) => m.status === "done"
   ).length;
   const totalMilestones = milestones.length;
-  let progressPercentage = 0;
-  if (totalMilestones > 0) {
-    progressPercentage = Math.round(
-      (completedMilestones / totalMilestones) * 100
-    );
-  } else if (project.status === "completed") {
-    progressPercentage = 100;
-  } else if (project.status === "in_progress") {
-    progressPercentage = 60;
-  } else {
-    progressPercentage = 20; // planning
-  }
+  const progressPercentage = getProgressPercentage(
+    totalMilestones,
+    completedMilestones,
+    project.status
+  );
 
   const updates = updatesQuery.data ?? [];
   const latestUpdate = updates[0];
-  const pulseStatus =
-    latestUpdate?.status ??
-    (project.status === "completed" ? "complete" : "on_track");
-
-  let pulseColor = "text-emerald-700 bg-emerald-500/10 border-emerald-500/20";
-  if (pulseStatus === "at_risk") {
-    pulseColor =
-      "text-amber-700 bg-amber-500/10 border-amber-500/20 dark:text-amber-400";
-  } else if (pulseStatus === "blocked") {
-    pulseColor =
-      "text-rose-700 bg-rose-500/10 border-rose-500/20 dark:text-rose-400";
-  }
+  const pulseStatus = getPulseStatus(latestUpdate?.status, project.status);
+  const pulseColor = getPulseColor(pulseStatus);
 
   const ledgerItems = [
     {
@@ -324,102 +459,33 @@ export function AdminProjectDetailPage({
 
   return (
     <AppShell>
+      <div className="mb-4">
+        <Link
+          className="inline-flex items-center gap-1.5 font-bold text-[10px] text-muted-foreground uppercase tracking-widest transition-colors hover:text-primary"
+          to="/projects"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={11} strokeWidth={2.5} />
+          Back to Projects
+        </Link>
+      </div>
       <PageHeader
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Select
-              items={PROJECT_STATUS_OPTIONS}
-              onValueChange={(value) =>
-                setStatusDraft({
-                  projectId: selectedProject.id,
-                  status: value as Project["status"],
-                })
-              }
-              value={currentStatusDraft}
-            >
-              <SelectTrigger className="w-36" size="sm">
-                <SelectValue>
-                  {formatStatusLabel(currentStatusDraft)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {PROJECT_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Button
-              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              disabled={!hasStatusChange || updateProject.isPending}
-              onClick={() => {
-                saveStatus().catch(() => undefined);
-              }}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              {updateProject.isPending ? "Saving..." : "Save status"}
-            </Button>
-            <ProjectFormDialog
-              clients={clients}
-              onOpenChange={setIsEditOpen}
-              onSaved={(updatedProject) => {
-                const {
-                  clientSlug: nextClientSlug,
-                  projectSlug: nextProjectSlug,
-                } = getProjectPathParams(updatedProject, clients);
-
-                if (
-                  nextClientSlug !== clientSlug ||
-                  nextProjectSlug !== projectSlug
-                ) {
-                  navigate({
-                    params: {
-                      clientSlug: nextClientSlug,
-                      projectSlug: nextProjectSlug,
-                    },
-                    replace: true,
-                    to: "/projects/$clientSlug/$projectSlug",
-                  }).catch(() => undefined);
-                }
-              }}
-              open={isEditOpen}
-              project={project}
-              trigger={
-                <Button
-                  className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  Edit
-                </Button>
-              }
-            />
-            <DeleteProjectDialog
-              onDeleted={() => {
-                navigate({ to: "/projects" }).catch(() => undefined);
-              }}
-              project={project}
-              trigger={
-                <Button
-                  className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  size="sm"
-                  type="button"
-                  variant="destructive"
-                >
-                  Delete
-                </Button>
-              }
-            />
-          </div>
+          <ProjectDetailActions
+            clientSlug={clientSlug}
+            clients={clients}
+            currentStatusDraft={currentStatusDraft}
+            hasStatusChange={hasStatusChange}
+            onSaveStatus={saveStatus}
+            onStatusChange={(projectId, status) =>
+              setStatusDraft({ projectId, status })
+            }
+            project={selectedProject}
+            projectSlug={projectSlug}
+            updateProjectPending={updateProject.isPending}
+          />
         }
         avatar={
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-white text-xl shadow-sm ring-4 ring-primary/10 transition-all duration-300 hover:scale-105">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-600 to-teal-800 font-bold text-white text-xl shadow-sm ring-4 ring-primary/10 transition-all duration-300 hover:scale-105">
             {project.title
               .split(" ")
               .map((w) => w[0])
@@ -468,70 +534,11 @@ export function AdminProjectDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Column */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Dynamic Tab Bar */}
-          <div className="mb-2 flex flex-wrap gap-6 border-border/40 border-b pb-px">
-            {[
-              {
-                id: "milestones",
-                label: "Milestones",
-                icon: CheckmarkCircle01Icon,
-              },
-              { id: "discussions", label: "Discussions", icon: Comment01Icon },
-              { id: "files", label: "Files", icon: File01Icon },
-              { id: "updates", label: "Updates", icon: Clock01Icon },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  className={cn(
-                    "flex select-none items-center gap-1.5 border-b-2 px-1 pt-1.5 pb-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-250",
-                    isActive
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-primary"
-                  )}
-                  key={tab.id}
-                  onClick={() =>
-                    setActiveTab(
-                      tab.id as
-                        | "milestones"
-                        | "discussions"
-                        | "files"
-                        | "updates"
-                    )
-                  }
-                  type="button"
-                >
-                  <HugeiconsIcon className="h-3.5 w-3.5" icon={tab.icon} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Tab Panel */}
-          <div className="min-h-[200px] animate-slide-up-fade">
-            {activeTab === "milestones" && (
-              <ProjectMilestonesPanel canManage projectId={project.id} />
-            )}
-
-            {activeTab === "discussions" && (
-              <ProjectCollaborationPanel projectId={project.id} />
-            )}
-
-            {activeTab === "files" && (
-              <ProjectFilesPanel canDelete projectId={project.id} />
-            )}
-
-            {activeTab === "updates" && (
-              <ProjectUpdatesPanel canManage projectId={project.id} />
-            )}
-          </div>
+          <ProjectDetailTabs projectId={project.id} />
         </div>
 
         {/* Sidebar Column */}
-        <div className="space-y-6 lg:col-span-1">
-          {/* Parent Client Widget */}
-          {client ? <ParentClientWidget client={client} /> : null}
+        <div className="space-y-6 lg:col-span-1 lg:mt-11.5">
           {/* Milestone Status Pie Chart Widget */}
           <MilestoneAnalyticsWidget
             isLoading={milestonesQuery.isLoading}

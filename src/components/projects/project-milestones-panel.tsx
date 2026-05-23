@@ -1,7 +1,8 @@
 import {
   Calendar01Icon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
   Delete02Icon,
-  PencilIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type FormEvent, useState } from "react";
@@ -10,8 +11,31 @@ import {
   ErrorPanel,
   LoadingPanel,
 } from "@/components/common/state-panel";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   type ProjectMilestone,
   type ProjectMilestonePayload,
@@ -65,18 +89,6 @@ export function formatMilestoneStatus(status: ProjectMilestoneStatus) {
   );
 }
 
-function getStatusBadgeStyles(status: ProjectMilestoneStatus) {
-  if (status === "done") {
-    return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20";
-  }
-
-  if (status === "in_progress") {
-    return "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20";
-  }
-
-  return "bg-secondary/40 text-muted-foreground border-border/40";
-}
-
 export function ProjectMilestoneList({
   canManage,
   milestones,
@@ -106,93 +118,89 @@ export function ProjectMilestoneList({
   });
 
   return (
-    <div className="relative ml-3.5 space-y-2 border-border/25 border-l pl-6.5">
+    <div className="flex flex-col gap-1">
       {sortedMilestones.map((milestone) => {
         const isDone = milestone.status === "done";
         const isInProgress = milestone.status === "in_progress";
 
+        let badgeBg = "bg-slate-50 dark:bg-slate-900/50";
+        let badgeTextColor = "text-slate-500 dark:text-slate-400";
+        let badgeIcon = Calendar01Icon;
+
+        if (isDone) {
+          badgeBg = "bg-emerald-50 dark:bg-emerald-950/20";
+          badgeTextColor = "text-emerald-600 dark:text-emerald-400";
+          badgeIcon = CheckmarkCircle01Icon;
+        } else if (isInProgress) {
+          badgeBg = "bg-teal-50 dark:bg-teal-950/20";
+          badgeTextColor = "text-teal-600 dark:text-teal-400";
+          badgeIcon = Clock01Icon;
+        }
+
         return (
           <div
-            className="group relative animate-slide-up-fade rounded-lg p-2.5 transition-colors duration-200 hover:bg-secondary/15"
+            className="group relative flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
             key={milestone.id}
           >
-            {/* Timeline Dot Connector */}
+            {/* Status Icon Badge */}
             <div
               className={cn(
-                "absolute top-4 -left-[32px] flex h-3.5 w-3.5 items-center justify-center rounded-full border bg-background ring-4 ring-background transition-all duration-300",
-                isDone
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-500 dark:bg-emerald-950/20"
-                  : isInProgress
-                    ? "animate-pulse border-amber-500 bg-amber-50 text-amber-500 dark:bg-amber-950/20"
-                    : "border-border bg-secondary text-muted-foreground"
+                "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105",
+                badgeBg,
+                badgeTextColor
               )}
             >
-              {isDone ? (
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              ) : isInProgress ? (
-                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              ) : (
-                <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/35" />
-              )}
+              <HugeiconsIcon icon={badgeIcon} size={14} strokeWidth={2} />
             </div>
 
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span
-                    className={cn(
-                      "font-bold text-sm leading-tight transition-colors",
-                      isDone
-                        ? "font-medium text-muted-foreground/80 line-through"
-                        : "text-[#08361f] dark:text-foreground"
-                    )}
-                  >
-                    {milestone.title}
-                  </span>
-                  <Badge
-                    className={cn(
-                      "rounded px-1.5 py-0.5 font-bold text-[8px] uppercase tracking-wider",
-                      getStatusBadgeStyles(milestone.status)
-                    )}
-                    variant={null}
-                  >
-                    {formatMilestoneStatus(milestone.status)}
-                  </Badge>
-                  {milestone.dueDate ? (
-                    <span className="inline-flex items-center gap-1 font-semibold text-[9px] text-muted-foreground uppercase tracking-wider">
-                      <HugeiconsIcon icon={Calendar01Icon} size={9} />
-                      Due {milestone.dueDate}
-                    </span>
-                  ) : null}
-                </div>
-
-                {milestone.description ? (
-                  <p className="max-w-2xl whitespace-pre-wrap font-normal text-muted-foreground text-xs leading-relaxed">
-                    {milestone.description}
-                  </p>
-                ) : null}
+            {/* Content Block */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p
+                  className={cn(
+                    "font-medium text-foreground text-xs leading-5 transition-colors group-hover:text-accent-foreground",
+                    isDone && "text-muted-foreground/60 line-through"
+                  )}
+                >
+                  {milestone.title}
+                </p>
+                <span className="sr-only">
+                  {formatMilestoneStatus(milestone.status)}
+                </span>
               </div>
+              {milestone.description ? (
+                <p className="mt-0.5 whitespace-pre-wrap text-[11px] text-muted-foreground leading-4">
+                  {milestone.description}
+                </p>
+              ) : null}
+            </div>
+
+            {/* Time / Actions */}
+            <div className="relative ml-2 flex h-5 min-w-16 shrink-0 items-center justify-end">
+              <span className="select-none text-[11px] text-muted-foreground leading-5 transition-opacity duration-200 group-hover:opacity-0">
+                {milestone.dueDate
+                  ? milestone.dueDate
+                  : formatMilestoneStatus(milestone.status)}
+              </span>
 
               {canManage ? (
-                <div className="flex items-center gap-1 self-center opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                   <Button
-                    className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
+                    className="h-6 border border-border/40 bg-background px-2 font-bold text-[10px] text-foreground transition-transform duration-200 hover:scale-105 hover:bg-muted active:scale-95"
                     onClick={() => onEdit(milestone)}
-                    size="icon"
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                   >
-                    <HugeiconsIcon icon={PencilIcon} size={11} />
-                    <span className="sr-only">Edit</span>
+                    Edit
                   </Button>
                   <Button
-                    className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
+                    className="h-6 w-6 border border-border/40 p-0 text-muted-foreground transition-transform duration-200 hover:scale-105 hover:bg-rose-500 hover:text-white active:scale-95"
                     onClick={() => onDelete(milestone)}
                     size="icon"
                     type="button"
-                    variant="destructive"
+                    variant="ghost"
                   >
-                    <HugeiconsIcon icon={Delete02Icon} size={11} />
+                    <HugeiconsIcon icon={Delete02Icon} size={10} />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </div>
@@ -248,76 +256,104 @@ function ProjectMilestoneForm({
     }
   }
 
+  const statusItems = MILESTONE_STATUS_OPTIONS.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }));
+
   return (
     <form
-      className="animate-slide-up-fade space-y-4 rounded-xl border border-border/60 bg-secondary/15 p-5 shadow-sm"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         handleSubmit(event).catch(() => undefined);
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-12">
-        <label className="grid gap-1.5 sm:col-span-6">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Title
-          </span>
-          <input
-            className="rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-            onChange={(event) =>
-              setState((current) => ({
-                ...current,
-                title: event.target.value,
-              }))
-            }
-            placeholder="e.g. Design Hand-off"
-            value={state.title}
-          />
-        </label>
-        <label className="grid gap-1.5 sm:col-span-4">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Status
-          </span>
-          <select
-            className="h-[38px] rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-            onChange={(event) =>
-              setState((current) => ({
-                ...current,
-                status: event.target.value as ProjectMilestoneStatus,
-              }))
-            }
-            value={state.status}
-          >
-            {MILESTONE_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1.5 sm:col-span-2">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Order
-          </span>
-          <input
-            className="rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-            min="0"
-            onChange={(event) =>
-              setState((current) => ({
-                ...current,
-                sortOrder: event.target.value,
-              }))
-            }
-            type="number"
-            value={state.sortOrder}
-          />
-        </label>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-12">
-        <label className="grid gap-1.5 sm:col-span-8">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Description
-          </span>
-          <textarea
-            className="min-h-[80px] rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
+      <FieldGroup>
+        <div className="grid gap-3 sm:grid-cols-12">
+          <Field className="sm:col-span-8">
+            <FieldLabel htmlFor="milestone-title">Title</FieldLabel>
+            <Input
+              className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+              id="milestone-title"
+              onChange={(event) =>
+                setState((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
+              }
+              placeholder="e.g. Design Hand-off"
+              required
+              value={state.title}
+            />
+          </Field>
+          <Field className="sm:col-span-4">
+            <FieldLabel htmlFor="milestone-order">Order</FieldLabel>
+            <Input
+              className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+              id="milestone-order"
+              min="0"
+              onChange={(event) =>
+                setState((current) => ({
+                  ...current,
+                  sortOrder: event.target.value,
+                }))
+              }
+              type="number"
+              value={state.sortOrder}
+            />
+          </Field>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-12">
+          <Field className="sm:col-span-6">
+            <FieldLabel>Status</FieldLabel>
+            <Select
+              items={statusItems}
+              onValueChange={(value) =>
+                setState((current) => ({
+                  ...current,
+                  status: value as ProjectMilestoneStatus,
+                }))
+              }
+              value={state.status}
+            >
+              <SelectTrigger className="w-full transition-all focus-visible:border-primary focus-visible:ring-primary/20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {MILESTONE_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field className="sm:col-span-6">
+            <FieldLabel htmlFor="milestone-due">Due Date</FieldLabel>
+            <Input
+              className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+              id="milestone-due"
+              onChange={(event) =>
+                setState((current) => ({
+                  ...current,
+                  dueDate: event.target.value,
+                }))
+              }
+              type="date"
+              value={state.dueDate}
+            />
+          </Field>
+        </div>
+
+        <Field>
+          <FieldLabel htmlFor="milestone-description">Description</FieldLabel>
+          <Textarea
+            className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+            id="milestone-description"
             onChange={(event) =>
               setState((current) => ({
                 ...current,
@@ -327,39 +363,27 @@ function ProjectMilestoneForm({
             placeholder="Add deliverables details or milestone description..."
             value={state.description}
           />
-        </label>
-        <label className="grid gap-1.5 sm:col-span-4">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Due date
-          </span>
-          <input
-            className="h-[80px] rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10 sm:h-auto"
-            onChange={(event) =>
-              setState((current) => ({
-                ...current,
-                dueDate: event.target.value,
-              }))
-            }
-            type="date"
-            value={state.dueDate}
-          />
-        </label>
-      </div>
-      {formError || error ? (
-        <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-xs">
-          {formError ?? error}
-        </p>
-      ) : null}
-      <div className="flex justify-end gap-2 border-border/40 border-t pt-1">
+        </Field>
+
+        {formError || error ? (
+          <FieldError>{formError ?? error}</FieldError>
+        ) : null}
+      </FieldGroup>
+
+      <DialogFooter>
         {onCancel ? (
-          <Button onClick={onCancel} size="sm" type="button" variant="outline">
+          <Button onClick={onCancel} type="button" variant="outline">
             Cancel
           </Button>
         ) : null}
-        <Button disabled={isPending} size="sm" type="submit">
+        <Button
+          className="transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          disabled={isPending}
+          type="submit"
+        >
           {submitLabel}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }
@@ -375,6 +399,7 @@ export function ProjectMilestonesPanel({
   const createMilestone = useCreateProjectMilestoneMutation();
   const updateMilestone = useUpdateProjectMilestoneMutation();
   const deleteMilestone = useDeleteProjectMilestoneMutation();
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] =
     useState<ProjectMilestone | null>(null);
 
@@ -396,8 +421,8 @@ export function ProjectMilestonesPanel({
   const milestones = milestonesQuery.data ?? [];
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-border/40 border-b pb-4">
+    <section className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
         <div>
           <h2 className="font-semibold text-foreground text-lg">
             Project Milestones
@@ -406,37 +431,80 @@ export function ProjectMilestonesPanel({
             Track key deliverables and deadlines for maximum transparency.
           </p>
         </div>
+        {canManage && (
+          <Button
+            className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => setIsAddOpen(true)}
+            size="sm"
+          >
+            Add Milestone
+          </Button>
+        )}
       </div>
-      {canManage ? (
-        <div className="space-y-4">
-          {editingMilestone ? (
-            <ProjectMilestoneForm
-              error={updateMilestone.error?.message ?? null}
-              initialMilestone={editingMilestone}
-              isPending={updateMilestone.isPending}
-              onCancel={() => setEditingMilestone(null)}
-              onSubmit={async (input) => {
-                await updateMilestone.mutateAsync({
-                  id: editingMilestone.id,
-                  input,
-                });
-                setEditingMilestone(null);
-              }}
-            />
-          ) : (
+
+      {/* Add Milestone Dialog */}
+      {canManage && (
+        <Dialog onOpenChange={setIsAddOpen} open={isAddOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add Milestone</DialogTitle>
+              <DialogDescription>
+                Create a new milestone or deliverable for this project to track
+                progress.
+              </DialogDescription>
+            </DialogHeader>
             <ProjectMilestoneForm
               error={createMilestone.error?.message ?? null}
               isPending={createMilestone.isPending}
+              onCancel={() => setIsAddOpen(false)}
               onSubmit={async (input) => {
                 await createMilestone.mutateAsync({
                   input,
                   projectId,
                 });
+                setIsAddOpen(false);
               }}
             />
-          )}
-        </div>
-      ) : null}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Milestone Dialog */}
+      {canManage && (
+        <Dialog
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingMilestone(null);
+            }
+          }}
+          open={Boolean(editingMilestone)}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Milestone</DialogTitle>
+              <DialogDescription>
+                Update the milestone details or status.
+              </DialogDescription>
+            </DialogHeader>
+            {editingMilestone && (
+              <ProjectMilestoneForm
+                error={updateMilestone.error?.message ?? null}
+                initialMilestone={editingMilestone}
+                isPending={updateMilestone.isPending}
+                onCancel={() => setEditingMilestone(null)}
+                onSubmit={async (input) => {
+                  await updateMilestone.mutateAsync({
+                    id: editingMilestone.id,
+                    input,
+                  });
+                  setEditingMilestone(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+
       <ProjectMilestoneList
         canManage={canManage}
         milestones={milestones}

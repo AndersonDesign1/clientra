@@ -31,6 +31,16 @@ import {
 import { getProjectPathParam } from "@/lib/project-slugs";
 import { cn } from "@/lib/utils";
 
+function getStatusDotClass(status: string): string {
+  if (status === "completed") {
+    return "bg-emerald-500";
+  }
+  if (status === "in_progress") {
+    return "bg-amber-500";
+  }
+  return "bg-muted-foreground/40";
+}
+
 export const Route = createFileRoute("/portal/")({
   beforeLoad: requireClientSession,
   loader: ({ context }) => ensurePortalSummaryData(context.queryClient),
@@ -159,11 +169,7 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
                   <div
                     className={cn(
                       "h-2 w-2 shrink-0 rounded-full",
-                      project.status === "completed"
-                        ? "bg-emerald-500"
-                        : project.status === "in_progress"
-                          ? "bg-amber-500"
-                          : "bg-muted-foreground/40"
+                      getStatusDotClass(project.status)
                     )}
                   />
                   <div className="min-w-0 flex-1">

@@ -299,21 +299,21 @@ function ClientProjectsTable({
       ) : (
         <div className="overflow-x-auto pt-1">
           <Table>
-            <TableHeader className="border-b border-border/40">
+            <TableHeader className="border-border/40 border-b">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider pl-0 pr-4">
+                <TableHead className="pr-4 pl-0 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Project
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Status
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Velocity
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Budget
                 </TableHead>
-                <TableHead className="text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider pl-4 pr-0">
+                <TableHead className="pr-0 pl-4 text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Deadline
                 </TableHead>
               </TableRow>
@@ -350,7 +350,7 @@ function ClientProjectsTable({
 
                 return (
                   <TableRow
-                    className="border-border/25 transition-colors hover:bg-accent/50 cursor-pointer group/row"
+                    className="group/row cursor-pointer border-border/25 transition-colors hover:bg-accent/50"
                     key={project.id}
                     onClick={() =>
                       navigate({
@@ -359,7 +359,7 @@ function ClientProjectsTable({
                       })
                     }
                   >
-                    <TableCell className="max-w-[240px] pl-0 pr-4 py-3.5">
+                    <TableCell className="max-w-[240px] py-3.5 pr-4 pl-0">
                       <div className="block truncate font-extrabold text-brand-heading text-sm group-hover/row:underline">
                         {project.title}
                       </div>
@@ -393,10 +393,10 @@ function ClientProjectsTable({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-extrabold text-emerald-800 text-xs tabular-nums dark:text-emerald-400 px-4 py-3.5">
+                    <TableCell className="px-4 py-3.5 font-extrabold text-emerald-800 text-xs tabular-nums dark:text-emerald-400">
                       ${project.budget.toLocaleString()}
                     </TableCell>
-                    <TableCell className="font-bold text-muted-foreground text-xs text-right pl-4 pr-0 py-3.5">
+                    <TableCell className="py-3.5 pr-0 pl-4 text-right font-bold text-muted-foreground text-xs">
                       {getDeadlineLabel(project.deadline ?? "")}
                     </TableCell>
                   </TableRow>
@@ -694,7 +694,7 @@ export function PendingInvitesPanel({
   }
 
   return (
-    <div className="group relative animate-slide-up-fade flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+    <div className="group relative flex animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground text-sm">
           Pending Invites
@@ -731,7 +731,7 @@ export function PendingInvitesPanel({
 
       {invites.length > 0 ? (
         <div className="overflow-hidden pt-1">
-          <div className="divide-y divide-border/60 border-t border-border/40">
+          <div className="divide-y divide-border/60 border-border/40 border-t">
             {invites.map((invite) => (
               <InviteRow
                 invite={invite}
