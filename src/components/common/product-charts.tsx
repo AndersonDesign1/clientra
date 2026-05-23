@@ -85,7 +85,7 @@ export function ProjectStatusPieChart({
 
   return (
     <EvilPieChart
-      className="h-[220px] w-full"
+      className="h-[280px] w-full"
       config={chartConfig}
       data={keyedData}
       dataKey="total"
@@ -121,7 +121,7 @@ export function DeadlineAreaChart({
           label: "Deadlines",
         },
       }}
-      className="h-[240px]"
+      className="h-[300px]"
       curveType="monotone"
       data={visibleData}
       hideLegend
@@ -160,7 +160,7 @@ export function BudgetComposedChart({
           label: "Projects",
         },
       }}
-      className="h-[240px]"
+      className="h-[300px]"
       data={data}
       isLoading={isLoading}
       lineDataKey="count"

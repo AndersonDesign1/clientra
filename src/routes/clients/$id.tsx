@@ -8,7 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQueries } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
@@ -243,7 +243,7 @@ function ClientDossierWidget({
             <span className="block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
               Client Notes
             </span>
-            <div className="rounded-xl border-l-4 border-l-primary/65 bg-emerald-500/[0.04] p-3.5 text-muted-foreground/95 text-xs italic leading-relaxed">
+            <div className="rounded-lg bg-accent p-3.5 text-accent-foreground text-xs leading-relaxed">
               {client.notes || "No notes available for this client."}
             </div>
           </div>
@@ -285,6 +285,8 @@ function ClientProjectsTable({
   linkedProjects: Project[];
   milestoneQueries: { data?: ProjectMilestone[]; isLoading: boolean }[];
 }) {
+  const navigate = useNavigate();
+
   return (
     <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <h2 className="font-extrabold text-base text-foreground tracking-tight">
@@ -295,27 +297,24 @@ function ClientProjectsTable({
           No projects are linked to this client yet.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border/40 bg-card">
+        <div className="overflow-x-auto pt-1">
           <Table>
-            <TableHeader className="bg-secondary/15">
-              <TableRow>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+            <TableHeader className="border-b border-border/40">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider pl-0 pr-4">
                   Project
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
                   Status
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
                   Velocity
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider px-4">
                   Budget
                 </TableHead>
-                <TableHead className="font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <TableHead className="text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider pl-4 pr-0">
                   Deadline
-                </TableHead>
-                <TableHead className="text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -351,27 +350,29 @@ function ClientProjectsTable({
 
                 return (
                   <TableRow
-                    className="border-border/25 transition-colors hover:bg-secondary/5"
+                    className="border-border/25 transition-colors hover:bg-accent/50 cursor-pointer group/row"
                     key={project.id}
+                    onClick={() =>
+                      navigate({
+                        to: "/projects/$clientSlug/$projectSlug",
+                        params: { clientSlug, projectSlug },
+                      })
+                    }
                   >
-                    <TableCell className="max-w-[240px]">
-                      <Link
-                        className="block truncate font-extrabold text-brand-heading text-sm hover:underline"
-                        params={{ clientSlug, projectSlug }}
-                        to="/projects/$clientSlug/$projectSlug"
-                      >
+                    <TableCell className="max-w-[240px] pl-0 pr-4 py-3.5">
+                      <div className="block truncate font-extrabold text-brand-heading text-sm group-hover/row:underline">
                         {project.title}
-                      </Link>
+                      </div>
                       {project.description && (
                         <p className="mt-0.5 line-clamp-1 font-normal text-muted-foreground text-xs">
                           {project.description}
                         </p>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-4 py-3.5">
                       <StatusBadge value={project.status} />
                     </TableCell>
-                    <TableCell className="w-[180px]">
+                    <TableCell className="w-[180px] px-4 py-3.5">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="font-bold text-muted-foreground">
@@ -392,20 +393,11 @@ function ClientProjectsTable({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-extrabold text-emerald-800 text-xs tabular-nums dark:text-emerald-400">
+                    <TableCell className="font-extrabold text-emerald-800 text-xs tabular-nums dark:text-emerald-400 px-4 py-3.5">
                       ${project.budget.toLocaleString()}
                     </TableCell>
-                    <TableCell className="font-bold text-muted-foreground text-xs">
+                    <TableCell className="font-bold text-muted-foreground text-xs text-right pl-4 pr-0 py-3.5">
                       {getDeadlineLabel(project.deadline ?? "")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-border/40 bg-secondary/40 px-3 font-bold text-primary text-xs transition-all hover:scale-[1.02] hover:bg-primary hover:text-primary-foreground active:scale-[0.98]"
-                        params={{ clientSlug, projectSlug }}
-                        to="/projects/$clientSlug/$projectSlug"
-                      >
-                        Dossier →
-                      </Link>
                     </TableCell>
                   </TableRow>
                 );
@@ -738,8 +730,8 @@ export function PendingInvitesPanel({
       ) : null}
 
       {invites.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-border/40 bg-card">
-          <div className="divide-y divide-border/60">
+        <div className="overflow-hidden pt-1">
+          <div className="divide-y divide-border/60 border-t border-border/40">
             {invites.map((invite) => (
               <InviteRow
                 invite={invite}
@@ -779,7 +771,7 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
   }
 
   return (
-    <div className="grid items-center gap-3 p-4 text-xs transition-colors duration-200 hover:bg-secondary/15 sm:grid-cols-[minmax(0,1.2fr)_0.8fr_1fr_1fr_1.2fr]">
+    <div className="grid items-center gap-3 px-0 py-3.5 text-xs transition-colors duration-200 hover:bg-secondary/15 sm:grid-cols-[minmax(0,1.2fr)_0.8fr_1fr_1fr_1.2fr]">
       <p className="truncate font-semibold text-foreground">{invite.email}</p>
       <div>
         <StatusBadge value="pending" />

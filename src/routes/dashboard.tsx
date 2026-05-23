@@ -143,13 +143,13 @@ function DashboardPage() {
         {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "150ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Project Status
             </div>
-            <div>
+            <div className="flex-1 flex items-center justify-center w-full">
               <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
@@ -157,13 +157,13 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-2"
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-2"
             style={{ animationDelay: "200ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Activity Flow
             </div>
-            <div>
+            <div className="flex-1 flex items-center justify-center w-full">
               <ActivitySankeyChart
                 data={getActivitySankeyData(activity)}
                 isLoading={isLoading}
@@ -175,13 +175,13 @@ function DashboardPage() {
         {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "250ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Deadlines
             </div>
-            <div>
+            <div className="flex-1 flex items-center justify-center w-full">
               <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
@@ -189,13 +189,13 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "300ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Budget by Status
             </div>
-            <div>
+            <div className="flex-1 flex items-center justify-center w-full">
               <BudgetComposedChart
                 data={getBudgetByStatusData(projects)}
                 isLoading={isLoading}
@@ -203,13 +203,13 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "350ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
               Recent activity
             </div>
-            <div>
+            <div className="flex-1">
               <CompactActivityList activity={activity} isLoading={isLoading} />
             </div>
           </div>
@@ -311,7 +311,7 @@ function formatRelativeTime(dateString: string) {
 
 // ── Compact activity list ─────────────────────────────────────────────────────
 
-const COMPACT_LIMIT = 5;
+const COMPACT_LIMIT = 4;
 
 function CompactActivityList({
   activity,
@@ -357,7 +357,7 @@ function CompactActivityList({
       <div className="flex flex-col gap-1">
         {visibleActivity.map((event) => (
           <div
-            className="flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-muted/50"
+            className="flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
             key={event.id}
           >
             {/* Icon */}
