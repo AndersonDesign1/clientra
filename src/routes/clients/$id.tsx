@@ -174,7 +174,7 @@ function ClientDossierWidget({
   formattedWebsite: string;
 }) {
   return (
-    <div className="group relative flex h-fit flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)] md:col-span-1">
+    <div className="group relative flex h-fit flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-1">
       <div className="space-y-4">
         <h3 className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
           Client Dossier
@@ -286,7 +286,7 @@ function ClientProjectsTable({
   milestoneQueries: { data?: ProjectMilestone[]; isLoading: boolean }[];
 }) {
   return (
-    <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+    <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <h2 className="font-extrabold text-base text-foreground tracking-tight">
         Linked Projects
       </h2>
@@ -624,7 +624,7 @@ function ClientDetailPage() {
           {/* Client Analytics Section (Only for large data >= 4 projects) */}
           {linkedProjects.length >= 4 ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+              <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
                 <h3 className="mb-3 font-semibold text-foreground text-sm">
                   Project Status Distribution
                 </h3>
@@ -635,7 +635,7 @@ function ClientDetailPage() {
                   />
                 </div>
               </div>
-              <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+              <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
                 <h3 className="mb-3 font-semibold text-foreground text-sm">
                   Budget & Project Allocation
                 </h3>
@@ -702,7 +702,7 @@ export function PendingInvitesPanel({
   }
 
   return (
-    <div className="group relative animate-slide-up-fade flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+    <div className="group relative animate-slide-up-fade flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-foreground text-sm">
           Pending Invites

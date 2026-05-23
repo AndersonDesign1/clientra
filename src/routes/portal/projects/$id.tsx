@@ -110,7 +110,7 @@ function PremiumDeadlineCard({ deadline }: { deadline: string }) {
   }
 
   return (
-    <div className="flex min-h-[200px] flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+    <div className="flex min-h-[200px] flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="space-y-3">
         <div className="flex items-center justify-between border-border/40 border-b pb-3">
           <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
@@ -217,7 +217,7 @@ function PrimarySuccessTeamWidget() {
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]">
+    <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between border-border/40 border-b pb-3">
         <h2 className="font-bold text-foreground text-sm uppercase tracking-tight">
           Success Team
@@ -433,7 +433,7 @@ function UnifiedActivityPanel({ projectId }: { projectId: string }) {
 
                 return (
                   <article
-                    className="flex animate-slide-up-fade items-start gap-3.5 rounded-xl border border-border/40 bg-card p-4 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)]"
+                    className="flex animate-slide-up-fade items-start gap-3.5 rounded-xl border border-border/40 bg-card p-4 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
                     key={comment.id}
                   >
                     <div
@@ -485,7 +485,7 @@ function UnifiedActivityPanel({ projectId }: { projectId: string }) {
               return (
                 <article
                   className={cn(
-                    "animate-slide-up-fade rounded-xl border border-border/40 p-4 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)]",
+                    "animate-slide-up-fade rounded-xl border border-border/40 p-4 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]",
                     getStatusAccentStyles(update.status)
                   )}
                   key={update.id}

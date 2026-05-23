@@ -179,7 +179,7 @@ function getClientsContent({
           : "border-border bg-muted/50 text-muted-foreground group-hover:border-primary/10 group-hover:bg-primary/5 group-hover:text-primary";
         return (
           <div
-            className="group relative flex animate-slide-up-fade flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group relative flex animate-slide-up-fade flex-col justify-between gap-5 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             key={client.id}
             style={{ animationDelay: `${index * 40}ms` }}
           >
@@ -294,7 +294,7 @@ function ProjectMatchesSection({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {matchedProjects.map((project) => (
           <div
-            className="group flex flex-col justify-between gap-3 rounded-xl border border-border/40 bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group flex flex-col justify-between gap-3 rounded-xl border border-border/40 bg-card p-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             key={project.id}
           >
             <div className="space-y-1">

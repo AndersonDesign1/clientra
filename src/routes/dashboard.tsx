@@ -143,7 +143,7 @@ function DashboardPage() {
         {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "150ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
@@ -157,7 +157,7 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)] md:col-span-2"
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-2"
             style={{ animationDelay: "200ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
@@ -175,7 +175,7 @@ function DashboardPage() {
         {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "250ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
@@ -189,7 +189,7 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "300ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
@@ -203,7 +203,7 @@ function DashboardPage() {
             </div>
           </div>
           <div
-            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)]"
+            className="group flex animate-slide-up-fade flex-col justify-between rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
             style={{ animationDelay: "350ms" }}
           >
             <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
