@@ -5,6 +5,15 @@ import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { SettingsPendingPage } from "@/components/common/route-pending";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ensureClientsData, useClientsData } from "@/lib/api";
 
 export const Route = createFileRoute("/settings")({
@@ -94,82 +103,130 @@ function SettingsPage() {
           description="Invite clients into their portal without opening public signup. Each invite stays active for seven days."
           title="Client access invites"
         >
-          <form className="mt-4 space-y-4" onSubmit={handleInviteSubmit}>
-            <label className="block space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Client</span>
-              <select
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2"
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    clientId: event.target.value,
-                  }))
-                }
-                required
-                value={formState.clientId}
-              >
-                <option value="">Select a client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.company}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Invite email</span>
-              <input
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2"
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    email: event.target.value,
-                  }))
-                }
-                placeholder="client@example.com"
-                required
-                type="email"
-                value={formState.email}
-              />
-            </label>
-            {formState.error ? (
-              <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700 text-sm">
-                {formState.error}
-              </p>
-            ) : null}
-            {formState.inviteLink ? (
-              <div className="rounded-md border border-teal-200 bg-teal-50 px-3 py-3 text-sm text-teal-900">
-                <p className="font-medium">Invite ready</p>
-                <p className="mt-1 break-all">{formState.inviteLink}</p>
+          <div className="rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+            <form className="space-y-5" onSubmit={handleInviteSubmit}>
+              <div className="space-y-2">
+                <Label className="font-bold text-foreground text-xs uppercase tracking-wider">
+                  Client
+                </Label>
+                <Select
+                  onValueChange={(val) =>
+                    setFormState((current) => ({
+                      ...current,
+                      clientId: val ?? "",
+                    }))
+                  }
+                  required
+                  value={formState.clientId}
+                >
+                  <SelectTrigger className="h-10 w-full border-border/40 bg-background font-semibold text-[11px] uppercase tracking-wider">
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem
+                        className="font-semibold text-[11px] uppercase tracking-wider"
+                        key={client.id}
+                        value={client.id}
+                      >
+                        {client.company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            ) : null}
-            <Button
-              disabled={formState.isSubmitting || clientsQuery.isLoading}
-              type="submit"
-            >
-              {formState.isSubmitting
-                ? "Creating invite..."
-                : "Generate invite link"}
-            </Button>
-          </form>
+
+              <div className="space-y-2">
+                <Label className="font-bold text-foreground text-xs uppercase tracking-wider">
+                  Invite email
+                </Label>
+                <Input
+                  className="h-10 w-full border-border/40 bg-background text-sm focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/10 focus-visible:ring-offset-0"
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
+                  placeholder="client@example.com"
+                  required
+                  type="email"
+                  value={formState.email}
+                />
+              </div>
+
+              {formState.error ? (
+                <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 px-4 py-2.5 font-semibold text-rose-700 text-xs dark:text-rose-400">
+                  {formState.error}
+                </p>
+              ) : null}
+
+              {formState.inviteLink ? (
+                <div className="rounded-lg border border-teal-200/50 bg-teal-50/10 px-4 py-3.5 text-sm text-teal-800 dark:text-teal-400">
+                  <p className="font-bold text-xs uppercase tracking-wider">
+                    Invite ready
+                  </p>
+                  <p className="mt-1.5 select-all break-all rounded-md border border-border/10 bg-background/50 p-2.5 font-mono text-xs leading-normal">
+                    {formState.inviteLink}
+                  </p>
+                </div>
+              ) : null}
+
+              <Button
+                className="w-full font-bold transition-transform duration-150 active:scale-[0.98]"
+                disabled={formState.isSubmitting || clientsQuery.isLoading}
+                type="submit"
+              >
+                {formState.isSubmitting
+                  ? "Creating invite..."
+                  : "Generate invite link"}
+              </Button>
+            </form>
+          </div>
         </DataSection>
-        <DataSection className="text-slate-600 text-sm" title="OAuth setup">
-          <ul className="space-y-2 leading-6">
-            <li>
-              Google local: `http://localhost:3000/api/auth/callback/google`
-            </li>
-            <li>
-              Google production:
-              `https://useclientra.vercel.app/api/auth/callback/google`
-            </li>
-            <li>
-              GitHub local: `http://localhost:3000/api/auth/callback/github`
-            </li>
-            <li>
-              GitHub production:
-              `https://useclientra.vercel.app/api/auth/callback/github`
-            </li>
-          </ul>
+        <DataSection
+          className="text-muted-foreground text-xs leading-relaxed"
+          title="OAuth setup"
+        >
+          <div className="rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+            <p className="mb-4 border-border/40 border-b pb-3 font-medium text-foreground text-sm">
+              Callback Configurations
+            </p>
+            <ul className="space-y-4">
+              <li className="space-y-1.5">
+                <span className="block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Google local
+                </span>
+                <code className="block select-all break-all rounded-lg border border-border/10 bg-secondary/15 px-3 py-2 font-mono text-[11px] text-foreground">
+                  http://localhost:3000/api/auth/callback/google
+                </code>
+              </li>
+              <li className="space-y-1.5">
+                <span className="block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Google production
+                </span>
+                <code className="block select-all break-all rounded-lg border border-border/10 bg-secondary/15 px-3 py-2 font-mono text-[11px] text-foreground">
+                  https://useclientra.vercel.app/api/auth/callback/google
+                </code>
+              </li>
+              <li className="space-y-1.5">
+                <span className="block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  GitHub local
+                </span>
+                <code className="block select-all break-all rounded-lg border border-border/10 bg-secondary/15 px-3 py-2 font-mono text-[11px] text-foreground">
+                  http://localhost:3000/api/auth/callback/github
+                </code>
+              </li>
+              <li className="space-y-1.5">
+                <span className="block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
+                  GitHub production
+                </span>
+                <code className="block select-all break-all rounded-lg border border-border/10 bg-secondary/15 px-3 py-2 font-mono text-[11px] text-foreground">
+                  https://useclientra.vercel.app/api/auth/callback/github
+                </code>
+              </li>
+            </ul>
+          </div>
         </DataSection>
       </div>
     </AppShell>

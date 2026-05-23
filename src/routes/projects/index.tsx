@@ -1,3 +1,5 @@
+import { Delete02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
@@ -104,30 +106,61 @@ function ProjectsPage() {
         <>
           <DataSection title="Delivery shape">
             <div className="grid gap-6 xl:grid-cols-3">
-              <ProjectStatusPieChart
-                data={getProjectStatusData(projectsQuery.data ?? [])}
-              />
-              <DeadlineAreaChart
-                data={getDeadlineData(projectsQuery.data ?? [])}
-              />
-              <BudgetComposedChart
-                data={getBudgetByStatusData(projectsQuery.data ?? [])}
-              />
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Project Status
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <ProjectStatusPieChart
+                    data={getProjectStatusData(projectsQuery.data ?? [])}
+                  />
+                </div>
+              </div>
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Deadlines
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <DeadlineAreaChart
+                    data={getDeadlineData(projectsQuery.data ?? [])}
+                  />
+                </div>
+              </div>
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Budget by Status
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <BudgetComposedChart
+                    data={getBudgetByStatusData(projectsQuery.data ?? [])}
+                  />
+                </div>
+              </div>
             </div>
           </DataSection>
           <DataSection title="Project register">
-            <div className="overflow-x-auto border-slate-200 border-y bg-white">
+            <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
               <Table>
-                <TableHeader className="bg-stone-50">
+                <TableHeader className="bg-muted/40">
                   <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Deadline</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="font-bold text-xs uppercase tracking-wider">
+                      Project
+                    </TableHead>
+                    <TableHead className="font-bold text-xs uppercase tracking-wider">
+                      Status
+                    </TableHead>
+                    <TableHead className="font-bold text-xs uppercase tracking-wider">
+                      Budget
+                    </TableHead>
+                    <TableHead className="font-bold text-xs uppercase tracking-wider">
+                      Deadline
+                    </TableHead>
+                    <TableHead className="text-right font-bold text-xs uppercase tracking-wider">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="divide-y divide-border/15">
                   {projectsQuery.data?.map((project) => {
                     const { clientSlug, projectSlug } = getProjectPathParams(
                       project,
@@ -135,33 +168,36 @@ function ProjectsPage() {
                     );
 
                     return (
-                      <TableRow key={project.id}>
-                        <TableCell>
+                      <TableRow
+                        className="transition-colors hover:bg-muted/5"
+                        key={project.id}
+                      >
+                        <TableCell className="p-4">
                           <Link
-                            className="font-medium text-zinc-950 hover:underline"
+                            className="font-medium text-foreground transition-colors hover:text-primary"
                             params={{ clientSlug, projectSlug }}
                             to="/projects/$clientSlug/$projectSlug"
                           >
                             {project.title}
                           </Link>
-                          <p className="mt-1 max-w-lg text-slate-600 text-xs">
+                          <p className="mt-1 max-w-lg text-muted-foreground text-xs leading-relaxed">
                             {project.description}
                           </p>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4">
                           <StatusBadge value={project.status} />
                         </TableCell>
-                        <TableCell className="tabular-nums">
+                        <TableCell className="p-4 font-medium tabular-nums">
                           ${project.budget.toLocaleString()}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4">
                           {getDeadlineLabel(project.deadline)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4">
                           <div className="flex justify-end gap-2">
                             <Button
+                              className="h-8 border border-border/40 px-3 font-semibold text-xs transition-transform duration-200 hover:scale-105 active:scale-95"
                               onClick={() => setEditingProject(project)}
-                              size="sm"
                               type="button"
                               variant="outline"
                             >
@@ -171,11 +207,15 @@ function ProjectsPage() {
                               project={project}
                               trigger={
                                 <Button
-                                  size="sm"
+                                  className="h-8 w-8 border border-border/40 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                                   type="button"
-                                  variant="destructive"
+                                  variant="ghost"
                                 >
-                                  Delete
+                                  <HugeiconsIcon
+                                    icon={Delete02Icon}
+                                    size={14}
+                                  />
+                                  <span className="sr-only">Delete</span>
                                 </Button>
                               }
                             />

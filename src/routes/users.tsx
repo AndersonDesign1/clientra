@@ -1,5 +1,5 @@
-"use client";
-
+import { Delete02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useReducer } from "react";
 import { requireAdminSession } from "@/auth/guards";
@@ -11,7 +11,32 @@ import {
   LoadingPanel,
 } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ensureUsersData,
   type ManagedUser,
@@ -126,46 +151,55 @@ function UsersPage() {
       />
 
       {state.mutationError ? (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 text-sm">
+        <div className="mb-4 rounded-xl border border-rose-200/50 bg-rose-50/10 p-4 text-rose-700 text-sm">
           {state.mutationError}
         </div>
       ) : null}
 
-      {state.deleteCandidate ? (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-sm">
-          <p className="font-medium">Confirm user deletion</p>
-          <p className="mt-1">
-            Delete {state.deleteCandidate.name} ({state.deleteCandidate.email})
-            ? This will remove their sessions and linked account access.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <Button
-              disabled={state.pendingDeleteUserId === state.deleteCandidate.id}
-              onClick={() => {
+      {/* Delete User AlertDialog Modal */}
+      <AlertDialog
+        onOpenChange={(open) => {
+          if (!open) {
+            dispatch({ type: "set-delete-candidate", value: null });
+          }
+        }}
+        open={Boolean(state.deleteCandidate)}
+      >
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm user deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-foreground">
+                {state.deleteCandidate?.name}
+              </span>{" "}
+              ({state.deleteCandidate?.email})? This will permanently remove
+              their sessions and portal access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              disabled={state.pendingDeleteUserId === state.deleteCandidate?.id}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-600 font-bold transition-transform duration-100 hover:bg-rose-700 active:scale-[0.98]"
+              disabled={state.pendingDeleteUserId === state.deleteCandidate?.id}
+              onClick={(e) => {
+                e.preventDefault();
                 if (state.deleteCandidate) {
                   handleDelete(state.deleteCandidate);
                 }
               }}
-              type="button"
-              variant="destructive"
             >
-              {state.pendingDeleteUserId === state.deleteCandidate.id
+              {state.pendingDeleteUserId === state.deleteCandidate?.id
                 ? "Deleting..."
-                : "Confirm delete"}
-            </Button>
-            <Button
-              disabled={state.pendingDeleteUserId === state.deleteCandidate.id}
-              onClick={() => {
-                dispatch({ type: "set-delete-candidate", value: null });
-              }}
-              type="button"
-              variant="outline"
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      ) : null}
+                : "Delete User"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {usersQuery.isLoading && visibleUsers.length === 0 ? (
         <LoadingPanel />
@@ -182,20 +216,34 @@ function UsersPage() {
         />
       ) : null}
       {visibleUsers.length > 0 ? (
-        <div className="overflow-x-auto border-slate-200 border-y bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-500">
-              <tr>
-                <th className="p-3">Name</th>
-                <th className="p-3">Email</th>
-                <th className="p-3">Role</th>
-                <th className="p-3">Verified</th>
-                <th className="p-3">Joined</th>
-                <th className="p-3">Providers</th>
-                <th className="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Name
+                </TableHead>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Email
+                </TableHead>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Role
+                </TableHead>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Verified
+                </TableHead>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Joined
+                </TableHead>
+                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                  Providers
+                </TableHead>
+                <TableHead className="text-right font-bold text-xs uppercase tracking-wider">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-border/15">
               {visibleUsers.map((user) => {
                 const isCurrentUser = user.id === currentUserId;
                 const isRolePending = state.pendingRoleUserId === user.id;
@@ -203,43 +251,68 @@ function UsersPage() {
                 const isBusy = isRolePending || isDeletePending;
 
                 return (
-                  <tr className="border-t" key={user.id}>
-                    <td className="p-3">
-                      <div className="font-medium text-slate-900">
+                  <TableRow
+                    className="transition-colors hover:bg-muted/5"
+                    key={user.id}
+                  >
+                    <TableCell className="p-4">
+                      <div className="font-medium text-foreground">
                         {user.name}
                       </div>
-                    </td>
-                    <td className="p-3 text-slate-600">{user.email}</td>
-                    <td className="p-3">
-                      <select
-                        className="rounded-md border border-slate-200 bg-white px-2 py-1"
+                    </TableCell>
+                    <TableCell className="p-4 text-muted-foreground">
+                      {user.email}
+                    </TableCell>
+                    <TableCell className="p-4">
+                      <Select
                         disabled={isBusy || isCurrentUser}
-                        onChange={(event) =>
-                          handleRoleChange(
-                            user.id,
-                            event.target.value as ManagedUser["role"]
-                          )
+                        onValueChange={(val) =>
+                          handleRoleChange(user.id, val as ManagedUser["role"])
                         }
                         value={user.role}
                       >
-                        <option value="admin">admin</option>
-                        <option value="client">client</option>
-                      </select>
-                    </td>
-                    <td className="p-3">
-                      {user.emailVerified ? "Verified" : "Unverified"}
-                    </td>
-                    <td className="p-3 text-slate-600">
+                        <SelectTrigger className="h-8 w-24 border-border/40 bg-background font-semibold text-[11px] uppercase tracking-wider">
+                          <SelectValue placeholder={user.role} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem
+                            className="font-semibold text-[11px] uppercase tracking-wider"
+                            value="admin"
+                          >
+                            admin
+                          </SelectItem>
+                          <SelectItem
+                            className="font-semibold text-[11px] uppercase tracking-wider"
+                            value="client"
+                          >
+                            client
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="p-4 font-medium text-xs">
+                      {user.emailVerified ? (
+                        <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-bold text-[9px] text-emerald-700 uppercase tracking-wider">
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="rounded bg-amber-500/10 px-1.5 py-0.5 font-bold text-[9px] text-amber-700 uppercase tracking-wider">
+                          Unverified
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="p-4 text-muted-foreground text-xs">
                       {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-3 text-slate-600">
+                    </TableCell>
+                    <TableCell className="p-4 text-muted-foreground text-xs">
                       {user.providers.length > 0
                         ? user.providers.join(", ")
                         : "email"}
-                    </td>
-                    <td className="p-3">
+                    </TableCell>
+                    <TableCell className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Button
+                          className="h-8 w-8 border border-border/40 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                           disabled={isBusy || isCurrentUser}
                           onClick={() => {
                             dispatch({
@@ -248,17 +321,18 @@ function UsersPage() {
                             });
                           }}
                           type="button"
-                          variant="destructive"
+                          variant="ghost"
                         >
-                          {isDeletePending ? "Deleting..." : "Delete"}
+                          <HugeiconsIcon icon={Delete02Icon} size={14} />
+                          <span className="sr-only">Delete</span>
                         </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ) : null}
     </AppShell>
