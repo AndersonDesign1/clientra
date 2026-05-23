@@ -4,6 +4,7 @@ import {
   CheckmarkCircle01Icon,
   Clock01Icon,
   Comment01Icon,
+  Delete02Icon,
   File01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -176,10 +177,7 @@ function ProjectDetailTabs({ projectId }: { projectId: string }) {
 interface ProjectDetailActionsProps {
   clientSlug?: string;
   clients: Client[];
-  currentStatusDraft: Project["status"];
-  hasStatusChange: boolean;
-  onSaveStatus: () => Promise<void>;
-  onStatusChange: (projectId: string, status: Project["status"]) => void;
+  onStatusChange: (status: Project["status"]) => Promise<void>;
   project: Project;
   projectSlug: string;
   updateProjectPending: boolean;
@@ -190,11 +188,8 @@ function ProjectDetailActions({
   clientSlug,
   projectSlug,
   project,
-  currentStatusDraft,
-  hasStatusChange,
   updateProjectPending,
   onStatusChange,
-  onSaveStatus,
 }: ProjectDetailActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const navigate = useNavigate();
@@ -202,14 +197,22 @@ function ProjectDetailActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
+        disabled={updateProjectPending}
         items={PROJECT_STATUS_OPTIONS}
         onValueChange={(value) =>
-          onStatusChange(project.id, value as Project["status"])
+          onStatusChange(value as Project["status"]).catch(() => undefined)
         }
-        value={currentStatusDraft}
+        value={project.status}
       >
-        <SelectTrigger className="w-36" size="sm">
-          <SelectValue>{formatStatusLabel(currentStatusDraft)}</SelectValue>
+        <SelectTrigger className="w-36 transition-all duration-200" size="sm">
+          {updateProjectPending ? (
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              Saving...
+            </span>
+          ) : (
+            <SelectValue>{formatStatusLabel(project.status)}</SelectValue>
+          )}
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
@@ -221,18 +224,6 @@ function ProjectDetailActions({
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button
-        className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-        disabled={!hasStatusChange || updateProjectPending}
-        onClick={() => {
-          onSaveStatus().catch(() => undefined);
-        }}
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        {updateProjectPending ? "Saving..." : "Save status"}
-      </Button>
       <ProjectFormDialog
         clients={clients}
         onOpenChange={setIsEditOpen}
@@ -274,12 +265,13 @@ function ProjectDetailActions({
         project={project}
         trigger={
           <Button
-            className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            size="sm"
+            className="h-6 w-6 p-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            size="icon-sm"
             type="button"
             variant="destructive"
           >
-            Delete
+            <HugeiconsIcon icon={Delete02Icon} size={11} strokeWidth={2.5} />
+            <span className="sr-only">Delete</span>
           </Button>
         }
       />
@@ -340,11 +332,6 @@ export function AdminProjectDetailPage({
   clientSlug?: string;
   projectSlug: string;
 }) {
-  const [statusDraft, setStatusDraft] = useState<{
-    projectId: string;
-    status: Project["status"];
-  } | null>(null);
-
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
   const updateProject = useUpdateProjectMutation();
@@ -394,27 +381,23 @@ export function AdminProjectDetailPage({
     );
   }
 
-  const selectedProject = project;
-  const currentStatusDraft =
-    statusDraft?.projectId === selectedProject.id
-      ? statusDraft.status
-      : selectedProject.status;
-  const hasStatusChange = currentStatusDraft !== selectedProject.status;
-
-  async function saveStatus() {
+  async function handleStatusChange(status: Project["status"]) {
+    if (!project) {
+      return;
+    }
     await updateProject.mutateAsync({
-      id: selectedProject.id,
+      id: project.id,
       input: {
-        budget: selectedProject.budget,
-        clientId: selectedProject.clientId,
-        deadline: selectedProject.deadline,
-        description: selectedProject.description,
-        status: currentStatusDraft,
-        title: selectedProject.title,
+        budget: project.budget,
+        clientId: project.clientId,
+        deadline: project.deadline,
+        description: project.description,
+        status,
+        title: project.title,
       },
     });
-    setStatusDraft(null);
   }
+
   const milestones = milestonesQuery.data ?? [];
   const completedMilestones = milestones.filter(
     (m) => m.status === "done"
@@ -473,13 +456,8 @@ export function AdminProjectDetailPage({
           <ProjectDetailActions
             clientSlug={clientSlug}
             clients={clients}
-            currentStatusDraft={currentStatusDraft}
-            hasStatusChange={hasStatusChange}
-            onSaveStatus={saveStatus}
-            onStatusChange={(projectId, status) =>
-              setStatusDraft({ projectId, status })
-            }
-            project={selectedProject}
+            onStatusChange={handleStatusChange}
+            project={project}
             projectSlug={projectSlug}
             updateProjectPending={updateProject.isPending}
           />

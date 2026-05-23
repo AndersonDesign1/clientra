@@ -2,10 +2,9 @@ import {
   Calendar01Icon,
   CheckmarkCircle01Icon,
   Clock01Icon,
-  Delete02Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type FormEvent, useState } from "react";
+import { UnifiedActivityList } from "@/components/common/activity-list";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -45,7 +44,6 @@ import {
   useProjectMilestonesData,
   useUpdateProjectMilestoneMutation,
 } from "@/lib/api";
-import { cn } from "@/lib/utils";
 
 const MILESTONE_STATUS_OPTIONS = [
   { label: "To do", value: "todo" },
@@ -100,15 +98,6 @@ export function ProjectMilestoneList({
   onDelete: (milestone: ProjectMilestone) => void;
   onEdit: (milestone: ProjectMilestone) => void;
 }) {
-  if (milestones.length === 0) {
-    return (
-      <EmptyPanel
-        description="Add lightweight deliverables so clients can see what is planned, active, and complete."
-        title="No milestones yet"
-      />
-    );
-  }
-
   // Sort milestones by sortOrder then updatedAt
   const sortedMilestones = [...milestones].sort((a, b) => {
     if (a.sortOrder !== b.sortOrder) {
@@ -117,99 +106,57 @@ export function ProjectMilestoneList({
     return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 
+  const items = sortedMilestones.map((milestone) => {
+    const isDone = milestone.status === "done";
+    const isInProgress = milestone.status === "in_progress";
+
+    let badgeBg = "bg-slate-50 dark:bg-slate-900/50";
+    let badgeTextColor = "text-slate-500 dark:text-slate-400";
+    let badgeIcon = Calendar01Icon;
+
+    if (isDone) {
+      badgeBg = "bg-emerald-50 dark:bg-emerald-950/20";
+      badgeTextColor = "text-emerald-600 dark:text-emerald-400";
+      badgeIcon = CheckmarkCircle01Icon;
+    } else if (isInProgress) {
+      badgeBg = "bg-teal-50 dark:bg-teal-950/20";
+      badgeTextColor = "text-teal-600 dark:text-teal-400";
+      badgeIcon = Clock01Icon;
+    }
+
+    return {
+      id: milestone.id,
+      icon: badgeIcon,
+      iconBgClass: badgeBg,
+      iconColorClass: badgeTextColor,
+      title: milestone.title,
+      titleClass: isDone ? "text-muted-foreground/60 line-through" : "",
+      badge: (
+        <span className="sr-only">
+          {formatMilestoneStatus(milestone.status)}
+        </span>
+      ),
+      body: milestone.description || undefined,
+      time: milestone.dueDate
+        ? milestone.dueDate
+        : formatMilestoneStatus(milestone.status),
+      canManage,
+      onEdit,
+      onDelete,
+      rawItem: milestone,
+    };
+  });
+
   return (
-    <div className="flex flex-col gap-1">
-      {sortedMilestones.map((milestone) => {
-        const isDone = milestone.status === "done";
-        const isInProgress = milestone.status === "in_progress";
-
-        let badgeBg = "bg-slate-50 dark:bg-slate-900/50";
-        let badgeTextColor = "text-slate-500 dark:text-slate-400";
-        let badgeIcon = Calendar01Icon;
-
-        if (isDone) {
-          badgeBg = "bg-emerald-50 dark:bg-emerald-950/20";
-          badgeTextColor = "text-emerald-600 dark:text-emerald-400";
-          badgeIcon = CheckmarkCircle01Icon;
-        } else if (isInProgress) {
-          badgeBg = "bg-teal-50 dark:bg-teal-950/20";
-          badgeTextColor = "text-teal-600 dark:text-teal-400";
-          badgeIcon = Clock01Icon;
-        }
-
-        return (
-          <div
-            className="group relative flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
-            key={milestone.id}
-          >
-            {/* Status Icon Badge */}
-            <div
-              className={cn(
-                "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105",
-                badgeBg,
-                badgeTextColor
-              )}
-            >
-              <HugeiconsIcon icon={badgeIcon} size={14} strokeWidth={2} />
-            </div>
-
-            {/* Content Block */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p
-                  className={cn(
-                    "font-medium text-foreground text-xs leading-5 transition-colors group-hover:text-accent-foreground",
-                    isDone && "text-muted-foreground/60 line-through"
-                  )}
-                >
-                  {milestone.title}
-                </p>
-                <span className="sr-only">
-                  {formatMilestoneStatus(milestone.status)}
-                </span>
-              </div>
-              {milestone.description ? (
-                <p className="mt-0.5 whitespace-pre-wrap text-[11px] text-muted-foreground leading-4">
-                  {milestone.description}
-                </p>
-              ) : null}
-            </div>
-
-            {/* Time / Actions */}
-            <div className="relative ml-2 flex h-5 min-w-16 shrink-0 items-center justify-end">
-              <span className="select-none text-[11px] text-muted-foreground leading-5 transition-opacity duration-200 group-hover:opacity-0">
-                {milestone.dueDate
-                  ? milestone.dueDate
-                  : formatMilestoneStatus(milestone.status)}
-              </span>
-
-              {canManage ? (
-                <div className="absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  <Button
-                    className="h-6 border border-border/40 bg-background px-2 font-bold text-[10px] text-foreground transition-transform duration-200 hover:scale-105 hover:bg-muted active:scale-95"
-                    onClick={() => onEdit(milestone)}
-                    type="button"
-                    variant="ghost"
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    className="h-6 w-6 border border-border/40 p-0 text-muted-foreground transition-transform duration-200 hover:scale-105 hover:bg-rose-500 hover:text-white active:scale-95"
-                    onClick={() => onDelete(milestone)}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={10} />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <UnifiedActivityList
+      emptyState={
+        <EmptyPanel
+          description="Add lightweight deliverables so clients can see what is planned, active, and complete."
+          title="No milestones yet"
+        />
+      }
+      items={items}
+    />
   );
 }
 

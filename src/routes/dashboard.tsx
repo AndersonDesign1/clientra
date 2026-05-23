@@ -4,10 +4,10 @@ import {
   FolderAddIcon,
   UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { UnifiedActivityList } from "@/components/common/activity-list";
 import {
   ActivitySankeyChart,
   BudgetComposedChart,
@@ -23,7 +23,6 @@ import { DashboardPendingPage } from "@/components/common/route-pending";
 import { EmptyPanel, ErrorPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   type DashboardActivityEvent,
   ensureClientsData,
@@ -322,75 +321,33 @@ function CompactActivityList({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton array
-          <div className="flex items-start gap-3" key={i}>
-            <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
-            <div className="flex-1 space-y-1.5">
-              <Skeleton className="h-3.5 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (activity.length === 0) {
-    return (
-      <EmptyPanel
-        description="New clients, projects, comments, and files will appear here."
-        title="No recent activity"
-      />
-    );
-  }
-
   const visibleActivity = expanded
     ? activity
     : activity.slice(0, COMPACT_LIMIT);
 
+  const items = visibleActivity.map((event) => ({
+    id: event.id,
+    icon: EVENT_ICONS[event.type] as never,
+    iconBgClass: EVENT_BG_COLORS[event.type],
+    iconColorClass: EVENT_COLORS[event.type],
+    title: formatDashboardActivityTitle(event),
+    body: formatDashboardActivityDescription(event),
+    time: formatRelativeTime(event.createdAt),
+    rawItem: event,
+  }));
+
   return (
     <div>
-      <div className="flex flex-col gap-1">
-        {visibleActivity.map((event) => (
-          <div
-            className="flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
-            key={event.id}
-          >
-            {/* Icon */}
-            <div
-              className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${EVENT_BG_COLORS[event.type]} ${EVENT_COLORS[event.type]}`}
-            >
-              <HugeiconsIcon
-                icon={EVENT_ICONS[event.type] as never}
-                size={14}
-                strokeWidth={2}
-              />
-            </div>
-
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-foreground text-xs leading-5">
-                {formatDashboardActivityTitle(event)}
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground leading-4">
-                {formatDashboardActivityDescription(event)}
-              </p>
-            </div>
-
-            {/* Time */}
-            <time
-              className="shrink-0 text-[11px] text-muted-foreground leading-5"
-              dateTime={event.createdAt}
-            >
-              {formatRelativeTime(event.createdAt)}
-            </time>
-          </div>
-        ))}
-      </div>
+      <UnifiedActivityList
+        emptyState={
+          <EmptyPanel
+            description="New clients, projects, comments, and files will appear here."
+            title="No recent activity"
+          />
+        }
+        isLoading={isLoading}
+        items={items}
+      />
 
       {/* Show more / less */}
       {activity.length > COMPACT_LIMIT && (

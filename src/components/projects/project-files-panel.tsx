@@ -218,7 +218,7 @@ export function ProjectFilesPanel({
     Boolean(filesQuery.error && visibleFiles.length === 0);
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-5 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
       {/* Panel Header */}
       <div className="flex flex-col gap-4 border-border/40 border-b pb-4 md:flex-row md:items-center md:justify-between">
         <div>

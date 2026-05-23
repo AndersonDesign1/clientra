@@ -1,10 +1,5 @@
-import {
-  Calendar01Icon,
-  Delete02Icon,
-  PencilIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type FormEvent, useState } from "react";
+import { UnifiedActivityList } from "@/components/common/activity-list";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -12,6 +7,14 @@ import {
 } from "@/components/common/state-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   type ProjectUpdate,
   type ProjectUpdatePayload,
@@ -88,116 +91,70 @@ export function ProjectUpdateList({
   onEdit: (update: ProjectUpdate) => void;
   updates: ProjectUpdate[];
 }) {
-  if (updates.length === 0) {
-    return (
-      <EmptyPanel
-        description="Publish concise status reports so clients can quickly understand progress."
-        title="No project updates yet"
-      />
-    );
-  }
-
   // Sort updates by createdAt descending (latest first)
   const sortedUpdates = [...updates].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
+  const items = sortedUpdates.map((update) => {
+    let dotBg = "bg-emerald-50 dark:bg-emerald-950/20";
+    let dotColor =
+      "text-emerald-500 border-emerald-200 dark:border-emerald-900";
+
+    if (update.status === "at_risk") {
+      dotBg = "bg-amber-50 dark:bg-amber-950/20";
+      dotColor = "text-amber-500 border-amber-200 dark:border-amber-900";
+    } else if (update.status === "blocked") {
+      dotBg = "bg-rose-50 dark:bg-rose-950/20";
+      dotColor = "text-rose-500 border-rose-200 dark:border-rose-900";
+    }
+
+    let dotInnerBg = "bg-rose-500";
+    if (update.status === "on_track" || update.status === "complete") {
+      dotInnerBg = "bg-emerald-500";
+    } else if (update.status === "at_risk") {
+      dotInnerBg = "bg-amber-500";
+    }
+
+    return {
+      id: update.id,
+      iconBgClass: dotBg,
+      iconColorClass: dotColor,
+      dotInnerBgClass: dotInnerBg,
+      title: update.title,
+      titleClass:
+        "font-bold text-[#08361f] text-xs leading-tight dark:text-foreground",
+      badge: (
+        <Badge
+          className={cn(
+            "rounded px-1.5 py-0.5 font-bold text-[8px] uppercase tracking-wider",
+            getUpdateStatusBadgeStyles(update.status)
+          )}
+          variant={null}
+        >
+          {formatProjectUpdateStatus(update.status)}
+        </Badge>
+      ),
+      body: update.body,
+      footer: `Published by ${update.authorName}`,
+      time: new Date(update.createdAt).toLocaleDateString(),
+      canManage,
+      onEdit,
+      onDelete,
+      rawItem: update,
+    };
+  });
+
   return (
-    <div className="relative ml-3.5 space-y-2 border-border/25 border-l pl-6.5">
-      {sortedUpdates.map((update) => {
-        let dotColor =
-          "border-emerald-500 bg-emerald-50 text-emerald-500 dark:bg-emerald-950/20";
-        if (update.status === "at_risk") {
-          dotColor =
-            "border-amber-500 bg-amber-50 text-amber-500 dark:bg-amber-950/20";
-        } else if (update.status === "blocked") {
-          dotColor =
-            "border-rose-500 bg-rose-50 text-rose-500 dark:bg-rose-950/20";
-        }
-
-        return (
-          <div
-            className="group relative animate-slide-up-fade rounded-lg p-2.5 transition-colors duration-200 hover:bg-secondary/15"
-            key={update.id}
-          >
-            {/* Timeline Dot Indicator */}
-            <div
-              className={cn(
-                "absolute top-4 -left-[32px] flex h-3.5 w-3.5 items-center justify-center rounded-full border bg-background ring-4 ring-background transition-all duration-300",
-                dotColor
-              )}
-            >
-              <div
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  update.status === "on_track" || update.status === "complete"
-                    ? "bg-emerald-500"
-                    : update.status === "at_risk"
-                      ? "bg-amber-500"
-                      : "bg-rose-500"
-                )}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="font-bold text-[#08361f] text-sm leading-tight dark:text-foreground">
-                    {update.title}
-                  </span>
-                  <Badge
-                    className={cn(
-                      "rounded px-1.5 py-0.5 font-bold text-[8px] uppercase tracking-wider",
-                      getUpdateStatusBadgeStyles(update.status)
-                    )}
-                    variant={null}
-                  >
-                    {formatProjectUpdateStatus(update.status)}
-                  </Badge>
-                  <span className="inline-flex items-center gap-1 font-semibold text-[9px] text-muted-foreground uppercase tracking-wider">
-                    <HugeiconsIcon icon={Calendar01Icon} size={9} />
-                    {new Date(update.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-
-                <p className="max-w-2xl whitespace-pre-wrap font-normal text-muted-foreground text-xs leading-relaxed">
-                  {update.body}
-                </p>
-
-                <p className="font-semibold text-[9px] text-muted-foreground/60 uppercase tracking-wider">
-                  Published by {update.authorName}
-                </p>
-              </div>
-
-              {canManage ? (
-                <div className="flex items-center gap-1 self-center opacity-0 transition-opacity group-hover:opacity-100">
-                  <Button
-                    className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
-                    onClick={() => onEdit(update)}
-                    size="icon"
-                    type="button"
-                    variant="outline"
-                  >
-                    <HugeiconsIcon icon={PencilIcon} size={11} />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    className="h-7 w-7 p-0 transition-transform duration-200 hover:scale-105 active:scale-95"
-                    onClick={() => onDelete(update)}
-                    size="icon"
-                    type="button"
-                    variant="destructive"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={11} />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <UnifiedActivityList
+      emptyState={
+        <EmptyPanel
+          description="Publish concise status reports so clients can quickly understand progress."
+          title="No project updates yet"
+        />
+      }
+      items={items}
+    />
   );
 }
 
@@ -246,7 +203,7 @@ function ProjectUpdateForm({
 
   return (
     <form
-      className="animate-slide-up-fade space-y-4 rounded-xl border border-border/60 bg-secondary/15 p-5 shadow-sm"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         handleSubmit(event).catch(() => undefined);
       }}
@@ -311,16 +268,20 @@ function ProjectUpdateForm({
           {formError ?? error}
         </p>
       ) : null}
-      <div className="flex justify-end gap-2 border-border/40 border-t pt-1">
+      <DialogFooter>
         {onCancel ? (
-          <Button onClick={onCancel} size="sm" type="button" variant="outline">
+          <Button onClick={onCancel} type="button" variant="outline">
             Cancel
           </Button>
         ) : null}
-        <Button disabled={isPending} size="sm" type="submit">
+        <Button
+          className="transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          disabled={isPending}
+          type="submit"
+        >
           {submitLabel}
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }
@@ -333,6 +294,8 @@ export function ProjectUpdatesPanel({
   const createUpdate = useCreateProjectUpdateMutation();
   const updateUpdate = useUpdateProjectUpdateMutation();
   const deleteUpdate = useDeleteProjectUpdateMutation();
+
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingUpdate, setEditingUpdate] = useState<ProjectUpdate | null>(
     null
   );
@@ -355,47 +318,90 @@ export function ProjectUpdatesPanel({
   const updates = updatesQuery.data ?? [];
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-border/40 border-b pb-4">
+    <section className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
         <div>
-          <h2 className="animate-slide-up-fade font-semibold text-base text-foreground">
+          <h2 className="font-semibold text-foreground text-lg">
             Project Updates
           </h2>
-          <p className="mt-1 animate-slide-up-fade text-muted-foreground text-xs leading-relaxed">
+          <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
             Concise status reports outlining recent progress and forward plans.
           </p>
         </div>
+        {canManage && (
+          <Button
+            className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => setIsAddOpen(true)}
+            size="sm"
+          >
+            Publish Update
+          </Button>
+        )}
       </div>
-      {canManage ? (
-        <div className="space-y-4">
-          {editingUpdate ? (
-            <ProjectUpdateForm
-              error={updateUpdate.error?.message ?? null}
-              initialUpdate={editingUpdate}
-              isPending={updateUpdate.isPending}
-              onCancel={() => setEditingUpdate(null)}
-              onSubmit={async (input) => {
-                await updateUpdate.mutateAsync({
-                  id: editingUpdate.id,
-                  input,
-                });
-                setEditingUpdate(null);
-              }}
-            />
-          ) : (
+
+      {/* Add Update Dialog */}
+      {canManage && (
+        <Dialog onOpenChange={setIsAddOpen} open={isAddOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Publish Update</DialogTitle>
+              <DialogDescription>
+                Publish a new status report for this project to share with
+                clients.
+              </DialogDescription>
+            </DialogHeader>
             <ProjectUpdateForm
               error={createUpdate.error?.message ?? null}
               isPending={createUpdate.isPending}
+              onCancel={() => setIsAddOpen(false)}
               onSubmit={async (input) => {
                 await createUpdate.mutateAsync({
                   input,
                   projectId,
                 });
+                setIsAddOpen(false);
               }}
             />
-          )}
-        </div>
-      ) : null}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Update Dialog */}
+      {canManage && (
+        <Dialog
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingUpdate(null);
+            }
+          }}
+          open={Boolean(editingUpdate)}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Update</DialogTitle>
+              <DialogDescription>
+                Update the details or status accent of this status report.
+              </DialogDescription>
+            </DialogHeader>
+            {editingUpdate && (
+              <ProjectUpdateForm
+                error={updateUpdate.error?.message ?? null}
+                initialUpdate={editingUpdate}
+                isPending={updateUpdate.isPending}
+                onCancel={() => setEditingUpdate(null)}
+                onSubmit={async (input) => {
+                  await updateUpdate.mutateAsync({
+                    id: editingUpdate.id,
+                    input,
+                  });
+                  setEditingUpdate(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+
       <ProjectUpdateList
         canManage={canManage}
         onDelete={(update) => {
