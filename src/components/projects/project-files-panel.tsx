@@ -362,13 +362,13 @@ export function ProjectFilesPanel({
                         </a>
                         {canDelete ? (
                           <Button
-                            className="h-7 w-7 shrink-0 p-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-7 w-7 shrink-0 border border-border/40 bg-background p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                             disabled={pendingDeleteId === file.id}
                             onClick={() => {
                               handleDelete(file).catch(() => undefined);
                             }}
                             type="button"
-                            variant="destructive"
+                            variant="ghost"
                           >
                             <HugeiconsIcon icon={Delete02Icon} size={10} />
                             <span className="sr-only">

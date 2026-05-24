@@ -39,18 +39,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ProjectRegisterTable } from "@/components/projects/project-register-table";
 import {
   type Client,
   ensureClientsData,
@@ -69,8 +62,6 @@ import {
   useUpdateClientMutation,
 } from "@/lib/api";
 import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
-import { getDeadlineLabel } from "@/lib/insights";
-import { getProjectPathParams } from "@/lib/project-slugs";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/clients/$id")({
@@ -276,139 +267,7 @@ function ClientDossierWidget({
   );
 }
 
-function ClientProjectsTable({
-  client,
-  linkedProjects,
-  milestoneQueries,
-}: {
-  client: Client;
-  linkedProjects: Project[];
-  milestoneQueries: { data?: ProjectMilestone[]; isLoading: boolean }[];
-}) {
-  const navigate = useNavigate();
 
-  return (
-    <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
-      <h2 className="font-extrabold text-base text-foreground tracking-tight">
-        Linked Projects
-      </h2>
-      {linkedProjects.length === 0 ? (
-        <p className="text-muted-foreground text-sm italic">
-          No projects are linked to this client yet.
-        </p>
-      ) : (
-        <div className="overflow-x-auto pt-1">
-          <Table>
-            <TableHeader className="border-border/40 border-b">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="pr-4 pl-0 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Project
-                </TableHead>
-                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Status
-                </TableHead>
-                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Velocity
-                </TableHead>
-                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Budget
-                </TableHead>
-                <TableHead className="pr-0 pl-4 text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Deadline
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {linkedProjects.map((project, idx) => {
-                const { clientSlug, projectSlug } = getProjectPathParams(
-                  project,
-                  [client]
-                );
-
-                const projectMilestones = milestoneQueries[idx]?.data ?? [];
-                const completed = projectMilestones.filter(
-                  (m: ProjectMilestone) => m.status === "done"
-                ).length;
-                const total = projectMilestones.length;
-                let progress = 0;
-                if (total > 0) {
-                  progress = Math.round((completed / total) * 100);
-                } else if (project.status === "completed") {
-                  progress = 100;
-                } else if (project.status === "in_progress") {
-                  progress = 60;
-                } else {
-                  progress = 20; // planning
-                }
-
-                let progressColor = "bg-amber-500";
-                if (progress === 100) {
-                  progressColor = "bg-emerald-600";
-                } else if (progress >= 50) {
-                  progressColor = "bg-primary";
-                }
-
-                return (
-                  <TableRow
-                    className="group/row cursor-pointer border-border/25 transition-colors hover:bg-accent/50"
-                    key={project.id}
-                    onClick={() =>
-                      navigate({
-                        to: "/projects/$clientSlug/$projectSlug",
-                        params: { clientSlug, projectSlug },
-                      })
-                    }
-                  >
-                    <TableCell className="max-w-[240px] py-3.5 pr-4 pl-0">
-                      <div className="block truncate font-extrabold text-brand-heading text-sm group-hover/row:underline">
-                        {project.title}
-                      </div>
-                      {project.description && (
-                        <p className="mt-0.5 line-clamp-1 font-normal text-muted-foreground text-xs">
-                          {project.description}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5">
-                      <StatusBadge value={project.status} />
-                    </TableCell>
-                    <TableCell className="w-[180px] px-4 py-3.5">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-bold text-muted-foreground">
-                            {progress}%
-                          </span>
-                          <span className="font-medium text-muted-foreground/80">
-                            ({completed}/{total})
-                          </span>
-                        </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/80">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all duration-500 ease-out",
-                              progressColor
-                            )}
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 font-extrabold text-emerald-800 text-xs tabular-nums dark:text-emerald-400">
-                      ${project.budget.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="py-3.5 pr-0 pl-4 text-right font-bold text-muted-foreground text-xs">
-                      {getDeadlineLabel(project.deadline ?? "")}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function ClientDetailPage() {
   const { id } = Route.useParams();
@@ -642,11 +501,22 @@ function ClientDetailPage() {
           ) : null}
 
           {/* Linked Projects */}
-          <ClientProjectsTable
-            client={client}
-            linkedProjects={linkedProjects}
-            milestoneQueries={milestoneQueries}
-          />
+          <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] animate-slide-up-fade" style={{ animationDelay: "150ms" }}>
+            <h2 className="font-extrabold text-base text-foreground tracking-tight">
+              Linked Projects
+            </h2>
+            {linkedProjects.length === 0 ? (
+              <p className="text-muted-foreground text-sm italic">
+                No projects are linked to this client yet.
+              </p>
+            ) : (
+              <ProjectRegisterTable
+                clients={[client]}
+                projects={linkedProjects}
+                showActions={false}
+              />
+            )}
+          </div>
 
           {/* Pending Invites */}
           <PendingInvitesPanel
@@ -819,11 +689,11 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
           <AlertDialogTrigger
             render={
               <Button
-                className="flex h-8 items-center gap-1.5 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex h-8 items-center gap-1.5 border border-border/40 text-xs text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95 bg-background"
                 disabled={isResending || isRevoking}
                 size="sm"
                 type="button"
-                variant="destructive"
+                variant="ghost"
               >
                 <HugeiconsIcon icon={Delete02Icon} size={12} />
                 Revoke

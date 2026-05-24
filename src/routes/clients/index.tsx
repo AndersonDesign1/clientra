@@ -1,4 +1,4 @@
-import { FolderAddIcon } from "@hugeicons/core-free-icons";
+import { Delete02Icon, FolderAddIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDeferredValue, useState } from "react";
@@ -240,12 +240,13 @@ function getClientsContent({
                   client={client}
                   trigger={
                     <Button
-                      className="h-8 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                      size="sm"
+                      className="h-8 w-8 transition-transform duration-200 hover:scale-105 active:scale-95"
+                      size="icon"
                       type="button"
                       variant="destructive"
                     >
-                      Delete
+                      <HugeiconsIcon icon={Delete02Icon} size={14} />
+                      <span className="sr-only">Delete</span>
                     </Button>
                   }
                 />

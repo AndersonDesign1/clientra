@@ -265,10 +265,10 @@ function ProjectDetailActions({
         project={project}
         trigger={
           <Button
-            className="h-6 w-6 p-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="h-6 w-6 border border-border/40 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95 bg-background"
             size="icon-sm"
             type="button"
-            variant="destructive"
+            variant="ghost"
           >
             <HugeiconsIcon icon={Delete02Icon} size={11} strokeWidth={2.5} />
             <span className="sr-only">Delete</span>

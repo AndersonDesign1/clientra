@@ -148,7 +148,7 @@ export function UnifiedActivityList<T>({
                 )}
                 {item.onDelete && (
                   <Button
-                    className="h-6 w-6 border border-border/40 p-0 text-muted-foreground transition-transform duration-200 hover:scale-105 hover:bg-rose-50 hover:text-white active:scale-95"
+                    className="h-6 w-6 border border-border/40 bg-background p-0 text-muted-foreground transition-transform duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                     onClick={() => item.onDelete?.(item.rawItem)}
                     size="icon"
                     type="button"

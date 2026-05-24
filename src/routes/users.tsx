@@ -218,27 +218,27 @@ function UsersPage() {
       {visibleUsers.length > 0 ? (
         <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
           <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+            <TableHeader className="border-border/40 border-b">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pr-4 pl-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Name
                 </TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Email
                 </TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Role
                 </TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Verified
                 </TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Joined
                 </TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">
+                <TableHead className="px-4 font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Providers
                 </TableHead>
-                <TableHead className="text-right font-bold text-xs uppercase tracking-wider">
+                <TableHead className="pr-4 pl-4 text-right font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                   Actions
                 </TableHead>
               </TableRow>
@@ -255,15 +255,15 @@ function UsersPage() {
                     className="transition-colors hover:bg-muted/5"
                     key={user.id}
                   >
-                    <TableCell className="p-4">
+                    <TableCell className="py-3.5 pr-4 pl-4">
                       <div className="font-medium text-foreground">
                         {user.name}
                       </div>
                     </TableCell>
-                    <TableCell className="p-4 text-muted-foreground">
+                    <TableCell className="px-4 py-3.5 text-muted-foreground">
                       {user.email}
                     </TableCell>
-                    <TableCell className="p-4">
+                    <TableCell className="px-4 py-3.5">
                       <Select
                         disabled={isBusy || isCurrentUser}
                         onValueChange={(val) =>
@@ -290,7 +290,7 @@ function UsersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="p-4 font-medium text-xs">
+                    <TableCell className="px-4 py-3.5 font-medium text-xs">
                       {user.emailVerified ? (
                         <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-bold text-[9px] text-emerald-700 uppercase tracking-wider">
                           Verified
@@ -301,18 +301,18 @@ function UsersPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="p-4 text-muted-foreground text-xs">
+                    <TableCell className="px-4 py-3.5 text-muted-foreground text-xs">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="p-4 text-muted-foreground text-xs">
+                    <TableCell className="px-4 py-3.5 text-muted-foreground text-xs">
                       {user.providers.length > 0
                         ? user.providers.join(", ")
                         : "email"}
                     </TableCell>
-                    <TableCell className="p-4 text-right">
+                    <TableCell className="py-3.5 pr-4 pl-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Button
-                          className="h-8 w-8 border border-border/40 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
+                          className="h-8 w-8 transition-transform duration-200 hover:scale-105 active:scale-95"
                           disabled={isBusy || isCurrentUser}
                           onClick={() => {
                             dispatch({
@@ -320,8 +320,9 @@ function UsersPage() {
                               value: user,
                             });
                           }}
+                          size="icon"
                           type="button"
-                          variant="ghost"
+                          variant="destructive"
                         >
                           <HugeiconsIcon icon={Delete02Icon} size={14} />
                           <span className="sr-only">Delete</span>
