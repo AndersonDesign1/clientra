@@ -24,6 +24,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as ClientsIdRouteImport } from './routes/clients/$id'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
+import { Route as ApiSettingsRouteImport } from './routes/api/settings'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as ApiProjectsRouteImport } from './routes/api/projects'
 import { Route as ApiNotesRouteImport } from './routes/api/notes'
@@ -126,6 +127,11 @@ const ApiUsersRoute = ApiUsersRouteImport.update({
 const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
   id: '/api/uploadthing',
   path: '/api/uploadthing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSettingsRoute = ApiSettingsRouteImport.update({
+  id: '/api/settings',
+  path: '/api/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSearchRoute = ApiSearchRouteImport.update({
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRouteWithChildren
   '/api/search': typeof ApiSearchRoute
+  '/api/settings': typeof ApiSettingsRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
@@ -331,6 +338,7 @@ export interface FileRoutesByTo {
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRouteWithChildren
   '/api/search': typeof ApiSearchRoute
+  '/api/settings': typeof ApiSettingsRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
@@ -377,6 +385,7 @@ export interface FileRoutesById {
   '/api/notes': typeof ApiNotesRoute
   '/api/projects': typeof ApiProjectsRouteWithChildren
   '/api/search': typeof ApiSearchRoute
+  '/api/settings': typeof ApiSettingsRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/settings'
     | '/api/uploadthing'
     | '/api/users'
     | '/clients/$id'
@@ -469,6 +479,7 @@ export interface FileRouteTypes {
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/settings'
     | '/api/uploadthing'
     | '/api/users'
     | '/clients/$id'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/api/notes'
     | '/api/projects'
     | '/api/search'
+    | '/api/settings'
     | '/api/uploadthing'
     | '/api/users'
     | '/clients/$id'
@@ -560,6 +572,7 @@ export interface RootRouteChildren {
   ApiNotesRoute: typeof ApiNotesRoute
   ApiProjectsRoute: typeof ApiProjectsRouteWithChildren
   ApiSearchRoute: typeof ApiSearchRoute
+  ApiSettingsRoute: typeof ApiSettingsRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ClientsIdRoute: typeof ClientsIdRoute
@@ -686,6 +699,13 @@ declare module '@tanstack/react-router' {
       path: '/api/uploadthing'
       fullPath: '/api/uploadthing'
       preLoaderRoute: typeof ApiUploadthingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/settings': {
+      id: '/api/settings'
+      path: '/api/settings'
+      fullPath: '/api/settings'
+      preLoaderRoute: typeof ApiSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/search': {
@@ -983,6 +1003,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiNotesRoute: ApiNotesRoute,
   ApiProjectsRoute: ApiProjectsRouteWithChildren,
   ApiSearchRoute: ApiSearchRoute,
+  ApiSettingsRoute: ApiSettingsRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ClientsIdRoute: ClientsIdRoute,

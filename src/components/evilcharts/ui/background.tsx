@@ -24,7 +24,9 @@ export type BackgroundVariant =
 
 // ── Pattern Components ───────────────────────────────────────────────────────
 
-type PatternProps = { id: string };
+interface PatternProps {
+  id: string;
+}
 
 const DotsPattern = ({ id }: PatternProps) => (
   <pattern

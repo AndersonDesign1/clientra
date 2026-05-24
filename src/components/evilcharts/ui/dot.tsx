@@ -3,15 +3,15 @@ import { cn } from "@/lib/utils";
 
 export type DotVariant = "default" | "border" | "colored-border";
 
-type ChartDotProps = {
+interface ChartDotProps {
+  chartId: string;
+  className?: string;
   cx?: number;
   cy?: number;
   dataKey: string;
-  chartId: string;
-  className?: string;
   fillOpacity?: number;
   type?: DotVariant;
-};
+}
 
 const ChartDot = React.memo(function ChartDot({
   cx,
@@ -66,14 +66,14 @@ const ChartDot = React.memo(function ChartDot({
   }
 });
 
-type DotVariantProps = {
+interface DotVariantProps {
+  className?: string;
   cx: number;
   cy: number;
   dotId: string;
   fillOpacity: number;
   gradientUrl: string;
-  className?: string;
-};
+}
 
 const DefaultDot = React.memo(
   ({ cx, cy, dotId, fillOpacity, gradientUrl, className }: DotVariantProps) => {

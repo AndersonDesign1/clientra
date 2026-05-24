@@ -76,61 +76,61 @@ type NumericDataKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never;
 }[keyof T];
 
-type EvilBarChartProps<
+interface EvilBarChartProps<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
-> = {
-  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
-  data: TData[];
-  xDataKey?: keyof TData & string;
-  yDataKey?: keyof TData & string;
-  className?: string;
-  chartProps?: ChartProps;
-  xAxisProps?: XAxisProps;
-  yAxisProps?: YAxisProps;
-  defaultSelectedDataKey?: string | null;
-  barVariant?: BarVariant;
-  stackType?: StackType;
-  layout?: BarLayout;
-  barRadius?: number;
-  barGap?: number;
+> {
+  // Background
+  backgroundVariant?: BackgroundVariant;
   barCategoryGap?: number;
-  tickGap?: number;
-  legendVariant?: ChartLegendVariant;
-  // Hide Stuffs
-  hideTooltip?: boolean;
+  barGap?: number;
+  barRadius?: number;
+  barVariant?: BarVariant;
+  brushFormatLabel?: (value: unknown, index: number) => string;
+  brushHeight?: number;
+  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
+  chartProps?: ChartProps;
+  className?: string;
+  data: TData[];
+  defaultSelectedDataKey?: string | null;
+  // Buffer Bar - renders last data point bars as hatched/lines style
+  enableBufferBar?: boolean;
+  // Interactive Stuffs
+  enableHoverHighlight?: boolean;
+  // Glow Effects
+  glowingBars?: NumericDataKeys<TData>[];
   hideCartesianGrid?: boolean;
   hideLegend?: boolean;
+  // Hide Stuffs
+  hideTooltip?: boolean;
+  isLoading?: boolean;
+  layout?: BarLayout;
+  legendVariant?: ChartLegendVariant;
+  loadingBars?: number;
+  onBrushChange?: (range: EvilBrushRange) => void;
+  // Brush
+  showBrush?: boolean;
+  stackType?: StackType;
+  tickGap?: number;
+  tooltipDefaultIndex?: number;
   // Tooltip
   tooltipRoundness?: TooltipRoundness;
   tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-  // Interactive Stuffs
-  enableHoverHighlight?: boolean;
-  isLoading?: boolean;
-  loadingBars?: number;
-  // Glow Effects
-  glowingBars?: NumericDataKeys<TData>[];
-  // Brush
-  showBrush?: boolean;
-  brushHeight?: number;
-  brushFormatLabel?: (value: unknown, index: number) => string;
-  onBrushChange?: (range: EvilBrushRange) => void;
-  // Background
-  backgroundVariant?: BackgroundVariant;
-  // Buffer Bar - renders last data point bars as hatched/lines style
-  enableBufferBar?: boolean;
-};
+  xAxisProps?: XAxisProps;
+  xDataKey?: keyof TData & string;
+  yAxisProps?: YAxisProps;
+  yDataKey?: keyof TData & string;
+}
 
-type EvilBarChartClickable = {
+interface EvilBarChartClickable {
   isClickable: true;
   onSelectionChange?: (selectedDataKey: string | null) => void;
-};
+}
 
-type EvilBarChartNotClickable = {
+interface EvilBarChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilBarChartPropsWithCallback<
   TData extends Record<string, unknown>,
@@ -426,17 +426,17 @@ export function EvilBarChart<
 }
 
 // Types for custom bar shape
-type BarShapeProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
+interface BarShapeProps {
+  dataKey?: string;
   fill?: string;
   fillOpacity?: number;
-  dataKey?: string;
+  height?: number;
   index?: number;
+  width?: number;
+  x?: number;
+  y?: number;
   [key: string]: unknown;
-};
+}
 
 type CustomBarProps = {
   chartId: string;
@@ -582,7 +582,7 @@ const VerticalColorGradientStyle = ({
             ) : (
               Array.from({ length: colorsCount }, (_, index) => (
                 <stop
-                  key={index}
+                  key={`${dataKey}-${index}`}
                   offset={`${(index / (colorsCount - 1)) * 100}%`}
                   stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
                 />
@@ -632,10 +632,10 @@ const HatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by hatched stripes */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-hatched-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -687,10 +687,10 @@ const BufferHatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by buffer hatched stripes - lines only */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-buffer-hatched-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -750,7 +750,7 @@ const DuotonePatternStyle = ({
               ) : (
                 Array.from({ length: colorsCount }, (_, index) => (
                   <stop
-                    key={index}
+                    key={`${dataKey}-${index}`}
                     offset={`${(index / (colorsCount - 1)) * 100}%`}
                     stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
                   />
@@ -841,7 +841,7 @@ const DuotoneReversePatternStyle = ({
               ) : (
                 Array.from({ length: colorsCount }, (_, index) => (
                   <stop
-                    key={index}
+                    key={`${dataKey}-${index}`}
                     offset={`${(index / (colorsCount - 1)) * 100}%`}
                     stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
                   />
@@ -922,10 +922,10 @@ const GradientPatternStyle = ({
 
           {/* Pattern: gradient fill with vertical fade mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -975,10 +975,10 @@ const StrippedPatternStyle = ({
 
           {/* Pattern: gradient fill with stripped fade mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-stripped-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -1053,7 +1053,7 @@ const generateEasedGradientStops = (
  * Hook to manage loading data with pixel-perfect shimmer synchronization.
  */
 export function useLoadingData(isLoading: boolean, loadingBars = 12) {
-  const [loadingDataKey, setLoadingDataKey] = useState(false);
+  const [_loadingDataKey, setLoadingDataKey] = useState(false);
 
   const onShimmerExit = useCallback(() => {
     if (isLoading) {
@@ -1064,7 +1064,7 @@ export function useLoadingData(isLoading: boolean, loadingBars = 12) {
   const loadingData = useMemo(
     () => getLoadingData(loadingBars, 20, 80),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadingBars, loadingDataKey]
+    [loadingBars]
   );
 
   return { loadingData, onShimmerExit };
@@ -1171,8 +1171,14 @@ const getBarOpacity = ({
     selectedDataKey === null || selectedDataKey === dataKey;
 
   // Base opacity from click selection
-  const clickOpacity =
-    isClickable && selectedDataKey !== null ? (isSelectedDataKey ? 1 : 0.3) : 1;
+  // When no selection is active all bars are fully opaque.
+  // When a selection exists only the selected bar stays at full opacity.
+  let clickOpacity: number;
+  if (isClickable && selectedDataKey !== null) {
+    clickOpacity = isSelectedDataKey ? 1 : 0.3;
+  } else {
+    clickOpacity = 1;
+  }
 
   // If hover highlight is enabled and mouse is in chart
   if (enableHoverHighlight && isMouseInChart) {

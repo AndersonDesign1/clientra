@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+const logoUrl = "/logo.webp";
+
 export const Route = createFileRoute("/unauthorized")({
   component: UnauthorizedPage,
 });
@@ -8,7 +10,16 @@ function UnauthorizedPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-stone-50 p-6 text-zinc-950">
       <div className="w-full max-w-md border-slate-200 border-y py-6 text-center">
-        <p className="font-semibold text-lg tracking-tight">Clientra</p>
+        <div className="flex items-center justify-center gap-1.5">
+          <img
+            alt="Clientra Logo"
+            className="h-6 w-auto"
+            height={24}
+            src={logoUrl}
+            width={24}
+          />
+          <p className="font-semibold text-lg tracking-tight">Clientra</p>
+        </div>
         <h1 className="mt-3 font-semibold text-2xl">Unauthorized</h1>
         <p className="mt-2 text-slate-600 text-sm">
           Your account does not currently have access to that area of the app.

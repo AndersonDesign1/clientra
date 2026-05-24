@@ -71,57 +71,57 @@ type ValidateConfigKeys<TData, TConfig> = {
   [K in keyof TConfig]: K extends keyof TData ? ChartConfig[string] : never;
 };
 
-type BaseEvilAreaChartProps<
+interface BaseEvilAreaChartProps<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
-> = {
-  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
-  data: TData[];
-  xDataKey?: keyof TData & string;
-  yDataKey?: keyof TData & string;
-  className?: string;
-  chartProps?: ChartProps;
-  xAxisProps?: XAxisProps;
-  yAxisProps?: YAxisProps;
-  defaultSelectedDataKey?: string | null;
-  curveType?: AreaType;
-  areaVariant?: AreaVariant;
-  strokeVariant?: StrokeVariant;
-  stackType?: StackType;
-  dotVariant?: DotVariant;
+> {
   activeDotVariant?: DotVariant;
-  legendVariant?: ChartLegendVariant;
+  areaVariant?: AreaVariant;
+  // Background
+  backgroundVariant?: BackgroundVariant;
+  brushFormatLabel?: (value: unknown, index: number) => string;
+  brushHeight?: number;
+  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
+  chartProps?: ChartProps;
+  className?: string;
   connectNulls?: boolean;
-  tickGap?: number;
+  curveType?: AreaType;
+  data: TData[];
+  defaultSelectedDataKey?: string | null;
+  dotVariant?: DotVariant;
+  hideCartesianGrid?: boolean;
+  hideCursorLine?: boolean;
+  hideLegend?: boolean;
   // Hide Stuffs
   hideTooltip?: boolean;
-  hideCartesianGrid?: boolean;
-  hideLegend?: boolean;
-  hideCursorLine?: boolean;
+  isLoading?: boolean;
+  legendVariant?: ChartLegendVariant;
+  loadingPoints?: number;
+  onBrushChange?: (range: EvilBrushRange) => void;
+  // Brush
+  showBrush?: boolean;
+  stackType?: StackType;
+  strokeVariant?: StrokeVariant;
+  tickGap?: number;
+  tooltipDefaultIndex?: number;
   // Tooltip
   tooltipRoundness?: TooltipRoundness;
   tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-  isLoading?: boolean;
-  loadingPoints?: number;
-  // Brush
-  showBrush?: boolean;
-  brushHeight?: number;
-  brushFormatLabel?: (value: unknown, index: number) => string;
-  onBrushChange?: (range: EvilBrushRange) => void;
-  // Background
-  backgroundVariant?: BackgroundVariant;
-};
+  xAxisProps?: XAxisProps;
+  xDataKey?: keyof TData & string;
+  yAxisProps?: YAxisProps;
+  yDataKey?: keyof TData & string;
+}
 
-type EvilAreaChartClickable = {
+interface EvilAreaChartClickable {
   isClickable: true;
   onSelectionChange?: (selectedDataKey: string | null) => void;
-};
+}
 
-type EvilAreaChartNotClickable = {
+interface EvilAreaChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilAreaChartProps<
   TData extends Record<string, unknown>,
@@ -360,11 +360,10 @@ export function EvilAreaChart<
                 stackId={isStacked ? "evil-stacked" : undefined}
                 stroke={`url(#${chartId}-colors-${dataKey})`}
                 strokeDasharray={
-                  strokeVariant === "dashed"
+                  strokeVariant === "dashed" ||
+                  strokeVariant === "animated-dashed"
                     ? "3 3"
-                    : strokeVariant === "animated-dashed"
-                      ? "3 3"
-                      : undefined
+                    : undefined
                 }
                 strokeOpacity={_opacity.stroke}
                 strokeWidth={STROKE_WIDTH}
@@ -545,11 +544,11 @@ const HorizontalColorGradientStyle = ({
             ) : (
               // Multiple colors: distribute evenly
               // Fallback to first color if index doesn't exist in current theme
-              Array.from({ length: colorsCount }, (_, index) => (
+              Array.from({ length: colorsCount }, (_, _idx) => (
                 <stop
-                  key={index}
-                  offset={`${(index / (colorsCount - 1)) * 100}%`}
-                  stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
+                  key={`${chartId}-area-color-${dataKey}-${_idx}`}
+                  offset={`${(_idx / (colorsCount - 1)) * 100}%`}
+                  stopColor={`var(--color-${dataKey}-${_idx}, var(--color-${dataKey}-0))`}
                 />
               ))
             )}
@@ -578,7 +577,7 @@ const LinearGradientStyle = ({
         y1="0"
         y2="1"
       >
-        <stop offset="0%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="0%" stopColor="white" stopOpacity={0.4} />
         <stop offset="100%" stopColor="white" stopOpacity={0} />
       </linearGradient>
 
@@ -595,10 +594,10 @@ const LinearGradientStyle = ({
 
           {/* Pattern combining shared color gradient + vertical mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -632,7 +631,7 @@ const ReverseGradientStyle = ({
         y2="1"
       >
         <stop offset="0%" stopColor="white" stopOpacity={0} />
-        <stop offset="100%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="100%" stopColor="white" stopOpacity={0.4} />
       </linearGradient>
 
       {Object.keys(chartConfig).map((dataKey) => (
@@ -648,10 +647,10 @@ const ReverseGradientStyle = ({
 
           {/* Pattern: horizontal gradient + reverse vertical mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-gradient-reverse-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -701,10 +700,10 @@ const LinesPatternStyle = ({
 
           {/* Pattern: gradient fill masked by diagonal lines */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-lines-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -737,8 +736,8 @@ const SolidPatternStyle = ({
         y1="0"
         y2="1"
       >
-        <stop offset="0%" stopColor="white" stopOpacity={0.1} />
-        <stop offset="100%" stopColor="white" stopOpacity={0.1} />
+        <stop offset="0%" stopColor="white" stopOpacity={0.4} />
+        <stop offset="100%" stopColor="white" stopOpacity={0.4} />
       </linearGradient>
 
       {Object.keys(chartConfig).map((dataKey) => (
@@ -754,10 +753,10 @@ const SolidPatternStyle = ({
 
           {/* Pattern: gradient fill with uniform opacity mask */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-solid-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -808,10 +807,10 @@ const DottedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by dots */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-dotted-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -875,10 +874,10 @@ const UnselectedDiagonalPatternStyle = ({
 
             {/* Pattern: gradient fill masked by diagonal lines */}
             <pattern
-              height="100%"
+              height="1"
               id={`${chartId}-unselected-${dataKey}`}
-              patternUnits="userSpaceOnUse"
-              width="100%"
+              patternUnits="objectBoundingBox"
+              width="1"
             >
               <rect
                 fill={`url(#${chartId}-colors-${dataKey})`}
@@ -946,10 +945,10 @@ const HatchedPatternStyle = ({
 
           {/* Pattern: gradient fill masked by hatched stripes */}
           <pattern
-            height="100%"
+            height="1"
             id={`${chartId}-hatched-pattern-${dataKey}`}
-            patternUnits="userSpaceOnUse"
-            width="100%"
+            patternUnits="objectBoundingBox"
+            width="1"
           >
             <rect
               fill={`url(#${chartId}-colors-${dataKey})`}
@@ -994,7 +993,7 @@ const generateEasedGradientStops = (
  * while the invisible portion continues animating.
  */
 export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
-  const [loadingDataKey, setLoadingDataKey] = useState(false);
+  const [_loadingDataKey, setLoadingDataKey] = useState(false);
 
   // Callback fired by motion.dev when shimmer exits visible area
   const onShimmerExit = useCallback(() => {
@@ -1004,10 +1003,14 @@ export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
   }, [isLoading]);
 
   const loadingData = useMemo(
-    () => getLoadingData(loadingPoints),
+    () => {
+      if (_loadingDataKey) {
+        return getLoadingData(loadingPoints);
+      }
+      return getLoadingData(loadingPoints);
+    },
     // loadingDataKey toggle triggers re-computation when shimmer exits
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadingPoints, loadingDataKey]
+    [loadingPoints, _loadingDataKey]
   );
 
   return { loadingData, onShimmerExit };

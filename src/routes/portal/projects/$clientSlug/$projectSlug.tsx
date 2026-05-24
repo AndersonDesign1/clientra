@@ -2,7 +2,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireClientSession } from "@/auth/guards";
 import { PortalProjectDetailPendingPage } from "@/components/common/route-pending";
-import { ensureClientsData, ensureProjectsData } from "@/lib/api";
+import {
+  ensureClientsData,
+  ensureProjectsData,
+  ensureUsersData,
+} from "@/lib/api";
 import { PortalProjectDetailPage } from "@/routes/portal/projects/$id";
 
 export const Route = createFileRoute(
@@ -13,6 +17,7 @@ export const Route = createFileRoute(
     Promise.all([
       ensureClientsData(context.queryClient),
       ensureProjectsData(context.queryClient),
+      ensureUsersData(context.queryClient),
     ]),
   pendingComponent: PortalProjectDetailPendingPage,
   component: PortalProjectDetailRoute,

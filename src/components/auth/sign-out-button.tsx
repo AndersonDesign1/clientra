@@ -5,6 +5,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 export function SignOutButton({
   className,
@@ -25,7 +26,10 @@ export function SignOutButton({
 
   return (
     <Button
-      className={className}
+      className={cn(
+        "bg-card font-semibold shadow-xs hover:bg-accent hover:text-accent-foreground",
+        className
+      )}
       disabled={isPending}
       onClick={async () => {
         setIsPending(true);

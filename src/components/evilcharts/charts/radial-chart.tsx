@@ -46,55 +46,55 @@ type RadialBarProps = ComponentProps<typeof RadialBar>;
 
 type RadialVariant = "full" | "semi";
 
-type EvilRadialChartProps<TData extends Record<string, unknown>> = {
+interface EvilRadialChartProps<TData extends Record<string, unknown>> {
+  // Background
+  backgroundVariant?: BackgroundVariant;
+  barSize?: number;
+  chartConfig: ChartConfig;
+  chartProps?: ChartProps;
+  className?: string;
+  cornerRadius?: number;
   // Data
   data: TData[];
   dataKey: keyof TData & string;
-  nameKey: keyof TData & string;
-  chartConfig: ChartConfig;
-  className?: string;
-  chartProps?: ChartProps;
-  radialBarProps?: Omit<RadialBarProps, "dataKey">;
-
-  // Variant
-  variant?: RadialVariant;
-
-  // Radial Shape
-  innerRadius?: number | string;
-  outerRadius?: number | string;
-  cornerRadius?: number;
-  barSize?: number;
-
-  // Hide Stuffs
-  hideTooltip?: boolean;
-  hideLegend?: boolean;
-  hideBackground?: boolean;
-  legendVariant?: ChartLegendVariant;
-  // Tooltip
-  tooltipRoundness?: TooltipRoundness;
-  tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-
-  // Interactive Stuffs
-  isLoading?: boolean;
 
   // Glow Effects
   glowingBars?: string[];
-  // Background
-  backgroundVariant?: BackgroundVariant;
-};
+  hideBackground?: boolean;
+  hideLegend?: boolean;
 
-type EvilRadialChartClickable = {
+  // Hide Stuffs
+  hideTooltip?: boolean;
+
+  // Radial Shape
+  innerRadius?: number | string;
+
+  // Interactive Stuffs
+  isLoading?: boolean;
+  legendVariant?: ChartLegendVariant;
+  nameKey: keyof TData & string;
+  outerRadius?: number | string;
+  radialBarProps?: Omit<RadialBarProps, "dataKey">;
+  tooltipDefaultIndex?: number;
+  // Tooltip
+  tooltipRoundness?: TooltipRoundness;
+  tooltipVariant?: TooltipVariant;
+
+  // Variant
+  variant?: RadialVariant;
+}
+
+interface EvilRadialChartClickable {
   isClickable: true;
   onSelectionChange?: (
     selection: { dataKey: string; value: number } | null
   ) => void;
-};
+}
 
-type EvilRadialChartNotClickable = {
+interface EvilRadialChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilRadialChartPropsWithCallback<TData extends Record<string, unknown>> =
   EvilRadialChartProps<TData> &
@@ -296,7 +296,6 @@ function getVariantConfig(variant: RadialVariant) {
         cx: "50%",
         cy: "70%",
       };
-    case "full":
     default:
       return {
         startAngle: 90,
@@ -317,7 +316,7 @@ function generateLoadingData() {
 
 // Hook to animate loading data at intervals
 function useLoadingData(isLoading: boolean) {
-  const [dataKey, setDataKey] = useState(0);
+  const [_dataKey, setDataKey] = useState(0);
 
   useEffect(() => {
     if (!isLoading) {
@@ -332,8 +331,12 @@ function useLoadingData(isLoading: boolean) {
   }, [isLoading]);
 
   // Regenerate data when dataKey changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadingData = useMemo(() => generateLoadingData(), [dataKey]);
+  const loadingData = useMemo(() => {
+    if (_dataKey > 0) {
+      return generateLoadingData();
+    }
+    return generateLoadingData();
+  }, [_dataKey]);
 
   return loadingData;
 }
@@ -368,7 +371,7 @@ const ColorGradientStyle = ({
             ) : (
               Array.from({ length: colorsCount }, (_, index) => (
                 <stop
-                  key={index}
+                  key={`${dataKey}-${index}`}
                   offset={`${(index / (colorsCount - 1)) * 100}%`}
                   stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
                 />

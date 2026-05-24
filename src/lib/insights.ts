@@ -55,6 +55,7 @@ export function getBudgetByStatusData(projects: Project[]) {
       .filter((project) => project.status === status)
       .reduce((total, project) => total + project.budget, 0),
     status: formatStatusText(status),
+    count: projects.filter((project) => project.status === status).length,
   }));
 }
 
@@ -111,6 +112,53 @@ export function getActivityTypeData(activity: DashboardActivityEvent[]) {
     label,
     total: activity.filter((event) => event.type === type).length,
   }));
+}
+
+/** Build Sankey nodes + links from activity events: Activity Type → Project */
+export function getActivitySankeyData(activity: DashboardActivityEvent[]) {
+  const typeLabels: Record<DashboardActivityEvent["type"], string> = {
+    client_created: "Clients",
+    comment_added: "Comments",
+    file_uploaded: "Files",
+    project_created: "Projects",
+  };
+
+  // Collect unique type and project names
+  const typeNodes = new Set<string>();
+  const projectNodes = new Set<string>();
+  const linkMap = new Map<string, number>();
+
+  for (const event of activity) {
+    const typeName = typeLabels[event.type];
+    typeNodes.add(typeName);
+
+    // client_created has no project — link to a generic "Onboarding" node
+    const projectName =
+      "projectTitle" in event ? event.projectTitle : "Onboarding";
+    projectNodes.add(projectName);
+
+    const key = `${typeName}→${projectName}`;
+    linkMap.set(key, (linkMap.get(key) ?? 0) + 1);
+  }
+
+  // Build nodes array: types first, then projects
+  const nodes = [
+    ...[...typeNodes].map((name) => ({ name })),
+    ...[...projectNodes].map((name) => ({ name })),
+  ];
+
+  // Build links using indices
+  const nodeIndex = new Map(nodes.map((n, i) => [n.name, i]));
+  const links = [...linkMap.entries()].map(([key, value]) => {
+    const [source, target] = key.split("→");
+    return {
+      source: nodeIndex.get(source) ?? 0,
+      target: nodeIndex.get(target) ?? 0,
+      value,
+    };
+  });
+
+  return { nodes, links };
 }
 
 export function getNextDeadline(projects: Project[]) {

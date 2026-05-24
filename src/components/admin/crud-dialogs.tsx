@@ -244,6 +244,7 @@ export function ClientFormDialog({
                 <Field>
                   <FieldLabel htmlFor="client-name">Contact name</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="client-name"
                     onChange={(event) =>
                       setState((current) => ({
@@ -258,6 +259,7 @@ export function ClientFormDialog({
                 <Field>
                   <FieldLabel htmlFor="client-company">Company</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="client-company"
                     onChange={(event) =>
                       setState((current) => ({
@@ -274,6 +276,7 @@ export function ClientFormDialog({
                 <Field>
                   <FieldLabel htmlFor="client-email">Email</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="client-email"
                     onChange={(event) =>
                       setState((current) => ({
@@ -289,6 +292,7 @@ export function ClientFormDialog({
                 <Field>
                   <FieldLabel htmlFor="client-phone">Phone</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="client-phone"
                     onChange={(event) =>
                       setState((current) => ({
@@ -304,6 +308,7 @@ export function ClientFormDialog({
                 <Field>
                   <FieldLabel htmlFor="client-website">Website</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="client-website"
                     onChange={(event) =>
                       setState((current) => ({
@@ -327,7 +332,7 @@ export function ClientFormDialog({
                     }
                     value={state.status}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full transition-all focus-visible:border-primary focus-visible:ring-primary/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -345,6 +350,7 @@ export function ClientFormDialog({
               <Field>
                 <FieldLabel htmlFor="client-tags">Tags</FieldLabel>
                 <Input
+                  className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                   id="client-tags"
                   onChange={(event) =>
                     setState((current) => ({
@@ -360,6 +366,7 @@ export function ClientFormDialog({
               <Field>
                 <FieldLabel htmlFor="client-notes">Notes</FieldLabel>
                 <Textarea
+                  className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                   id="client-notes"
                   onChange={(event) =>
                     setState((current) => ({
@@ -381,7 +388,11 @@ export function ClientFormDialog({
               >
                 Cancel
               </Button>
-              <Button disabled={activeMutation.isPending} type="submit">
+              <Button
+                className="transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                disabled={activeMutation.isPending}
+                type="submit"
+              >
                 {activeMutation.isPending ? "Saving..." : "Save client"}
               </Button>
             </DialogFooter>
@@ -526,6 +537,7 @@ export function ProjectFormDialog({
               <Field>
                 <FieldLabel htmlFor="project-title">Project name</FieldLabel>
                 <Input
+                  className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                   id="project-title"
                   onChange={(event) =>
                     setState((current) => ({
@@ -550,7 +562,7 @@ export function ProjectFormDialog({
                     }
                     value={state.status}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full transition-all focus-visible:border-primary focus-visible:ring-primary/20">
                       <SelectValue>
                         {getProjectStatusLabel(state.status) ??
                           formatStatusLabel(state.status)}
@@ -570,6 +582,7 @@ export function ProjectFormDialog({
                 <Field>
                   <FieldLabel htmlFor="project-budget">Budget</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="project-budget"
                     min="0"
                     onChange={(event) =>
@@ -587,6 +600,7 @@ export function ProjectFormDialog({
                 <Field>
                   <FieldLabel htmlFor="project-deadline">Deadline</FieldLabel>
                   <Input
+                    className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                     id="project-deadline"
                     onChange={(event) =>
                       setState((current) => ({
@@ -604,6 +618,7 @@ export function ProjectFormDialog({
                   Description
                 </FieldLabel>
                 <Textarea
+                  className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
                   id="project-description"
                   onChange={(event) =>
                     setState((current) => ({
@@ -626,6 +641,7 @@ export function ProjectFormDialog({
                 Cancel
               </Button>
               <Button
+                className="transition-transform hover:scale-[1.01] active:scale-[0.99]"
                 disabled={activeMutation.isPending || !canSubmit}
                 type="submit"
               >

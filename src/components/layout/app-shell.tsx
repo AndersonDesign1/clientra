@@ -10,7 +10,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
+const logoUrl = "/logo.webp";
+
 const adminNav = [
   {
     href: "/dashboard",
@@ -62,27 +64,30 @@ const adminNav = [
 ];
 
 function SidebarNav() {
-  const { open } = useSidebar();
+  const { open, isMobile } = useSidebar();
+  const showText = isMobile || open;
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 overflow-hidden py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary font-bold text-primary-foreground shadow-sm">
-            C
-          </div>
-          {open && (
-            <div className="min-w-0 transition-opacity duration-200">
-              <p className="truncate font-bold text-foreground text-lg tracking-tight">
-                Clientra
-              </p>
-            </div>
+      <SidebarHeader className="px-4 py-6">
+        <div className="flex items-center gap-2">
+          <img
+            alt="Clientra Logo"
+            className="h-8 w-auto shrink-0"
+            height={32}
+            src={logoUrl}
+            width={32}
+          />
+          {showText && (
+            <span className="truncate font-semibold text-foreground text-lg tracking-tight transition-opacity duration-200">
+              Clientra
+            </span>
           )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-medium text-muted-foreground/80 text-xs">
+          <SidebarGroupLabel className="font-medium text-[10px] text-muted-foreground/50 uppercase tracking-wider">
             General
           </SidebarGroupLabel>
           <SidebarMenu>
@@ -92,12 +97,13 @@ function SidebarNav() {
                   {({ isActive }) => (
                     <SidebarMenuButton
                       active={isActive}
+                      aria-label={showText ? undefined : item.label}
                       className={
                         isActive
                           ? "bg-accent font-medium text-accent-foreground"
                           : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                       }
-                      title={open ? undefined : item.label}
+                      title={showText ? undefined : item.label}
                     >
                       <HugeiconsIcon
                         className="shrink-0"
@@ -105,7 +111,7 @@ function SidebarNav() {
                         size={18}
                         strokeWidth={isActive ? 2 : 1.5}
                       />
-                      {open && <span>{item.label}</span>}
+                      {showText && <span>{item.label}</span>}
                     </SidebarMenuButton>
                   )}
                 </Link>
@@ -122,12 +128,13 @@ function SidebarNav() {
                 {({ isActive }) => (
                   <SidebarMenuButton
                     active={isActive}
+                    aria-label={showText ? undefined : "Settings"}
                     className={
                       isActive
                         ? "bg-accent font-medium text-accent-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }
-                    title={open ? undefined : "Settings"}
+                    title={showText ? undefined : "Settings"}
                   >
                     <HugeiconsIcon
                       className="shrink-0"
@@ -135,7 +142,7 @@ function SidebarNav() {
                       size={18}
                       strokeWidth={isActive ? 2 : 1.5}
                     />
-                    {open && <span>Settings</span>}
+                    {showText && <span>Settings</span>}
                   </SidebarMenuButton>
                 )}
               </Link>
@@ -143,8 +150,9 @@ function SidebarNav() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 aria-disabled
+                aria-label={showText ? undefined : "Help & Support"}
                 className="pointer-events-none cursor-default text-muted-foreground/70"
-                title={open ? undefined : "Help & Support (coming soon)"}
+                title={showText ? undefined : "Help & Support (coming soon)"}
               >
                 <HugeiconsIcon
                   className="shrink-0"
@@ -152,7 +160,7 @@ function SidebarNav() {
                   size={18}
                   strokeWidth={1.5}
                 />
-                {open && <span>Help & Support</span>}
+                {showText && <span>Help & Support</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -165,7 +173,7 @@ function SidebarNav() {
 function NavUser() {
   const session = authClient.useSession();
   const user = session.data?.user as
-    | { email?: string; name?: string; role?: string }
+    | { email?: string; name?: string; role?: string; image?: string }
     | undefined;
 
   const router = useRouter();
@@ -187,19 +195,24 @@ function NavUser() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="relative ml-auto h-8 w-8 rounded-full"
-          variant="ghost"
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-emerald-100 font-medium text-emerald-800 text-xs">
-              {user.name?.[0]?.toUpperCase() ?? "U"}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            className="relative ml-auto h-8 w-8 rounded-full"
+            variant="ghost"
+          />
+        }
+      >
+        <Avatar className="h-8 w-8">
+          {user.image && (
+            <AvatarImage alt={user.name ?? "User avatar"} src={user.image} />
+          )}
+          <AvatarFallback className="border border-border bg-card font-medium text-card-foreground text-xs shadow-xs">
+            {user.name?.[0]?.toUpperCase() ?? "U"}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56" forceMount>
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
@@ -232,30 +245,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <NavUser />
         </header>
-        {/* Mobile nav fallback */}
-        <nav className="flex flex-wrap gap-2 border-b px-4 py-2 md:hidden">
-          {adminNav.map((item) => (
-            <Link
-              activeProps={{
-                className: "bg-accent text-accent-foreground",
-              }}
-              className="rounded-md px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              key={item.href}
-              to={item.href}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-            className="rounded-md px-2 py-1 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            to="/settings"
-          >
-            Settings
-          </Link>
-        </nav>
         <div className="mx-auto max-w-7xl px-5 py-6 md:px-8">{children}</div>
       </SidebarInset>
     </SidebarProvider>

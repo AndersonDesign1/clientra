@@ -126,17 +126,28 @@ export function LoginForm() {
       asideDescription="Sign in to manage active engagements, track project delivery, and keep clients in a polished, secure workspace."
       asideTitle="Bring your client workspace back into focus."
     >
-      <div className="mx-auto flex w-full max-w-sm flex-col gap-8 lg:mx-0">
-        <div className="text-center lg:text-left">
-          <h2 className="font-bold text-3xl tracking-tight">Welcome back</h2>
+      <div className="mx-auto flex w-full max-w-sm flex-col gap-6 font-sans lg:mx-0">
+        <div
+          className="animate-slide-up-fade text-center lg:text-left"
+          style={{ animationDelay: "50ms" }}
+        >
+          <h2 className="font-bold text-3xl text-[#08361f] tracking-tight dark:text-white">
+            Welcome back
+          </h2>
+          <p className="mt-1.5 text-muted-foreground text-xs">
+            Enter your details below to access your workspace
+          </p>
         </div>
 
         <form onSubmit={handleEmailSignIn}>
           <FieldGroup>
-            <Field>
-              <div className="grid grid-cols-2 gap-4">
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "100ms" }}
+            >
+              <div className="grid grid-cols-2 gap-3.5">
                 <Button
-                  className="relative h-10 w-full px-4 font-medium text-sm"
+                  className="relative h-10 w-full border-border bg-card px-4 font-medium text-sm shadow-xs transition-transform duration-100 hover:scale-[1.01] hover:bg-accent hover:text-accent-foreground active:scale-[0.99]"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("google");
@@ -149,13 +160,13 @@ export function LoginForm() {
                     ? "Connecting..."
                     : "Google"}
                   {lastMethod === "google" && (
-                    <span className="absolute -top-2 -right-2 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[10px] text-emerald-700 leading-none">
+                    <span className="absolute -top-2 -right-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[9px] text-emerald-700 leading-none">
                       Last used
                     </span>
                   )}
                 </Button>
                 <Button
-                  className="relative h-10 w-full px-4 font-medium text-sm"
+                  className="relative h-10 w-full border-border bg-card px-4 font-medium text-sm shadow-xs transition-transform duration-100 hover:scale-[1.01] hover:bg-accent hover:text-accent-foreground active:scale-[0.99]"
                   disabled={state.activeProvider !== null}
                   onClick={() => {
                     handleSocialSignIn("github");
@@ -168,26 +179,37 @@ export function LoginForm() {
                     ? "Connecting..."
                     : "GitHub"}
                   {lastMethod === "github" && (
-                    <span className="absolute -top-2 -right-2 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[10px] text-emerald-700 leading-none">
+                    <span className="absolute -top-2 -right-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[9px] text-emerald-700 leading-none">
                       Last used
                     </span>
                   )}
                 </Button>
               </div>
             </Field>
-            <FieldSeparator>
+            <FieldSeparator
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "150ms" }}
+            >
               Or continue with email
               {lastMethod === "email" && (
-                <span className="ml-2 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[10px] text-emerald-700 leading-none">
+                <span className="ml-2 rounded-full bg-emerald-100 px-1.5 py-0.5 font-medium text-[9px] text-emerald-700 leading-none">
                   Last used
                 </span>
               )}
             </FieldSeparator>
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "200ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="email"
+              >
+                Email
+              </FieldLabel>
               <Input
                 autoComplete="email"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="email"
                 onChange={(event) =>
                   dispatch({ type: "set-email", value: event.target.value })
@@ -198,11 +220,19 @@ export function LoginForm() {
                 value={state.email}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "250ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="password"
+              >
+                Password
+              </FieldLabel>
               <Input
                 autoComplete="current-password"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="password"
                 onChange={(event) =>
                   dispatch({
@@ -216,18 +246,28 @@ export function LoginForm() {
                 value={state.password}
               />
             </Field>
-            <FieldError>{state.error}</FieldError>
-            <Field>
+            {state.error && (
+              <FieldError className="animate-slide-up-fade">
+                {state.error}
+              </FieldError>
+            )}
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "300ms" }}
+            >
               <Button
-                className="mt-2 h-10 w-full px-4 text-sm"
+                className="mt-2 h-10 w-full bg-primary px-4 font-semibold text-primary-foreground text-sm shadow-sm transition-all duration-150 hover:bg-primary/90 active:scale-[0.985]"
                 disabled={state.isSubmitting || state.activeProvider !== null}
                 type="submit"
               >
                 {state.isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
-              <FieldDescription className="mt-2 text-center text-slate-500">
+              <FieldDescription className="mt-3 text-center text-slate-500">
                 Need admin access?{" "}
-                <Link className="font-medium text-slate-900" to="/signup">
+                <Link
+                  className="font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary dark:text-white"
+                  to="/signup"
+                >
                   Create an admin account
                 </Link>
               </FieldDescription>
@@ -235,7 +275,10 @@ export function LoginForm() {
           </FieldGroup>
         </form>
 
-        <FieldDescription className="text-center text-slate-500">
+        <FieldDescription
+          className="animate-slide-up-fade text-center text-slate-500"
+          style={{ animationDelay: "350ms" }}
+        >
           <ClientAccessDialog />
         </FieldDescription>
       </div>

@@ -1,12 +1,15 @@
-import { defineConfig, mergeConfig } from "vitest/config";
-import viteConfig from "./vite.config";
+import tailwindcss from "@tailwindcss/vite";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
 
-export default mergeConfig(
-  viteConfig,
-  defineConfig({
-    test: {
-      pool: "forks",
-      teardownTimeout: 30_000,
-    },
-  })
-);
+export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
+  plugins: [tailwindcss(), viteReact()],
+  test: {
+    pool: "forks",
+    teardownTimeout: 30_000,
+    setupFiles: ["./vitest.setup.ts"],
+  },
+});

@@ -86,7 +86,9 @@ function renderInteractiveCollaborationView() {
         collaboration={collaboration}
         content={content}
         formError={formError}
+        isAddOpen={true}
         isPosting={false}
+        onAddOpenChange={() => undefined}
         onContentChange={(value) => {
           content = value;
           rerenderView();
@@ -112,7 +114,9 @@ describe("ProjectCollaborationView", () => {
         collaboration={initialCollaboration}
         content=""
         formError={null}
+        isAddOpen={false}
         isPosting={false}
+        onAddOpenChange={() => undefined}
         onContentChange={() => undefined}
         onSubmit={() => undefined}
       />

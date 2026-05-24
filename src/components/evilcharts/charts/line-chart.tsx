@@ -69,60 +69,60 @@ type NumericDataKeys<T> = {
   [K in keyof T]: T[K] extends number ? K : never;
 }[keyof T];
 
-type EvilLineChartProps<
+interface EvilLineChartProps<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
-> = {
-  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
-  data: TData[];
-  xDataKey?: keyof TData & string;
-  yDataKey?: keyof TData & string;
-  className?: string;
-  chartProps?: ChartProps;
-  xAxisProps?: XAxisProps;
-  yAxisProps?: YAxisProps;
-  defaultSelectedDataKey?: string | null;
-  curveType?: LineType;
-  strokeVariant?: StrokeVariant;
-  dotVariant?: DotVariant;
+> {
   activeDotVariant?: DotVariant;
-  legendVariant?: ChartLegendVariant;
+  // Background
+  backgroundVariant?: BackgroundVariant;
+  brushFormatLabel?: (value: unknown, index: number) => string;
+  brushHeight?: number;
+  chartConfig: TConfig & ValidateConfigKeys<TData, TConfig>;
+  chartProps?: ChartProps;
+  className?: string;
   connectNulls?: boolean;
-  tickGap?: number;
+  curveType?: LineType;
+  data: TData[];
+  defaultSelectedDataKey?: string | null;
+  dotVariant?: DotVariant;
+  // Buffer Line - renders last segment as dashed/dotted
+  enableBufferLine?: boolean;
+  // Glow Effect
+  glowingLines?: NumericDataKeys<TData>[];
+  hideCartesianGrid?: boolean;
+  hideCursorLine?: boolean;
+  hideLegend?: boolean;
   // Hide Stuffs
   hideTooltip?: boolean;
-  hideCartesianGrid?: boolean;
-  hideLegend?: boolean;
-  hideCursorLine?: boolean;
+  // Interactive Stuffs
+  isLoading?: boolean;
+  legendVariant?: ChartLegendVariant;
+  loadingPoints?: number;
+  onBrushChange?: (range: EvilBrushRange) => void;
+  // Brush
+  showBrush?: boolean;
+  strokeVariant?: StrokeVariant;
+  tickGap?: number;
+  tooltipDefaultIndex?: number;
   // Tooltip
   tooltipRoundness?: TooltipRoundness;
   tooltipVariant?: TooltipVariant;
-  tooltipDefaultIndex?: number;
-  // Interactive Stuffs
-  isLoading?: boolean;
-  loadingPoints?: number;
-  // Glow Effect
-  glowingLines?: NumericDataKeys<TData>[];
-  // Brush
-  showBrush?: boolean;
-  brushHeight?: number;
-  brushFormatLabel?: (value: unknown, index: number) => string;
-  onBrushChange?: (range: EvilBrushRange) => void;
-  // Background
-  backgroundVariant?: BackgroundVariant;
-  // Buffer Line - renders last segment as dashed/dotted
-  enableBufferLine?: boolean;
-};
+  xAxisProps?: XAxisProps;
+  xDataKey?: keyof TData & string;
+  yAxisProps?: YAxisProps;
+  yDataKey?: keyof TData & string;
+}
 
-type EvilLineChartClickable = {
+interface EvilLineChartClickable {
   isClickable: true;
   onSelectionChange?: (selectedDataKey: string | null) => void;
-};
+}
 
-type EvilLineChartNotClickable = {
+interface EvilLineChartNotClickable {
   isClickable?: false;
   onSelectionChange?: never;
-};
+}
 
 type EvilLineChartPropsWithCallback<
   TData extends Record<string, unknown>,
@@ -480,7 +480,10 @@ const bufferLineShape = (props: CurveProps) => {
   }
 
   // x coordinate of the second-to-last point — where solid meets dashed
-  const splitX = drawablePoints[drawablePoints.length - 2].x;
+  const splitX = drawablePoints.at(-2)?.x;
+  if (splitX === undefined) {
+    return <Curve {...props} />;
+  }
 
   // Ref callback runs synchronously during React commit (before browser paint),
   // so there's no visible flash of an un-dashed line.
@@ -599,7 +602,7 @@ const HorizontalColorGradientStyle = ({
               // Fallback to first color if index doesn't exist in current theme
               Array.from({ length: colorsCount }, (_, index) => (
                 <stop
-                  key={index}
+                  key={`${dataKey}-${index}`}
                   offset={`${(index / (colorsCount - 1)) * 100}%`}
                   stopColor={`var(--color-${dataKey}-${index}, var(--color-${dataKey}-0))`}
                 />
@@ -683,7 +686,7 @@ const generateEasedGradientStops = (
  * while the invisible portion continues animating.
  */
 export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
-  const [loadingDataKey, setLoadingDataKey] = useState(false);
+  const [_loadingDataKey, setLoadingDataKey] = useState(false);
 
   // Callback fired by motion.dev when shimmer exits visible area
   const onShimmerExit = useCallback(() => {
@@ -696,7 +699,7 @@ export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
     () => getLoadingData(loadingPoints),
     // loadingDataKey toggle triggers re-computation when shimmer exits
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadingPoints, loadingDataKey]
+    [loadingPoints]
   );
 
   return { loadingData, onShimmerExit };

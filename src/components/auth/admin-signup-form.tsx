@@ -119,20 +119,34 @@ export function AdminSignupForm() {
       asideDescription="Create the admin account that will own your workspace, send client invites, and manage the delivery side of every project."
       asideTitle="Start the workspace your clients will trust."
     >
-      <div className="mx-auto flex w-full max-w-sm flex-col gap-8 lg:mx-0">
-        <div className="text-center lg:text-left">
-          <h2 className="font-bold text-3xl tracking-tight">
+      <div className="mx-auto flex w-full max-w-sm flex-col gap-6 font-sans lg:mx-0">
+        <div
+          className="animate-slide-up-fade text-center lg:text-left"
+          style={{ animationDelay: "50ms" }}
+        >
+          <h2 className="font-bold text-3xl text-[#08361f] tracking-tight dark:text-white">
             Create an admin account
           </h2>
+          <p className="mt-1.5 text-muted-foreground text-xs">
+            Set up your administrator profile to claim your workspace
+          </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Full name</FieldLabel>
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "100ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="name"
+              >
+                Full name
+              </FieldLabel>
               <Input
                 autoComplete="name"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="name"
                 onChange={(event) =>
                   dispatch({ type: "set-name", value: event.target.value })
@@ -142,11 +156,19 @@ export function AdminSignupForm() {
                 value={state.name}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="email">Work email</FieldLabel>
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "150ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="email"
+              >
+                Work email
+              </FieldLabel>
               <Input
                 autoComplete="email"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="email"
                 onChange={(event) =>
                   dispatch({ type: "set-email", value: event.target.value })
@@ -157,11 +179,19 @@ export function AdminSignupForm() {
                 value={state.email}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "200ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="password"
+              >
+                Password
+              </FieldLabel>
               <Input
                 autoComplete="new-password"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="password"
                 minLength={12}
                 onChange={(event) =>
@@ -170,19 +200,25 @@ export function AdminSignupForm() {
                     value: event.target.value,
                   })
                 }
-                placeholder="Create a secure password"
+                placeholder="Create a secure password (min 12 chars)"
                 required
                 type="password"
                 value={state.password}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="confirm-password">
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "250ms" }}
+            >
+              <FieldLabel
+                className="text-slate-700 dark:text-slate-300"
+                htmlFor="confirm-password"
+              >
                 Confirm password
               </FieldLabel>
               <Input
                 autoComplete="new-password"
-                className="h-10 px-3 py-2 text-sm"
+                className="h-10 border-border bg-card px-3.5 py-2 text-sm transition-all duration-150 focus-visible:border-primary focus-visible:ring-primary/20"
                 id="confirm-password"
                 minLength={12}
                 onChange={(event) =>
@@ -197,10 +233,17 @@ export function AdminSignupForm() {
                 value={state.confirmPassword}
               />
             </Field>
-            <FieldError>{state.error}</FieldError>
-            <Field>
+            {state.error && (
+              <FieldError className="animate-slide-up-fade">
+                {state.error}
+              </FieldError>
+            )}
+            <Field
+              className="animate-slide-up-fade"
+              style={{ animationDelay: "300ms" }}
+            >
               <Button
-                className="mt-2 h-10 w-full px-4 text-sm"
+                className="mt-2 h-10 w-full bg-primary px-4 font-semibold text-primary-foreground text-sm shadow-sm transition-all duration-150 hover:bg-primary/90 active:scale-[0.985]"
                 disabled={state.isSubmitting}
                 type="submit"
               >
@@ -208,9 +251,12 @@ export function AdminSignupForm() {
                   ? "Creating account..."
                   : "Create admin account"}
               </Button>
-              <FieldDescription className="mt-2 text-center text-slate-500">
+              <FieldDescription className="mt-3 text-center text-slate-500">
                 Already have access?{" "}
-                <Link className="font-medium text-slate-900" to="/login">
+                <Link
+                  className="font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary dark:text-white"
+                  to="/login"
+                >
                   Sign in instead
                 </Link>
               </FieldDescription>
@@ -218,7 +264,10 @@ export function AdminSignupForm() {
           </FieldGroup>
         </form>
 
-        <FieldDescription className="text-center text-slate-500">
+        <FieldDescription
+          className="animate-slide-up-fade text-center text-slate-500"
+          style={{ animationDelay: "350ms" }}
+        >
           <ClientAccessDialog />
         </FieldDescription>
       </div>

@@ -4,15 +4,15 @@ import {
   FolderAddIcon,
   UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { UnifiedActivityList } from "@/components/common/activity-list";
 import {
-  ActivityRadialChart,
-  BudgetBarChart,
-  DeadlineBarChart,
-  StatusBarChart,
+  ActivitySankeyChart,
+  BudgetComposedChart,
+  DeadlineAreaChart,
+  ProjectStatusPieChart,
 } from "@/components/common/product-charts";
 import {
   DataSection,
@@ -23,8 +23,6 @@ import { DashboardPendingPage } from "@/components/common/route-pending";
 import { EmptyPanel, ErrorPanel } from "@/components/common/state-panel";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   type DashboardActivityEvent,
   ensureClientsData,
@@ -35,7 +33,7 @@ import {
   useProjectsData,
 } from "@/lib/api";
 import {
-  getActivityTypeData,
+  getActivitySankeyData,
   getBudgetByStatusData,
   getDeadlineData,
   getDeadlineLabel,
@@ -135,69 +133,87 @@ function DashboardPage() {
         ]}
       />
 
-      {/* ── Delivery shape charts ─────────────────────────────────────── */}
+      {/* ── Delivery shape ─────────────────────────────────────────── */}
       <DataSection
         className="mt-8"
         description="Status, deadline, budget, and activity distribution from live workspace data."
         title="Delivery shape"
       >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card className="xl:col-span-2 border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Project Status</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 px-0">
-              <StatusBarChart
+        {/* Row 1: Project Status + Activity Sankey */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            style={{ animationDelay: "150ms" }}
+          >
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Project Status
+            </div>
+            <div className="flex w-full flex-1 items-center justify-center">
+              <ProjectStatusPieChart
                 data={getProjectStatusData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Deadlines</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 px-0">
-              <DeadlineBarChart
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-2"
+            style={{ animationDelay: "200ms" }}
+          >
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Activity Flow
+            </div>
+            <div className="flex w-full flex-1 items-center justify-center">
+              <ActivitySankeyChart
+                data={getActivitySankeyData(activity)}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Deadlines + Budget + Recent Activity */}
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            style={{ animationDelay: "250ms" }}
+          >
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Deadlines
+            </div>
+            <div className="flex w-full flex-1 items-center justify-center">
+              <DeadlineAreaChart
                 data={getDeadlineData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
-          <Card className="border-0 bg-transparent shadow-none ring-0">
-            <CardHeader className="pb-2 px-0">
-              <CardTitle className="text-base font-semibold">Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 px-0">
-              <ActivityRadialChart
-                data={getActivityTypeData(activity)}
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            style={{ animationDelay: "300ms" }}
+          >
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Budget by Status
+            </div>
+            <div className="flex w-full flex-1 items-center justify-center">
+              <BudgetComposedChart
+                data={getBudgetByStatusData(projects)}
                 isLoading={isLoading}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          <div
+            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            style={{ animationDelay: "350ms" }}
+          >
+            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+              Recent activity
+            </div>
+            <div className="flex-1">
+              <CompactActivityList activity={activity} isLoading={isLoading} />
+            </div>
+          </div>
         </div>
       </DataSection>
-
-      {/* ── Budget + Recent activity (side-by-side) ────────────────────── */}
-      <div className="mt-8 grid gap-6 xl:grid-cols-2">
-        <Card className="border-0 bg-transparent shadow-none ring-0">
-          <CardHeader className="pb-2 px-0">
-            <CardTitle className="text-base font-semibold">Budget by Status</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 px-0">
-            <BudgetBarChart
-              data={getBudgetByStatusData(projects)}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
-
-        <div>
-          <DataSection title="Recent activity">
-            <CompactActivityList activity={activity} isLoading={isLoading} />
-          </DataSection>
-        </div>
-      </div>
     </AppShell>
   );
 }
@@ -294,7 +310,7 @@ function formatRelativeTime(dateString: string) {
 
 // ── Compact activity list ─────────────────────────────────────────────────────
 
-const COMPACT_LIMIT = 5;
+const COMPACT_LIMIT = 4;
 
 function CompactActivityList({
   activity,
@@ -305,75 +321,33 @@ function CompactActivityList({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton array
-          <div className="flex items-start gap-3" key={i}>
-            <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
-            <div className="flex-1 space-y-1.5">
-              <Skeleton className="h-3.5 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (activity.length === 0) {
-    return (
-      <EmptyPanel
-        description="New clients, projects, comments, and files will appear here."
-        title="No recent activity"
-      />
-    );
-  }
-
   const visibleActivity = expanded
     ? activity
     : activity.slice(0, COMPACT_LIMIT);
 
+  const items = visibleActivity.map((event) => ({
+    id: event.id,
+    icon: EVENT_ICONS[event.type],
+    iconBgClass: EVENT_BG_COLORS[event.type],
+    iconColorClass: EVENT_COLORS[event.type],
+    title: formatDashboardActivityTitle(event),
+    body: formatDashboardActivityDescription(event),
+    time: formatRelativeTime(event.createdAt),
+    rawItem: event,
+  }));
+
   return (
     <div>
-      <div className="flex flex-col gap-1">
-        {visibleActivity.map((event) => (
-          <div
-            className="flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors hover:bg-muted/50"
-            key={event.id}
-          >
-            {/* Icon */}
-            <div
-              className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${EVENT_BG_COLORS[event.type]} ${EVENT_COLORS[event.type]}`}
-            >
-              <HugeiconsIcon
-                icon={EVENT_ICONS[event.type] as never}
-                size={14}
-                strokeWidth={2}
-              />
-            </div>
-
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-foreground text-xs leading-5">
-                {formatDashboardActivityTitle(event)}
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground leading-4">
-                {formatDashboardActivityDescription(event)}
-              </p>
-            </div>
-
-            {/* Time */}
-            <time
-              className="shrink-0 text-[11px] text-muted-foreground leading-5"
-              dateTime={event.createdAt}
-            >
-              {formatRelativeTime(event.createdAt)}
-            </time>
-          </div>
-        ))}
-      </div>
+      <UnifiedActivityList
+        emptyState={
+          <EmptyPanel
+            description="New clients, projects, comments, and files will appear here."
+            title="No recent activity"
+          />
+        }
+        isLoading={isLoading}
+        items={items}
+      />
 
       {/* Show more / less */}
       {activity.length > COMPACT_LIMIT && (

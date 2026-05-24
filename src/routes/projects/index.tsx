@@ -1,14 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
+import { ProjectFormDialog } from "@/components/admin/crud-dialogs";
 import {
-  DeleteProjectDialog,
-  ProjectFormDialog,
-} from "@/components/admin/crud-dialogs";
-import {
-  BudgetBarChart,
-  DeadlineBarChart,
-  StatusBarChart,
+  BudgetComposedChart,
+  DeadlineAreaChart,
+  ProjectStatusPieChart,
 } from "@/components/common/product-charts";
 import { DataSection, PageHeader } from "@/components/common/product-ui";
 import { ProjectsPendingPage } from "@/components/common/route-pending";
@@ -17,17 +14,9 @@ import {
   ErrorPanel,
   LoadingPanel,
 } from "@/components/common/state-panel";
-import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import { ProjectRegisterTable } from "@/components/projects/project-register-table";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { Project } from "@/features/projects/mock-data";
 import {
   ensureClientsData,
@@ -38,10 +27,8 @@ import {
 import {
   getBudgetByStatusData,
   getDeadlineData,
-  getDeadlineLabel,
   getProjectStatusData,
 } from "@/lib/insights";
-import { getProjectPathParams } from "@/lib/project-slugs";
 
 export const Route = createFileRoute("/projects/")({
   beforeLoad: requireAdminSession,
@@ -60,6 +47,10 @@ function ProjectsPage() {
   const clientsQuery = useClientsData();
   const projectsQuery = useProjectsData();
   const clients = clientsQuery.data ?? [];
+  const projects = projectsQuery.data ?? [];
+
+  const isLoading = projectsQuery.isLoading || clientsQuery.isLoading;
+  const error = projectsQuery.error ?? clientsQuery.error;
 
   return (
     <AppShell>
@@ -75,122 +66,57 @@ function ProjectsPage() {
         description="Track delivery status, deadlines, and budget concentration across all active work."
         title="Projects"
       />
-      {projectsQuery.isLoading || clientsQuery.isLoading ? (
-        <LoadingPanel />
-      ) : null}
-      {!(projectsQuery.isLoading || clientsQuery.isLoading) &&
-      (projectsQuery.error || clientsQuery.error) ? (
-        <ErrorPanel
-          description={projectsQuery.error ?? clientsQuery.error ?? undefined}
-        />
-      ) : null}
-      {!(
-        projectsQuery.isLoading ||
-        clientsQuery.isLoading ||
-        projectsQuery.error ||
-        clientsQuery.error
-      ) && (projectsQuery.data?.length ?? 0) === 0 ? (
+      {isLoading && <LoadingPanel />}
+      {!isLoading && error && <ErrorPanel description={error} />}
+      {!(isLoading || error) && projects.length === 0 && (
         <EmptyPanel
           description="Create your first project once a client is available."
           title="No projects yet"
         />
-      ) : null}
-      {!(
-        projectsQuery.isLoading ||
-        clientsQuery.isLoading ||
-        projectsQuery.error ||
-        clientsQuery.error
-      ) && (projectsQuery.data?.length ?? 0) > 0 ? (
+      )}
+      {!(isLoading || error) && projects.length > 0 && (
         <>
           <DataSection title="Delivery shape">
             <div className="grid gap-6 xl:grid-cols-3">
-              <StatusBarChart
-                data={getProjectStatusData(projectsQuery.data ?? [])}
-              />
-              <DeadlineBarChart
-                data={getDeadlineData(projectsQuery.data ?? [])}
-              />
-              <BudgetBarChart
-                data={getBudgetByStatusData(projectsQuery.data ?? [])}
-              />
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Project Status
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <ProjectStatusPieChart
+                    data={getProjectStatusData(projects)}
+                  />
+                </div>
+              </div>
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Deadlines
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <DeadlineAreaChart data={getDeadlineData(projects)} />
+                </div>
+              </div>
+              <div className="group flex flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+                <div className="border-border/40 border-b pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+                  Budget by Status
+                </div>
+                <div className="flex w-full flex-1 items-center justify-center pt-4">
+                  <BudgetComposedChart data={getBudgetByStatusData(projects)} />
+                </div>
+              </div>
             </div>
           </DataSection>
           <DataSection title="Project register">
-            <div className="overflow-x-auto border-slate-200 border-y bg-white">
-              <Table>
-                <TableHeader className="bg-stone-50">
-                  <TableRow>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Deadline</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {projectsQuery.data?.map((project) => {
-                    const { clientSlug, projectSlug } = getProjectPathParams(
-                      project,
-                      clients
-                    );
-
-                    return (
-                      <TableRow key={project.id}>
-                        <TableCell>
-                          <Link
-                            className="font-medium text-zinc-950 hover:underline"
-                            params={{ clientSlug, projectSlug }}
-                            to="/projects/$clientSlug/$projectSlug"
-                          >
-                            {project.title}
-                          </Link>
-                          <p className="mt-1 max-w-lg text-slate-600 text-xs">
-                            {project.description}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge value={project.status} />
-                        </TableCell>
-                        <TableCell className="tabular-nums">
-                          ${project.budget.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {getDeadlineLabel(project.deadline)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              onClick={() => setEditingProject(project)}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                            >
-                              Edit
-                            </Button>
-                            <DeleteProjectDialog
-                              project={project}
-                              trigger={
-                                <Button
-                                  size="sm"
-                                  type="button"
-                                  variant="destructive"
-                                >
-                                  Delete
-                                </Button>
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+            <ProjectRegisterTable
+              clients={clients}
+              onEdit={setEditingProject}
+              projects={projects}
+              showActions={true}
+            />
           </DataSection>
         </>
-      ) : null}
-      {editingProject ? (
+      )}
+      {editingProject && (
         <ProjectFormDialog
           clients={clients}
           onOpenChange={(open) => {
@@ -202,7 +128,7 @@ function ProjectsPage() {
           project={editingProject}
           trigger={null}
         />
-      ) : null}
+      )}
     </AppShell>
   );
 }

@@ -570,7 +570,7 @@ function MiniChart({
           y1="0"
           y2="1"
         >
-          <stop offset="0%" stopColor="white" stopOpacity={0.15} />
+          <stop offset="0%" stopColor="white" stopOpacity={0.4} />
           <stop offset="100%" stopColor="white" stopOpacity={0} />
         </linearGradient>
       )}
@@ -584,7 +584,7 @@ function MiniChart({
           ) : (
             Array.from({ length: colorsCount }, (_, i) => (
               <stop
-                key={i}
+                key={`${dataKey}-${i}`}
                 offset={`${(i / (colorsCount - 1)) * 100}%`}
                 stopColor={`var(--color-${dataKey}-${i}, var(--color-${dataKey}-0))`}
               />
@@ -615,10 +615,10 @@ function MiniChart({
                   />
                 </mask>
                 <pattern
-                  height="100%"
+                  height="1"
                   id={`${chartId}-zm-fill-${dataKey}`}
-                  patternUnits="userSpaceOnUse"
-                  width="100%"
+                  patternUnits="objectBoundingBox"
+                  width="1"
                 >
                   <rect
                     fill={`url(#${chartId}-zm-${dataKey})`}

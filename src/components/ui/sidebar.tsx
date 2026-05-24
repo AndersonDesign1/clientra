@@ -1,3 +1,4 @@
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import {
@@ -13,8 +14,12 @@ import { cn } from "@/lib/utils";
 // ── Sidebar context ─────────────────────────────────────────────────────────
 
 interface SidebarContextValue {
+  isMobile: boolean;
   open: boolean;
+  openMobile: boolean;
   setOpen: (open: boolean) => void;
+  setOpenMobile: (open: boolean) => void;
+  state: "expanded" | "collapsed";
   toggleSidebar: () => void;
 }
 
@@ -28,6 +33,26 @@ export function useSidebar() {
   return ctx;
 }
 
+// ── useMobile Hook ──────────────────────────────────────────────────────────
+
+const MOBILE_BREAKPOINT = 768;
+
+function useMobile() {
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    mql.addEventListener("change", onChange);
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return !!isMobile;
+}
+
 // ── Provider ────────────────────────────────────────────────────────────────
 
 function SidebarProvider({
@@ -38,8 +63,16 @@ function SidebarProvider({
   ...props
 }: React.ComponentProps<"div"> & { defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [openMobile, setOpenMobile] = useState(false);
+  const isMobile = useMobile();
 
-  const toggleSidebar = useCallback(() => setOpen((prev) => !prev), []);
+  const toggleSidebar = useCallback(() => {
+    if (isMobile) {
+      setOpenMobile((prev) => !prev);
+    } else {
+      setOpen((prev) => !prev);
+    }
+  }, [isMobile]);
 
   // Keyboard shortcut: Ctrl+B / Cmd+B
   useEffect(() => {
@@ -53,9 +86,22 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handler);
   }, [toggleSidebar]);
 
+  const isExpanded = isMobile ? openMobile : open;
+  const state = (isExpanded ? "expanded" : "collapsed") as
+    | "expanded"
+    | "collapsed";
+
   const value = useMemo(
-    () => ({ open, setOpen, toggleSidebar }),
-    [open, toggleSidebar]
+    () => ({
+      state,
+      open,
+      setOpen,
+      openMobile,
+      setOpenMobile,
+      isMobile,
+      toggleSidebar,
+    }),
+    [state, open, openMobile, isMobile, toggleSidebar]
   );
 
   return (
@@ -63,10 +109,10 @@ function SidebarProvider({
       <div
         className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
         data-slot="sidebar-wrapper"
-        data-state={open ? "expanded" : "collapsed"}
+        data-state={state}
         style={
           {
-            "--sidebar-width": "15rem",
+            "--sidebar-width": "16rem",
             "--sidebar-width-icon": "3.5rem",
             ...style,
           } as React.CSSProperties
@@ -120,11 +166,66 @@ function SidebarTrigger({
 
 // ── Sidebar ─────────────────────────────────────────────────────────────────
 
-function Sidebar({ className, ...props }: React.ComponentProps<"aside">) {
-  const { open } = useSidebar();
+function Sidebar({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  const { open, isMobile, openMobile, setOpenMobile } = useSidebar();
+
+  if (isMobile) {
+    return (
+      <DialogPrimitive.Root onOpenChange={setOpenMobile} open={openMobile}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Backdrop
+            className="fade-in-0 fixed inset-0 z-50 animate-in bg-black/40 backdrop-blur-xs transition-opacity duration-150 duration-200 data-closed:opacity-0 data-open:opacity-100"
+            data-slot="sidebar-backdrop"
+          />
+          <DialogPrimitive.Popup
+            className={cn(
+              "fixed inset-y-0 left-0 z-50 flex h-full w-[var(--sidebar-width)] flex-col border-sidebar-border border-r bg-sidebar text-sidebar-foreground shadow-xl outline-none transition-transform duration-300 ease-in-out data-closed:-translate-x-full data-open:translate-x-0",
+              className
+            )}
+            data-slot="sidebar"
+            data-state="expanded"
+            id="sidebar"
+            style={
+              {
+                "--sidebar-width": "16rem",
+              } as React.CSSProperties
+            }
+            {...props}
+          >
+            {/* Mobile Close Button */}
+            <div className="absolute top-4 right-4 z-50">
+              <DialogPrimitive.Close
+                aria-label="Close sidebar"
+                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <title>Close</title>
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </DialogPrimitive.Close>
+            </div>
+            {children}
+          </DialogPrimitive.Popup>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
+    );
+  }
 
   return (
-    <aside
+    <div
       className={cn(
         "hidden shrink-0 flex-col overflow-hidden border-sidebar-border border-r bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-in-out md:flex",
         className
@@ -136,7 +237,9 @@ function Sidebar({ className, ...props }: React.ComponentProps<"aside">) {
         width: open ? "var(--sidebar-width)" : "var(--sidebar-width-icon)",
       }}
       {...props}
-    />
+    >
+      {children}
+    </div>
   );
 }
 
@@ -251,7 +354,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 // ── Menu Button ─────────────────────────────────────────────────────────────
 
 const sidebarMenuButtonVariants = cva(
-  "flex min-h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&>span:last-child]:truncate",
+  "flex min-h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&>span:last-child]:truncate",
   {
     variants: {
       active: {

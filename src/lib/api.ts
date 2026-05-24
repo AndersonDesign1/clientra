@@ -7,10 +7,14 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import type { WorkspaceSettings } from "@/db/records";
 import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
+export type { WorkspaceSettings } from "@/db/records";
+export type { Client } from "@/features/clients/mock-data";
+export type { Project } from "@/features/projects/mock-data";
 export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
 export interface SearchResults {
@@ -250,6 +254,7 @@ export const queryKeys = {
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
+  settings: ["settings"] as const,
 };
 
 function mapQueryState<TData>(query: {
@@ -1067,15 +1072,15 @@ export function useDeleteProjectMutation() {
   });
 }
 
-export function useResendInviteMutation() {
+export function useResendInviteMutation(clientId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id }: { clientId: string; id: string }) =>
-      resendInviteRequest(id),
+    mutationFn: (variables: { id: string }) =>
+      resendInviteRequest(variables.id),
     onSuccess: (invite) => {
       queryClient.setQueryData<PendingInvite[]>(
-        queryKeys.pendingInvites(invite.clientId),
+        queryKeys.pendingInvites(clientId),
         (current) =>
           (current ?? []).map((item) => (item.id === invite.id ? invite : item))
       );
@@ -1084,15 +1089,15 @@ export function useResendInviteMutation() {
   });
 }
 
-export function useRevokeInviteMutation() {
+export function useRevokeInviteMutation(clientId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id }: { clientId: string; id: string }) =>
-      revokeInviteRequest(id),
+    mutationFn: (variables: { id: string }) =>
+      revokeInviteRequest(variables.id),
     onSuccess: (_, variables) => {
       queryClient.setQueryData<PendingInvite[]>(
-        queryKeys.pendingInvites(variables.clientId),
+        queryKeys.pendingInvites(clientId),
         (current) =>
           (current ?? []).filter((invite) => invite.id !== variables.id)
       );
@@ -1322,6 +1327,59 @@ export function useDeleteProjectMilestoneMutation() {
       queryClient.setQueryData<ProjectMilestone[]>(
         queryKeys.projectMilestones(variables.projectId),
         (current) => (current ?? []).filter((item) => item.id !== variables.id)
+      );
+    },
+  });
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+
+export type WorkspaceSettingsPatch = Partial<
+  Omit<WorkspaceSettings, "id" | "updatedAt">
+>;
+
+function fetchSettingsRequest(): Promise<WorkspaceSettings> {
+  return fetchJson<WorkspaceSettings>("/api/settings");
+}
+
+async function updateSettingsRequest(
+  patch: WorkspaceSettingsPatch
+): Promise<WorkspaceSettings> {
+  const response = await createApiRequest("/api/settings", {
+    body: JSON.stringify(patch),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<WorkspaceSettings>(response, "settings");
+}
+
+export function settingsQueryOptions() {
+  return queryOptions({
+    queryFn: fetchSettingsRequest,
+    queryKey: queryKeys.settings,
+  });
+}
+
+export function ensureSettingsData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(settingsQueryOptions());
+}
+
+export function useSettingsData(): LoadableData<WorkspaceSettings> {
+  return mapQueryState(useQuery(settingsQueryOptions()));
+}
+
+export function useUpdateSettingsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSettingsRequest,
+    onSuccess: (updatedSettings) => {
+      queryClient.setQueryData<WorkspaceSettings>(
+        queryKeys.settings,
+        updatedSettings
       );
     },
   });

@@ -1,8 +1,21 @@
 "use client";
 
-import { EvilBarChart } from "@/components/evilcharts/charts/bar-chart";
-import { EvilPieChart } from "@/components/evilcharts/charts/pie-chart";
-import { EvilRadialChart } from "@/components/evilcharts/charts/radial-chart";
+import type { SankeyData } from "recharts";
+import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
+import { EvilComposedChart } from "@/components/evilcharts/charts/composed-chart";
+import {
+  EvilPieChart,
+  Legend,
+  Pie,
+  Tooltip,
+} from "@/components/evilcharts/charts/pie-chart";
+import {
+  EvilSankeyChart,
+  Link,
+  Node,
+  NodeLabel,
+  Tooltip as SankeyTooltip,
+} from "@/components/evilcharts/charts/sankey-chart";
 import type { ChartConfig } from "@/components/evilcharts/ui/chart";
 
 // ── Shared palette ────────────────────────────────────────────────────────────
@@ -16,40 +29,78 @@ const palette = {
   zinc: ["#71717a"],
 };
 
-// ── Status Bar Chart (Horizontal) ─────────────────────────────────────────────
-export function StatusBarChart({
+// ── Project Status Pie/Donut Chart ────────────────────────────────────────────
+export function ProjectStatusPieChart({
   data,
   isLoading,
 }: {
   data: Array<{ status: string; total: number }>;
   isLoading?: boolean;
 }) {
+  const visibleData = data.some((item) => item.total > 0)
+    ? data
+    : [{ status: "No projects", total: 1 }];
+
+  const keyedData = visibleData.map((item, index) => {
+    // Sanitize space out of status keys to ensure valid CSS variable names
+    const safeKey = `${item.status.toLowerCase().replace(/\s+/g, "_")}-${index}`;
+    return {
+      ...item,
+      _key: safeKey,
+    };
+  });
+
+  const chartConfig: ChartConfig = {};
+  for (const item of keyedData) {
+    const statusKey = item.status.toLowerCase();
+
+    // Soft, premium, matching status brand colors
+    let colors = {
+      light: ["#71717a"],
+      dark: ["#a1a1aa"],
+    };
+
+    if (statusKey.includes("progress")) {
+      colors = {
+        light: ["#0d9488"],
+        dark: ["#2dd4bf"],
+      };
+    } else if (statusKey.includes("completed")) {
+      colors = {
+        light: ["#15803d"],
+        dark: ["#22c55e"],
+      };
+    } else if (statusKey.includes("planning")) {
+      colors = {
+        light: ["#0284c7"],
+        dark: ["#38bdf8"],
+      };
+    }
+
+    chartConfig[item._key] = {
+      colors,
+      label: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+    };
+  }
+
   return (
-    <EvilBarChart
-      barRadius={4}
-      chartConfig={{
-        total: {
-          colors: {
-            light: ["#047857", "#10b981"],
-            dark: ["#10b981", "#6ee7b7"],
-          },
-          label: "Projects",
-        },
-      }}
-      className="h-[180px]"
-      data={data}
-      enableHoverHighlight
-      hideLegend
+    <EvilPieChart
+      className="h-[280px] w-full"
+      config={chartConfig}
+      data={keyedData}
+      dataKey="total"
       isLoading={isLoading}
-      layout="horizontal"
-      tooltipVariant="frosted-glass"
-      xDataKey="status"
-    />
+      nameKey="_key"
+    >
+      <Legend isClickable />
+      <Tooltip />
+      <Pie cornerRadius={5} innerRadius="55%" isClickable paddingAngle={3} />
+    </EvilPieChart>
   );
 }
 
-// ── Deadline Bar Chart ────────────────────────────────────────────────────────
-export function DeadlineBarChart({
+// ── Deadline Area Chart ───────────────────────────────────────────────────────
+export function DeadlineAreaChart({
   data,
   isLoading,
 }: {
@@ -60,8 +111,7 @@ export function DeadlineBarChart({
     data.length > 0 ? data : [{ count: 0, label: "No dates" }];
 
   return (
-    <EvilBarChart
-      barRadius={4}
+    <EvilAreaChart
       chartConfig={{
         count: {
           colors: {
@@ -71,28 +121,29 @@ export function DeadlineBarChart({
           label: "Deadlines",
         },
       }}
-      className="h-[180px]"
+      className="h-[300px]"
+      curveType="monotone"
       data={visibleData}
-      enableHoverHighlight
       hideLegend
       isLoading={isLoading}
-      tooltipVariant="frosted-glass"
+      tooltipVariant="default"
       xDataKey="label"
+      yDataKey="count"
     />
   );
 }
 
-// ── Budget Horizontal Bar Chart ───────────────────────────────────────────────
-export function BudgetBarChart({
+// ── Budget Composed Chart ─────────────────────────────────────────────────────
+export function BudgetComposedChart({
   data,
   isLoading,
 }: {
-  data: Array<{ status: string; budget: number }>;
+  data: Array<{ status: string; budget: number; count: number }>;
   isLoading?: boolean;
 }) {
   return (
-    <EvilBarChart
-      barRadius={4}
+    <EvilComposedChart
+      barDataKey="budget"
       chartConfig={{
         budget: {
           colors: {
@@ -101,18 +152,26 @@ export function BudgetBarChart({
           },
           label: "Budget ($)",
         },
+        count: {
+          colors: {
+            light: ["#d97706"],
+            dark: ["#f59e0b"],
+          },
+          label: "Projects",
+        },
       }}
-      className="h-[180px]"
+      className="h-[300px]"
       data={data}
-      enableHoverHighlight
-      hideLegend
       isLoading={isLoading}
-      layout="horizontal"
-      tooltipVariant="frosted-glass"
+      lineDataKey="count"
+      tooltipVariant="default"
       xDataKey="status"
-      yAxisProps={{
+      yAxisLeftProps={{
         tickFormatter: (v: number) =>
           v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`,
+      }}
+      yAxisRightProps={{
+        tickFormatter: (v: number) => String(v),
       }}
     />
   );
@@ -129,10 +188,14 @@ export function ActivityPieChart({
   const visibleData = data.some((item) => item.total > 0)
     ? data
     : [{ label: "No activity", total: 1 }];
-  const keyedData = visibleData.map((item, index) => ({
-    ...item,
-    _key: `${item.label}-${index}`,
-  }));
+
+  const keyedData = visibleData.map((item, index) => {
+    const safeKey = `${item.label.toLowerCase().replace(/\s+/g, "_")}-${index}`;
+    return {
+      ...item,
+      _key: safeKey,
+    };
+  });
 
   // Build dynamic chartConfig from data labels
   const colorPalette = [
@@ -143,75 +206,95 @@ export function ActivityPieChart({
   ];
 
   const chartConfig: ChartConfig = {};
-  for (let i = 0; i < keyedData.length; i++) {
-    const item = keyedData[i];
+  keyedData.forEach((item, i) => {
     const colors = colorPalette[i % colorPalette.length];
     chartConfig[item._key] = {
       colors: { light: colors.light, dark: colors.dark },
       label: item.label,
     };
-  }
+  });
 
   return (
     <EvilPieChart
-      chartConfig={chartConfig}
-      className="h-[180px]"
-      cornerRadius={4}
+      className="h-[220px] w-full"
+      config={chartConfig}
       data={keyedData}
       dataKey="total"
-      innerRadius="55%"
       isLoading={isLoading}
       nameKey="_key"
-      paddingAngle={3}
-      tooltipVariant="frosted-glass"
-    />
+    >
+      <Legend isClickable />
+      <Tooltip />
+      <Pie cornerRadius={4} innerRadius="55%" isClickable paddingAngle={3} />
+    </EvilPieChart>
   );
 }
 
-// ── Activity Radial Chart ─────────────────────────────────────────────────────
-export function ActivityRadialChart({
+// ── Activity Sankey Chart ────────────────────────────────────────────────────
+export function ActivitySankeyChart({
   data,
   isLoading,
 }: {
-  data: Array<{ label: string; total: number }>;
+  data: SankeyData;
   isLoading?: boolean;
 }) {
-  // Each bar in a radial chart needs its own chartConfig key matching the nameKey
-  const visibleData = data.some((item) => item.total > 0)
-    ? data
-    : [{ label: "No activity", total: 1 }];
-  const keyedData = visibleData.map((item, index) => ({
-    ...item,
-    _key: `${item.label}-${index}`,
-  }));
+  // Source nodes (activity types) get distinct brand colors
+  const typeColors: Record<string, { light: string[]; dark: string[] }> = {
+    Clients: {
+      light: ["#15803d"],
+      dark: ["#22c55e"],
+    },
+    Projects: {
+      light: ["#047857"],
+      dark: ["#10b981"],
+    },
+    Comments: {
+      light: ["#0284c7"],
+      dark: ["#38bdf8"],
+    },
+    Files: {
+      light: ["#d97706"],
+      dark: ["#f59e0b"],
+    },
+    Onboarding: {
+      light: ["#0d9488"],
+      dark: ["#2dd4bf"],
+    },
+  };
 
-  // Build a dynamic chartConfig from the data labels
-  const colorPalette = [
-    palette.forest,
-    palette.mint,
-    palette.teal,
-    palette.sky,
-  ];
+  // All project/target nodes share a single unified teal
+  const projectColor = { light: ["#0d9488"], dark: ["#2dd4bf"] };
+
   const chartConfig: ChartConfig = {};
-  for (let i = 0; i < keyedData.length; i++) {
-    const item = keyedData[i];
-    const color = colorPalette[i % colorPalette.length];
-    chartConfig[item._key] = {
-      colors: { light: color, dark: color },
-      label: item.label,
-    };
+
+  for (const node of data.nodes) {
+    if (typeColors[node.name]) {
+      chartConfig[node.name] = {
+        label: node.name,
+        colors: typeColors[node.name],
+      };
+    } else {
+      chartConfig[node.name] = {
+        label: node.name,
+        colors: projectColor,
+      };
+    }
   }
 
   return (
-    <EvilRadialChart
-      barSize={10}
-      chartConfig={chartConfig}
-      className="h-[180px]"
-      data={keyedData}
-      dataKey="total"
+    <EvilSankeyChart
+      className="h-[280px] w-full p-4"
+      config={chartConfig}
+      data={data}
       isLoading={isLoading}
-      nameKey="_key"
-      variant="full"
-    />
+      nodePadding={20}
+      nodeWidth={8}
+    >
+      <Node isClickable>
+        <NodeLabel position="outside" showValues />
+      </Node>
+      <Link variant="source" />
+      <SankeyTooltip />
+    </EvilSankeyChart>
   );
 }
