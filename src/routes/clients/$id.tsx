@@ -1,13 +1,15 @@
 import {
   ArrowRight01Icon,
   CallIcon,
+  Copy01Icon,
   Delete02Icon,
   GlobalIcon,
   Mail01Icon,
+  Tick02Icon,
   UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
@@ -24,6 +26,7 @@ import { ClientDetailPendingPage } from "@/components/common/route-pending";
 import { ErrorPanel, LoadingPanel } from "@/components/common/state-panel";
 import { StatusBadge } from "@/components/common/status-badge";
 import { AppShell } from "@/components/layout/app-shell";
+import { ProjectRegisterTable } from "@/components/projects/project-register-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,13 +40,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ProjectRegisterTable } from "@/components/projects/project-register-table";
 import {
   type Client,
   ensureClientsData,
@@ -54,6 +66,7 @@ import {
   type Project,
   type ProjectMilestone,
   projectMilestonesQueryOptions,
+  queryKeys,
   useClientsData,
   usePendingInvitesData,
   useProjectsData,
@@ -267,8 +280,6 @@ function ClientDossierWidget({
   );
 }
 
-
-
 function ClientDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
@@ -435,12 +446,13 @@ function ClientDetailPage() {
               }}
               trigger={
                 <Button
-                  className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  size="sm"
+                  className="h-8 w-8 shrink-0 transition-all duration-200 hover:scale-105 active:scale-95"
+                  size="icon"
                   type="button"
                   variant="destructive"
                 >
-                  Delete
+                  <HugeiconsIcon icon={Delete02Icon} size={14} />
+                  <span className="sr-only">Delete client</span>
                 </Button>
               }
             />
@@ -501,7 +513,10 @@ function ClientDetailPage() {
           ) : null}
 
           {/* Linked Projects */}
-          <div className="group relative flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] animate-slide-up-fade" style={{ animationDelay: "150ms" }}>
+          <div
+            className="group relative flex animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+            style={{ animationDelay: "150ms" }}
+          >
             <h2 className="font-extrabold text-base text-foreground tracking-tight">
               Linked Projects
             </h2>
@@ -566,18 +581,21 @@ export function PendingInvitesPanel({
   return (
     <div className="group relative flex animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-foreground text-sm">
-          Pending Invites
-        </h2>
-        <Badge
-          className={cn(
-            "rounded-full border px-2.5 py-0.5 font-bold text-[0.65rem] uppercase tracking-wider transition-colors duration-200",
-            inviteBadgeStyle
-          )}
-          variant={null}
-        >
-          {pendingInvites.isLoading ? "Loading" : `${invites.length} pending`}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <h2 className="font-semibold text-foreground text-sm">
+            Pending Invites
+          </h2>
+          <Badge
+            className={cn(
+              "rounded-full border px-2.5 py-0.5 font-bold text-[0.65rem] uppercase tracking-wider transition-colors duration-200",
+              inviteBadgeStyle
+            )}
+            variant={null}
+          >
+            {pendingInvites.isLoading ? "Loading" : `${invites.length} pending`}
+          </Badge>
+        </div>
+        <CreateInviteDialog clientId={clientId} />
       </div>
 
       {pendingInvites.error ? (
@@ -689,7 +707,7 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
           <AlertDialogTrigger
             render={
               <Button
-                className="flex h-8 items-center gap-1.5 border border-border/40 text-xs text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95 bg-background"
+                className="flex h-8 items-center gap-1.5 border border-border/40 bg-background text-muted-foreground text-xs transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
                 disabled={isResending || isRevoking}
                 size="sm"
                 type="button"
@@ -736,5 +754,198 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
         <FieldError className="mt-1 sm:col-span-5">{rowError}</FieldError>
       ) : null}
     </div>
+  );
+}
+
+export function CreateInviteDialog({ clientId }: { clientId: string }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setInviteLink(null);
+    setCopied(false);
+
+    try {
+      const response = await fetch("/api/invites", {
+        body: JSON.stringify({
+          clientId,
+          email,
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
+        method: "POST",
+      });
+
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+        inviteLink?: string;
+      } | null;
+
+      if (!(response.ok && data?.inviteLink)) {
+        setError(data?.error ?? "Unable to create invite.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setInviteLink(data.inviteLink);
+      setEmail("");
+      setIsSubmitting(false);
+
+      // Invalidate the query cache to refresh pending invites
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingInvites(clientId),
+      });
+    } catch {
+      setError("Network error creating invite.");
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleCopy() {
+    if (!inviteLink) {
+      return;
+    }
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      // Reset form states on close
+      setEmail("");
+      setError(null);
+      setInviteLink(null);
+      setCopied(false);
+    }
+  }
+
+  return (
+    <Dialog onOpenChange={handleOpenChange} open={open}>
+      <DialogTrigger
+        render={
+          <Button
+            className="h-8 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Create Invite
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Invite Link</DialogTitle>
+          <DialogDescription>
+            Generate a secure invite link to grant client access to their portal
+            workspace.
+          </DialogDescription>
+        </DialogHeader>
+
+        {inviteLink ? (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-teal-200/50 bg-teal-50/10 px-4 py-3.5 text-teal-800 text-xs dark:text-teal-400">
+              <p className="font-bold uppercase tracking-wider">Invite Ready</p>
+              <p className="mt-1 leading-normal">
+                Share this secure URL with the client. It will expire in seven
+                days.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <code className="max-h-24 flex-1 select-all overflow-y-auto break-all rounded-lg border border-border/10 bg-secondary/15 px-3 py-2.5 font-mono text-[11px] text-foreground leading-normal">
+                {inviteLink}
+              </code>
+              <Button
+                className="h-10 w-10 shrink-0 border border-border/40 bg-background text-muted-foreground transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={handleCopy}
+                size="icon"
+                type="button"
+                variant="outline"
+              >
+                <HugeiconsIcon
+                  className={cn(
+                    "transition-transform duration-200",
+                    copied && "scale-110 text-emerald-600"
+                  )}
+                  icon={copied ? Tick02Icon : Copy01Icon}
+                  size={14}
+                />
+                <span className="sr-only">
+                  {copied ? "Copied" : "Copy to Clipboard"}
+                </span>
+              </Button>
+            </div>
+
+            <DialogFooter>
+              <Button
+                className="w-full font-bold"
+                onClick={() => handleOpenChange(false)}
+                type="button"
+              >
+                Done
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label
+                className="block font-bold text-foreground text-xs uppercase tracking-wider"
+                htmlFor="invite-email"
+              >
+                Client Email Address
+              </label>
+              <Input
+                className="h-10 w-full border-border/40 bg-background text-sm transition-all focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/10 focus-visible:ring-offset-0"
+                id="invite-email"
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="client@example.com"
+                required
+                type="email"
+                value={email}
+              />
+            </div>
+
+            {error ? (
+              <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 px-4 py-2.5 font-semibold text-rose-700 text-xs dark:text-rose-400">
+                {error}
+              </p>
+            ) : null}
+
+            <DialogFooter>
+              <Button
+                disabled={isSubmitting}
+                onClick={() => handleOpenChange(false)}
+                type="button"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="transition-transform duration-150 hover:scale-[1.01] active:scale-[0.99]"
+                disabled={isSubmitting}
+                type="submit"
+              >
+                {isSubmitting ? "Generating..." : "Generate Link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -14,6 +14,7 @@ import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 export type { Client } from "@/features/clients/mock-data";
 export type { Project } from "@/features/projects/mock-data";
 export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
+export type { WorkspaceSettings } from "@/db/records";
 
 export interface SearchResults {
   clients: Client[];
@@ -252,6 +253,7 @@ export const queryKeys = {
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
+  settings: ["settings"] as const,
 };
 
 function mapQueryState<TData>(query: {
@@ -1325,6 +1327,52 @@ export function useDeleteProjectMilestoneMutation() {
         queryKeys.projectMilestones(variables.projectId),
         (current) => (current ?? []).filter((item) => item.id !== variables.id)
       );
+    },
+  });
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+
+import type { WorkspaceSettings } from "@/db/records";
+
+async function fetchSettingsRequest(): Promise<WorkspaceSettings> {
+  return fetchJson<WorkspaceSettings>("/api/settings");
+}
+
+async function updateSettingsRequest(patch: Partial<WorkspaceSettings>): Promise<WorkspaceSettings> {
+  const response = await createApiRequest("/api/settings", {
+    body: JSON.stringify(patch),
+    headers: {
+      "content-type": "application/json",
+    },
+    method: "PATCH",
+  });
+
+  return parseMutationResponse<WorkspaceSettings>(response, "settings");
+}
+
+export function settingsQueryOptions() {
+  return queryOptions({
+    queryFn: fetchSettingsRequest,
+    queryKey: queryKeys.settings,
+  });
+}
+
+export function ensureSettingsData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(settingsQueryOptions());
+}
+
+export function useSettingsData(): LoadableData<WorkspaceSettings> {
+  return mapQueryState(useQuery(settingsQueryOptions()));
+}
+
+export function useUpdateSettingsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateSettingsRequest,
+    onSuccess: (updatedSettings) => {
+      queryClient.setQueryData<WorkspaceSettings>(queryKeys.settings, updatedSettings);
     },
   });
 }

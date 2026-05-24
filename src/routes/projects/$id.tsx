@@ -55,17 +55,35 @@ import {
   findProjectByPathParam,
   getProjectPathParams,
 } from "@/lib/project-slugs";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/projects/$id")({
   beforeLoad: requireAdminSession,
-  loader: ({ context }) =>
-    Promise.all([
+  loader: async ({ context, params }) => {
+    const [clients, projects] = await Promise.all([
       ensureClientsData(context.queryClient),
       ensureProjectsData(context.queryClient),
-    ]),
+    ]);
+
+    // Find the project by ID to get proper slugs for redirect
+    const project = findProjectByPathParam(projects, params.id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const client = clients.find((c) => c.id === project.clientId);
+    if (!client) {
+      throw new Error("Client not found for project");
+    }
+
+    // Return redirect target
+    const { clientSlug, projectSlug } = getProjectPathParams(project, clients);
+    return { redirectTo: `/projects/${clientSlug}/${projectSlug}` as const };
+  },
   pendingComponent: ProjectDetailPendingPage,
-  component: LegacyAdminProjectDetailRoute,
+  component: RedirectToModernProjectRoute,
+  errorComponent: ProjectRouteError,
 });
 
 const PROJECT_STATUS_OPTIONS = [
@@ -200,7 +218,9 @@ function ProjectDetailActions({
         disabled={updateProjectPending}
         items={PROJECT_STATUS_OPTIONS}
         onValueChange={(value) =>
-          onStatusChange(value as Project["status"]).catch(() => undefined)
+          onStatusChange(value as Project["status"]).catch((err) => {
+            console.error("Failed to update project status:", err);
+          })
         }
         value={project.status}
       >
@@ -260,12 +280,14 @@ function ProjectDetailActions({
       />
       <DeleteProjectDialog
         onDeleted={() => {
-          navigate({ to: "/projects" }).catch(() => undefined);
+          navigate({ to: "/projects" }).catch((err) => {
+            console.error("Failed to navigate after project deletion:", err);
+          });
         }}
         project={project}
         trigger={
           <Button
-            className="h-6 w-6 border border-border/40 p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95 bg-background"
+            className="h-6 w-6 border border-border/40 bg-background p-0 text-muted-foreground transition-all duration-200 hover:scale-105 hover:bg-rose-50 hover:text-rose-600 active:scale-95"
             size="icon-sm"
             type="button"
             variant="ghost"
@@ -279,10 +301,53 @@ function ProjectDetailActions({
   );
 }
 
-function LegacyAdminProjectDetailRoute() {
-  const { id } = Route.useParams();
+function RedirectToModernProjectRoute() {
+  const navigate = useNavigate();
+  const { redirectTo } = Route.useLoaderData();
 
-  return <AdminProjectDetailPage projectSlug={id} />;
+  useEffect(() => {
+    // Navigate to the modern route format
+    navigate({
+      to: "/projects/$clientSlug/$projectSlug",
+      params: {
+        clientSlug: redirectTo.split("/")[2] ?? "",
+        projectSlug: redirectTo.split("/")[3] ?? "",
+      },
+      replace: true,
+    }).catch((err) => {
+      console.error("Failed to redirect to modern project route:", err);
+    });
+  }, [navigate, redirectTo]);
+
+  return <ProjectDetailPendingPage />;
+}
+
+function ProjectRouteError({ error }: { error: Error }) {
+  const navigate = useNavigate();
+
+  return (
+    <AppShell>
+      <div className="space-y-4">
+        <ErrorPanel
+          description={
+            error?.message ?? "We couldn't find the project you're looking for."
+          }
+          title="Project Not Found"
+        />
+        <Button
+          className="mt-4"
+          onClick={() =>
+            navigate({ to: "/projects" }).catch(() => undefined)
+          }
+          size="sm"
+          variant="outline"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
+          Back to Projects
+        </Button>
+      </div>
+    </AppShell>
+  );
 }
 
 interface MilestoneAnalyticsWidgetProps {

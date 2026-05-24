@@ -19,6 +19,7 @@ import {
   projects as projectsTable,
   projectUpdates as projectUpdatesTable,
   users as usersTable,
+  workspaceSettings as workspaceSettingsTable,
 } from "./schema";
 
 type DatabaseExecutor = Pick<
@@ -2238,4 +2239,100 @@ async function seedDemoDeliveryData(now: Date) {
   if (projectFiles.length > 0) {
     await db.insert(filesTable).values(projectFiles).onConflictDoNothing();
   }
+}
+
+// ── Workspace Settings ─────────────────────────────────────────────────────
+
+export interface WorkspaceSettings {
+  allowSignups: boolean;
+  autoArchive: boolean;
+  enableNotifications: boolean;
+  id: string;
+  logoUrl: string | null;
+  portalUrl: string | null;
+  supportEmail: string;
+  updatedAt: Date;
+  workspaceName: string;
+}
+
+export interface WorkspaceSettingsPatch {
+  allowSignups?: boolean;
+  autoArchive?: boolean;
+  enableNotifications?: boolean;
+  logoUrl?: string | null;
+  portalUrl?: string | null;
+  supportEmail?: string;
+  workspaceName?: string;
+}
+
+function mapWorkspaceSettings(row: typeof workspaceSettingsTable.$inferSelect): WorkspaceSettings {
+  return {
+    allowSignups: row.allowSignups,
+    autoArchive: row.autoArchive,
+    enableNotifications: row.enableNotifications,
+    id: row.id,
+    logoUrl: row.logoUrl ?? null,
+    portalUrl: row.portalUrl ?? null,
+    supportEmail: row.supportEmail,
+    updatedAt: row.updatedAt,
+    workspaceName: row.workspaceName,
+  };
+}
+
+export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
+  const [row] = await db
+    .select()
+    .from(workspaceSettingsTable)
+    .where(eq(workspaceSettingsTable.id, "default"))
+    .limit(1);
+
+  if (row) {
+    return mapWorkspaceSettings(row);
+  }
+
+  // Create default settings if not exists
+  const now = new Date();
+  await db.insert(workspaceSettingsTable).values({
+    allowSignups: false,
+    autoArchive: true,
+    enableNotifications: true,
+    id: "default",
+    logoUrl: null,
+    portalUrl: null,
+    supportEmail: "support@clientra.com",
+    updatedAt: now,
+    workspaceName: "Clientra",
+  });
+
+  const [created] = await db
+    .select()
+    .from(workspaceSettingsTable)
+    .where(eq(workspaceSettingsTable.id, "default"))
+    .limit(1);
+
+  if (!created) {
+    throw new Error("Failed to create workspace settings");
+  }
+
+  return mapWorkspaceSettings(created);
+}
+
+export async function updateWorkspaceSettings(patch: WorkspaceSettingsPatch): Promise<WorkspaceSettings> {
+  const updatedRows = await db
+    .update(workspaceSettingsTable)
+    .set({
+      ...patch,
+      updatedAt: new Date(),
+    })
+    .where(eq(workspaceSettingsTable.id, "default"))
+    .returning();
+
+  const updated = updatedRows[0];
+
+  if (!updated) {
+    // If no row was updated, create it first
+    return getWorkspaceSettings().then(() => updateWorkspaceSettings(patch));
+  }
+
+  return mapWorkspaceSettings(updated);
 }

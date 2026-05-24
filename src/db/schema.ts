@@ -201,3 +201,15 @@ export const files = sqliteTable("files", {
   mimeType: text("mime_type").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+export const workspaceSettings = sqliteTable("workspace_settings", {
+  id: text("id").primaryKey().default("default"),
+  workspaceName: text("workspace_name").notNull().default("Clientra"),
+  supportEmail: text("support_email").notNull().default("support@clientra.com"),
+  allowSignups: integer("allow_signups", { mode: "boolean" }).notNull().default(false),
+  enableNotifications: integer("enable_notifications", { mode: "boolean" }).notNull().default(true),
+  autoArchive: integer("auto_archive", { mode: "boolean" }).notNull().default(true),
+  portalUrl: text("portal_url"),
+  logoUrl: text("logo_url"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
