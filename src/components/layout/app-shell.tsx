@@ -97,6 +97,7 @@ function SidebarNav() {
                   {({ isActive }) => (
                     <SidebarMenuButton
                       active={isActive}
+                      aria-label={showText ? undefined : item.label}
                       className={
                         isActive
                           ? "bg-accent font-medium text-accent-foreground"
@@ -127,6 +128,7 @@ function SidebarNav() {
                 {({ isActive }) => (
                   <SidebarMenuButton
                     active={isActive}
+                    aria-label={showText ? undefined : "Settings"}
                     className={
                       isActive
                         ? "bg-accent font-medium text-accent-foreground"
@@ -148,6 +150,7 @@ function SidebarNav() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 aria-disabled
+                aria-label={showText ? undefined : "Help & Support"}
                 className="pointer-events-none cursor-default text-muted-foreground/70"
                 title={showText ? undefined : "Help & Support (coming soon)"}
               >

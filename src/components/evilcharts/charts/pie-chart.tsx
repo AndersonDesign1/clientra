@@ -56,6 +56,17 @@ const DEFAULT_END_ANGLE = 360;
 // Stable empty-array reference so the `glowingSectors` default doesn't change every render
 const EMPTY_GLOWING_SECTORS: string[] = [];
 
+function sanitizeSvgId(value: string, index = 0) {
+  const sanitized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return sanitized || `sector-${index}`;
+}
+
 type LabelListProps = ComponentProps<typeof RechartsLabelList>;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,9 +270,16 @@ export function Pie({
 
   const label = resolveLabel(children, dataKey);
 
-  const preparedData = data.map((item) => ({
+  const sectorIdMap = new Map(
+    data.map((item, index) => [
+      item[nameKey] as string,
+      sanitizeSvgId(item[nameKey] as string, index),
+    ])
+  );
+
+  const preparedData = data.map((item, index) => ({
     ...item,
-    fill: `url(#${id}-colors-${item[nameKey] as string})`,
+    fill: `url(#${id}-colors-${sanitizeSvgId(item[nameKey] as string, index)})`,
   }));
 
   return (
@@ -286,6 +304,8 @@ export function Pie({
         paddingAngle={paddingAngle}
         shape={(props: PieSectorShapeProps) => {
           const sectorName = data[props.index ?? 0]?.[nameKey] as string;
+          const sectorId =
+            sectorIdMap.get(sectorName) ?? sanitizeSvgId(sectorName);
           const isGlowing = glowingSectors.includes(sectorName);
           const isDimmed =
             isClickable &&
@@ -296,8 +316,8 @@ export function Pie({
             <Sector
               {...props}
               className="transition-opacity duration-200"
-              fill={`url(#${id}-colors-${sectorName})`}
-              filter={isGlowing ? `url(#${id}-glow-${sectorName})` : undefined}
+              fill={`url(#${id}-colors-${sectorId})`}
+              filter={isGlowing ? `url(#${id}-glow-${sectorId})` : undefined}
               opacity={isDimmed ? 0.3 : 1}
               stroke={paddingAngle < 0 ? "var(--background)" : "none"}
               strokeWidth={paddingAngle < 0 ? 5 : 0}
@@ -312,9 +332,18 @@ export function Pie({
         {label}
       </RechartsPie>
       <defs>
-        <RadialColorGradient config={config} id={id} variant={variant} />
+        <RadialColorGradient
+          config={config}
+          id={id}
+          sectorIdMap={sectorIdMap}
+          variant={variant}
+        />
         {glowingSectors.length > 0 && (
-          <GlowFilter glowingSectors={glowingSectors} id={id} />
+          <GlowFilter
+            glowingSectors={glowingSectors}
+            id={id}
+            sectorIdMap={sectorIdMap}
+          />
         )}
       </defs>
     </>
@@ -458,20 +487,23 @@ type PieVariant = "gradient";
 const RadialColorGradient = ({
   id,
   config,
+  sectorIdMap,
 }: {
   id: string; // unique id of the owning <Pie />
   config: ChartConfig; // sector colors the gradients are built from
+  sectorIdMap: Map<string, string>; // sanitized ids keyed by sector name
   variant: PieVariant; // fill style — currently always a diagonal color gradient
 }) => {
   return (
     <>
       {Object.entries(config).map(([sectorKey, sectorConfig]) => {
         const colorsCount = getColorsCount(sectorConfig);
+        const sectorId = sectorIdMap.get(sectorKey) ?? sanitizeSvgId(sectorKey);
 
         return (
           <linearGradient
-            id={`${id}-colors-${sectorKey}`}
-            key={`${id}-colors-${sectorKey}`}
+            id={`${id}-colors-${sectorId}`}
+            key={`${id}-colors-${sectorId}`}
             x1="0"
             x2="1"
             y1="0"
@@ -505,34 +537,41 @@ const RadialColorGradient = ({
 const GlowFilter = ({
   id,
   glowingSectors,
+  sectorIdMap,
 }: {
   id: string; // unique id of the owning <Pie />
   glowingSectors: string[]; // sector names that should glow
+  sectorIdMap: Map<string, string>; // sanitized ids keyed by sector name
 }) => {
   return (
     <>
-      {glowingSectors.map((sectorName) => (
-        <filter
-          height="300%"
-          id={`${id}-glow-${sectorName}`}
-          key={`${id}-glow-${sectorName}`}
-          width="300%"
-          x="-100%"
-          y="-100%"
-        >
-          <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="8" />
-          <feColorMatrix
-            in="blur"
-            result="glow"
-            type="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0"
-          />
-          <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      ))}
+      {glowingSectors.map((sectorName, index) => {
+        const sectorId =
+          sectorIdMap.get(sectorName) ?? sanitizeSvgId(sectorName, index);
+
+        return (
+          <filter
+            height="300%"
+            id={`${id}-glow-${sectorId}`}
+            key={`${id}-glow-${sectorId}`}
+            width="300%"
+            x="-100%"
+            y="-100%"
+          >
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="8" />
+            <feColorMatrix
+              in="blur"
+              result="glow"
+              type="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0"
+            />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        );
+      })}
     </>
   );
 };

@@ -815,10 +815,17 @@ export function CreateInviteDialog({ clientId }: { clientId: string }) {
     if (!inviteLink) {
       return;
     }
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard
+      .writeText(inviteLink)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((error) => {
+        console.error("Failed to copy invite link:", error);
+        setCopied(false);
+        setError("Unable to copy invite link. Please copy it manually.");
+      });
   }
 
   function handleOpenChange(nextOpen: boolean) {

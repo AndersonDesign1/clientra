@@ -7,14 +7,17 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
 import { StatusBadge } from "@/components/common/status-badge";
-import {
-  useProjectCollaborationData,
-  useProjectFilesData,
-  useProjectMilestonesData,
-  useProjectUpdatesData,
-} from "@/lib/api";
 import { getDeadlineLabel } from "@/lib/insights";
 import { cn } from "@/lib/utils";
+
+interface ProjectCardSummary {
+  commentsCount: number;
+  completedMilestones: number;
+  filesCount: number;
+  isLoading?: boolean;
+  totalMilestones: number;
+  updatesCount: number;
+}
 
 interface EnhancedProjectCardProps {
   className?: string;
@@ -30,6 +33,7 @@ interface EnhancedProjectCardProps {
     status: "planning" | "in_progress" | "completed";
   };
   projectSlug: string;
+  summary?: ProjectCardSummary;
 }
 
 export function EnhancedProjectCard({
@@ -39,22 +43,14 @@ export function EnhancedProjectCard({
   isPortal = false,
   className,
   delayMs = 0,
+  summary,
 }: EnhancedProjectCardProps) {
-  // Parallel asynchronous queries for project metadata
-  const milestonesQuery = useProjectMilestonesData(project.id);
-  const filesQuery = useProjectFilesData(project.id);
-  const updatesQuery = useProjectUpdatesData(project.id);
-  const collaborationQuery = useProjectCollaborationData(project.id);
-
-  const milestones = milestonesQuery.data ?? [];
-  const filesCount = filesQuery.data?.length ?? 0;
-  const updatesCount = updatesQuery.data?.length ?? 0;
-  const commentsCount = collaborationQuery.data?.comments.length ?? 0;
-
-  const completedMilestones = milestones.filter(
-    (m) => m.status === "done"
-  ).length;
-  const totalMilestones = milestones.length;
+  const filesCount = summary?.filesCount ?? 0;
+  const updatesCount = summary?.updatesCount ?? 0;
+  const commentsCount = summary?.commentsCount ?? 0;
+  const completedMilestones = summary?.completedMilestones ?? 0;
+  const totalMilestones = summary?.totalMilestones ?? 0;
+  const isSummaryLoading = summary?.isLoading ?? false;
 
   let progressPercentage = 0;
   if (totalMilestones > 0) {
@@ -126,7 +122,7 @@ export function EnhancedProjectCard({
             <span className="font-semibold text-muted-foreground uppercase tracking-wider">
               Milestone Velocity
             </span>
-            {milestonesQuery.isLoading ? (
+            {isSummaryLoading ? (
               <span className="h-3 w-8 animate-pulse rounded bg-muted" />
             ) : (
               <span className="font-bold text-foreground">
@@ -152,14 +148,14 @@ export function EnhancedProjectCard({
               count: commentsCount,
               label: "comment",
               icon: Comment01Icon,
-              loading: collaborationQuery.isLoading,
+              loading: isSummaryLoading,
               color: "text-primary border-primary/10 bg-primary/5",
             },
             {
               count: filesCount,
               label: "file",
               icon: File01Icon,
-              loading: filesQuery.isLoading,
+              loading: isSummaryLoading,
               color:
                 "text-amber-600 border-amber-500/10 bg-amber-500/5 dark:text-amber-400",
             },
@@ -167,7 +163,7 @@ export function EnhancedProjectCard({
               count: updatesCount,
               label: "update",
               icon: CheckmarkCircle01Icon,
-              loading: updatesQuery.isLoading,
+              loading: isSummaryLoading,
               color:
                 "text-blue-600 border-blue-500/10 bg-blue-500/5 dark:text-blue-400",
             },

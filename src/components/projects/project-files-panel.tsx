@@ -243,18 +243,20 @@ export function ProjectFilesPanel({
       />
 
       {/* Dashed Premium Dropzone Upload Area */}
-      <div
+      <button
         className={cn(
-          "group relative flex animate-slide-up-fade flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center transition-all duration-300",
+          "group relative flex w-full animate-slide-up-fade flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
           isUploading
             ? "animate-pulse border-primary bg-primary/5"
             : "cursor-pointer border-border/80 bg-secondary/15 hover:border-primary/40 hover:bg-secondary/35"
         )}
+        disabled={isUploading}
         onClick={() => {
           if (!isUploading) {
             inputRef.current?.click();
           }
         }}
+        type="button"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
           <HugeiconsIcon icon={Upload01Icon} size={15} />
@@ -267,7 +269,7 @@ export function ProjectFilesPanel({
         <p className="mt-0.5 max-w-sm text-[10px] text-muted-foreground leading-relaxed">
           Images, PDFs, CSVs, or text files up to 32MB. Max 6 files at once.
         </p>
-      </div>
+      </button>
 
       {mutationError ? (
         <div className="animate-slide-up-fade rounded-lg border border-rose-200/50 bg-rose-50/10 p-2.5 text-rose-700 text-xs">

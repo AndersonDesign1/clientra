@@ -7,14 +7,15 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import type { WorkspaceSettings } from "@/db/records";
 import type { Client } from "@/features/clients/mock-data";
 import type { Project } from "@/features/projects/mock-data";
 import type { DashboardActivityEvent } from "@/shared/dashboard-activity";
 
+export type { WorkspaceSettings } from "@/db/records";
 export type { Client } from "@/features/clients/mock-data";
 export type { Project } from "@/features/projects/mock-data";
 export type { DashboardActivityEvent } from "@/shared/dashboard-activity";
-export type { WorkspaceSettings } from "@/db/records";
 
 export interface SearchResults {
   clients: Client[];
@@ -1333,13 +1334,17 @@ export function useDeleteProjectMilestoneMutation() {
 
 // ── Settings ───────────────────────────────────────────────────────────────
 
-import type { WorkspaceSettings } from "@/db/records";
+export type WorkspaceSettingsPatch = Partial<
+  Omit<WorkspaceSettings, "id" | "updatedAt">
+>;
 
-async function fetchSettingsRequest(): Promise<WorkspaceSettings> {
+function fetchSettingsRequest(): Promise<WorkspaceSettings> {
   return fetchJson<WorkspaceSettings>("/api/settings");
 }
 
-async function updateSettingsRequest(patch: Partial<WorkspaceSettings>): Promise<WorkspaceSettings> {
+async function updateSettingsRequest(
+  patch: WorkspaceSettingsPatch
+): Promise<WorkspaceSettings> {
   const response = await createApiRequest("/api/settings", {
     body: JSON.stringify(patch),
     headers: {
@@ -1372,7 +1377,10 @@ export function useUpdateSettingsMutation() {
   return useMutation({
     mutationFn: updateSettingsRequest,
     onSuccess: (updatedSettings) => {
-      queryClient.setQueryData<WorkspaceSettings>(queryKeys.settings, updatedSettings);
+      queryClient.setQueryData<WorkspaceSettings>(
+        queryKeys.settings,
+        updatedSettings
+      );
     },
   });
 }

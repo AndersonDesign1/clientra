@@ -25,6 +25,17 @@ import { cn } from "@/lib/utils";
 
 type TabId = "profile" | "features";
 
+function getPortalPath(workspaceName: string) {
+  return (
+    workspaceName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || "workspace"
+  );
+}
+
 export const Route = createFileRoute("/settings")({
   beforeLoad: requireAdminSession,
   loader: ({ context }) => ensureSettingsData(context.queryClient),
@@ -110,8 +121,6 @@ function SettingsPage() {
   );
 }
 
-
-
 // ── Workspace Tab ──────────────────────────────────────────────────────────
 
 function WorkspaceTab() {
@@ -119,10 +128,16 @@ function WorkspaceTab() {
   const updateMutation = useUpdateSettingsMutation();
   const settings = settingsQuery.data;
 
-  const [workspaceName, setWorkspaceName] = useState(settings?.workspaceName ?? "");
-  const [supportEmail, setSupportEmail] = useState(settings?.supportEmail ?? "");
+  const [workspaceName, setWorkspaceName] = useState(
+    settings?.workspaceName ?? ""
+  );
+  const [supportEmail, setSupportEmail] = useState(
+    settings?.supportEmail ?? ""
+  );
   const [copiedPath, setCopiedPath] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
 
   // Sync local state when settings load
   useEffect(() => {
@@ -133,13 +148,17 @@ function WorkspaceTab() {
   }, [settings]);
 
   async function handleSave() {
-    if (!settings) return;
+    if (!settings) {
+      return;
+    }
 
     setSaveStatus("saving");
     try {
+      const portalUrl = `https://useclientra.com/portal/${portalPath}`;
       await updateMutation.mutateAsync({
-        workspaceName: workspaceName.trim(),
+        portalUrl,
         supportEmail: supportEmail.trim(),
+        workspaceName: workspaceName.trim(),
       });
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
@@ -148,7 +167,7 @@ function WorkspaceTab() {
     }
   }
 
-  const portalPath = workspaceName.toLowerCase().replace(/\s+/g, "-") || "workspace";
+  const portalPath = getPortalPath(workspaceName);
 
   async function handleCopyPortalUrl() {
     const url = `https://useclientra.com/portal/${portalPath}`;
@@ -210,7 +229,7 @@ function WorkspaceTab() {
         <div className="space-y-2">
           <span className="font-medium text-sm">Client Portal URL</span>
           <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 p-3">
-            <code className="flex-1 text-sm text-muted-foreground">
+            <code className="flex-1 text-muted-foreground text-sm">
               useclientra.com/portal/{portalPath}
             </code>
             <Button
@@ -235,7 +254,7 @@ function WorkspaceTab() {
         <div className="space-y-2">
           <span className="font-medium text-sm">Workspace Logo</span>
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-600 font-bold text-white text-lg">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-600 font-bold text-lg text-white">
               {workspaceName.slice(0, 2).toUpperCase() || "CL"}
             </div>
             <Button className="h-8 text-xs" size="sm" variant="outline">
@@ -272,15 +291,34 @@ function FeaturesTab() {
   const settingsQuery = useSettingsData();
   const updateMutation = useUpdateSettingsMutation();
   const settings = settingsQuery.data;
+  const [optimisticSettings, setOptimisticSettings] = useState(settings);
 
-  async function handleToggle(key: "allowSignups" | "enableNotifications" | "autoArchive") {
-    if (!settings) return;
+  useEffect(() => {
+    setOptimisticSettings(settings);
+  }, [settings]);
 
-    const newValue = !settings[key];
-    await updateMutation.mutateAsync({ [key]: newValue });
+  async function handleToggle(
+    key: "allowSignups" | "enableNotifications" | "autoArchive"
+  ) {
+    if (!optimisticSettings || updateMutation.isPending) {
+      return;
+    }
+
+    const previousSettings = optimisticSettings;
+    const newValue = !optimisticSettings[key];
+    setOptimisticSettings({ ...optimisticSettings, [key]: newValue });
+
+    try {
+      await updateMutation.mutateAsync({ [key]: newValue });
+    } catch (error) {
+      console.error("Failed to update feature preference:", error);
+      setOptimisticSettings(previousSettings);
+    }
   }
 
-  if (!settings) return null;
+  if (!optimisticSettings) {
+    return null;
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
@@ -295,24 +333,27 @@ function FeaturesTab() {
       {/* Content */}
       <div className="max-w-2xl space-y-4">
         <FeatureToggle
-          checked={settings.allowSignups}
+          checked={optimisticSettings.allowSignups}
           description="Allow new users to sign up without an invitation."
+          disabled={updateMutation.isPending}
           icon={UserGroupIcon}
           label="Public Signups"
           onChange={() => handleToggle("allowSignups")}
         />
 
         <FeatureToggle
-          checked={settings.enableNotifications}
+          checked={optimisticSettings.enableNotifications}
           description="Send email notifications for project updates and mentions."
+          disabled={updateMutation.isPending}
           icon={MailOpen02Icon}
           label="Email Notifications"
           onChange={() => handleToggle("enableNotifications")}
         />
 
         <FeatureToggle
-          checked={settings.autoArchive}
+          checked={optimisticSettings.autoArchive}
           description="Automatically archive completed projects after 90 days."
+          disabled={updateMutation.isPending}
           icon={Briefcase01Icon}
           label="Auto-Archive Completed"
           onChange={() => handleToggle("autoArchive")}
@@ -324,12 +365,14 @@ function FeaturesTab() {
 
 function FeatureToggle({
   checked,
+  disabled = false,
   description,
   icon,
   label,
   onChange,
 }: {
   checked: boolean;
+  disabled?: boolean;
   description: string;
   icon: typeof UserGroupIcon;
   label: string;
@@ -337,7 +380,8 @@ function FeatureToggle({
 }) {
   return (
     <button
-      className="group flex w-full items-center justify-between rounded-xl border border-border/40 bg-card p-4 text-left transition-all hover:border-primary/20"
+      className="group flex w-full items-center justify-between rounded-xl border border-border/40 bg-card p-4 text-left transition-all hover:border-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={disabled}
       onClick={onChange}
       type="button"
     >

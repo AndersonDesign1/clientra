@@ -2251,7 +2251,7 @@ export interface WorkspaceSettings {
   logoUrl: string | null;
   portalUrl: string | null;
   supportEmail: string;
-  updatedAt: Date;
+  updatedAt: string;
   workspaceName: string;
 }
 
@@ -2265,7 +2265,9 @@ export interface WorkspaceSettingsPatch {
   workspaceName?: string;
 }
 
-function mapWorkspaceSettings(row: typeof workspaceSettingsTable.$inferSelect): WorkspaceSettings {
+function mapWorkspaceSettings(
+  row: typeof workspaceSettingsTable.$inferSelect
+): WorkspaceSettings {
   return {
     allowSignups: row.allowSignups,
     autoArchive: row.autoArchive,
@@ -2274,7 +2276,7 @@ function mapWorkspaceSettings(row: typeof workspaceSettingsTable.$inferSelect): 
     logoUrl: row.logoUrl ?? null,
     portalUrl: row.portalUrl ?? null,
     supportEmail: row.supportEmail,
-    updatedAt: row.updatedAt,
+    updatedAt: row.updatedAt.toISOString(),
     workspaceName: row.workspaceName,
   };
 }
@@ -2292,17 +2294,20 @@ export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
 
   // Create default settings if not exists
   const now = new Date();
-  await db.insert(workspaceSettingsTable).values({
-    allowSignups: false,
-    autoArchive: true,
-    enableNotifications: true,
-    id: "default",
-    logoUrl: null,
-    portalUrl: null,
-    supportEmail: "support@clientra.com",
-    updatedAt: now,
-    workspaceName: "Clientra",
-  });
+  await db
+    .insert(workspaceSettingsTable)
+    .values({
+      allowSignups: false,
+      autoArchive: true,
+      enableNotifications: true,
+      id: "default",
+      logoUrl: null,
+      portalUrl: null,
+      supportEmail: "support@clientra.com",
+      updatedAt: now,
+      workspaceName: "Clientra",
+    })
+    .onConflictDoNothing();
 
   const [created] = await db
     .select()
@@ -2317,21 +2322,44 @@ export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
   return mapWorkspaceSettings(created);
 }
 
-export async function updateWorkspaceSettings(patch: WorkspaceSettingsPatch): Promise<WorkspaceSettings> {
-  const updatedRows = await db
-    .update(workspaceSettingsTable)
-    .set({
-      ...patch,
-      updatedAt: new Date(),
-    })
-    .where(eq(workspaceSettingsTable.id, "default"))
-    .returning();
+export async function updateWorkspaceSettings(
+  patch: WorkspaceSettingsPatch
+): Promise<WorkspaceSettings> {
+  const now = new Date();
+  const defaults = {
+    allowSignups: false,
+    autoArchive: true,
+    enableNotifications: true,
+    logoUrl: null,
+    portalUrl: null,
+    supportEmail: "support@clientra.com",
+    workspaceName: "Clientra",
+  };
 
-  const updated = updatedRows[0];
+  await db
+    .insert(workspaceSettingsTable)
+    .values({
+      ...defaults,
+      ...patch,
+      id: "default",
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      set: {
+        ...patch,
+        updatedAt: now,
+      },
+      target: workspaceSettingsTable.id,
+    });
+
+  const [updated] = await db
+    .select()
+    .from(workspaceSettingsTable)
+    .where(eq(workspaceSettingsTable.id, "default"))
+    .limit(1);
 
   if (!updated) {
-    // If no row was updated, create it first
-    return getWorkspaceSettings().then(() => updateWorkspaceSettings(patch));
+    throw new Error("Failed to update workspace settings");
   }
 
   return mapWorkspaceSettings(updated);

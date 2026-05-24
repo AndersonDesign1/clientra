@@ -327,7 +327,7 @@ function CompactActivityList({
 
   const items = visibleActivity.map((event) => ({
     id: event.id,
-    icon: EVENT_ICONS[event.type] as never,
+    icon: EVENT_ICONS[event.type],
     iconBgClass: EVENT_BG_COLORS[event.type],
     iconColorClass: EVENT_COLORS[event.type],
     title: formatDashboardActivityTitle(event),

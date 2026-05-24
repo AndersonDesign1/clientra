@@ -86,7 +86,10 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handler);
   }, [toggleSidebar]);
 
-  const state = (open ? "expanded" : "collapsed") as "expanded" | "collapsed";
+  const isExpanded = isMobile ? openMobile : open;
+  const state = (isExpanded ? "expanded" : "collapsed") as
+    | "expanded"
+    | "collapsed";
 
   const value = useMemo(
     () => ({
@@ -106,7 +109,7 @@ function SidebarProvider({
       <div
         className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
         data-slot="sidebar-wrapper"
-        data-state={open ? "expanded" : "collapsed"}
+        data-state={state}
         style={
           {
             "--sidebar-width": "16rem",

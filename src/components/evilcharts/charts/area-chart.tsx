@@ -1003,10 +1003,14 @@ export function useLoadingData(isLoading: boolean, loadingPoints = 14) {
   }, [isLoading]);
 
   const loadingData = useMemo(
-    () => getLoadingData(loadingPoints),
+    () => {
+      if (_loadingDataKey) {
+        return getLoadingData(loadingPoints);
+      }
+      return getLoadingData(loadingPoints);
+    },
     // loadingDataKey toggle triggers re-computation when shimmer exits
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadingPoints]
+    [loadingPoints, _loadingDataKey]
   );
 
   return { loadingData, onShimmerExit };

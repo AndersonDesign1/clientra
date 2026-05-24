@@ -38,12 +38,28 @@ import {
   useProjectUpdatesData,
   useUsersData,
 } from "@/lib/api";
-import { getDeadlineLabel } from "@/lib/insights";
+import { getDeadlineLabel, parseDateOnlyLocal } from "@/lib/insights";
 import {
   findProjectByClientAndProjectPathParams,
   findProjectByPathParam,
 } from "@/lib/project-slugs";
 import { cn } from "@/lib/utils";
+
+function extractErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong."
+) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message?: unknown }).message ?? fallback);
+  }
+  return error ? String(error) : fallback;
+}
 
 export const Route = createFileRoute("/portal/projects/$id")({
   beforeLoad: requireClientSession,
@@ -98,11 +114,10 @@ function getDeadlineStatusElement(daysRemaining: number | null) {
 }
 
 function PremiumDeadlineCard({ deadline }: { deadline: string }) {
-  const targetDate = new Date(deadline);
-  const isInvalidDate = Number.isNaN(targetDate.getTime());
+  const targetDate = parseDateOnlyLocal(deadline);
 
   let daysRemaining: number | null = null;
-  if (!isInvalidDate) {
+  if (targetDate) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffTime = targetDate.getTime() - today.getTime();
@@ -323,9 +338,15 @@ function UnifiedActivityPanel({ projectId }: { projectId: string }) {
     return (
       <ErrorPanel
         description={
-          (collaborationQuery.error as string) ??
-          (updatesQuery.error as string) ??
-          "Failed to load activity."
+          collaborationQuery.error
+            ? extractErrorMessage(
+                collaborationQuery.error,
+                "Failed to load activity."
+              )
+            : extractErrorMessage(
+                updatesQuery.error,
+                "Failed to load activity."
+              )
         }
       />
     );
@@ -704,9 +725,15 @@ export function PortalProjectDetailPage({
       <PortalShell>
         <ErrorPanel
           description={
-            (projectsQuery.error as string) ??
-            (clientsQuery.error as string) ??
-            undefined
+            projectsQuery.error
+              ? extractErrorMessage(
+                  projectsQuery.error,
+                  "Failed to load project."
+                )
+              : extractErrorMessage(
+                  clientsQuery.error,
+                  "Failed to load project."
+                )
           }
         />
       </PortalShell>

@@ -71,7 +71,7 @@ export function ExpandableText({
     <p className="whitespace-pre-wrap font-normal text-muted-foreground text-xs leading-relaxed">
       {displayText}{" "}
       <button
-        className="ml-1 font-bold text-[9px] text-primary uppercase tracking-wider transition-colors hover:text-primary/80 hover:underline focus:outline-none"
+        className="ml-1 rounded-sm font-bold text-[9px] text-primary uppercase tracking-wider transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         onClick={() => setIsExpanded(!isExpanded)}
         type="button"
       >

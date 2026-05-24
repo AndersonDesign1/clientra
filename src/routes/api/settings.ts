@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   getWorkspaceSettings,
@@ -6,12 +8,15 @@ import {
   type WorkspaceSettingsPatch,
 } from "@/db/records";
 import {
+  forbiddenError,
+  internalServerError,
   notFoundError,
   parseJsonBody,
   requireAdminMutationRequest,
   unauthorizedError,
 } from "@/server/http/route-utils";
-import { z } from "zod";
+
+const NOT_FOUND_PATTERN = /not found/i;
 
 const updateSettingsSchema = z.object({
   workspaceName: z.string().min(1).max(100).optional(),
@@ -33,12 +38,19 @@ export const Route = createFileRoute("/api/settings")({
           return unauthorizedError();
         }
 
+        if (user.role !== ROLES.ADMIN) {
+          return forbiddenError();
+        }
+
         try {
           const settings = await getWorkspaceSettings();
           return Response.json(settings);
         } catch (error) {
           console.error("Failed to get workspace settings:", error);
-          return notFoundError("Settings not found");
+          if (error instanceof Error && NOT_FOUND_PATTERN.test(error.message)) {
+            return notFoundError("Settings not found");
+          }
+          return internalServerError("Settings could not be loaded.");
         }
       },
       PATCH: async ({ request }) => {
@@ -59,7 +71,7 @@ export const Route = createFileRoute("/api/settings")({
           return Response.json(updated);
         } catch (error) {
           console.error("Failed to update workspace settings:", error);
-          return notFoundError("Failed to update settings");
+          return internalServerError("Settings could not be updated.");
         }
       },
     },

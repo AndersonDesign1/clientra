@@ -331,8 +331,12 @@ function useLoadingData(isLoading: boolean) {
   }, [isLoading]);
 
   // Regenerate data when dataKey changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadingData = useMemo(() => generateLoadingData(), []);
+  const loadingData = useMemo(() => {
+    if (_dataKey > 0) {
+      return generateLoadingData();
+    }
+    return generateLoadingData();
+  }, [_dataKey]);
 
   return loadingData;
 }

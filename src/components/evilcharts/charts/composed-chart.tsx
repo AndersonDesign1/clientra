@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentProps, useId, useState } from "react";
+import { type ComponentProps, useId, useMemo } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -91,15 +91,19 @@ export function EvilComposedChart<
   glowingBar = false,
 }: EvilComposedChartProps<TData, TConfig>) {
   const chartId = useId().replace(/:/g, "");
-  const [selectedDataKey] = useState<string | null>(null);
+  const selectedDataKey: string | null = null;
 
   // Generate fake data points for loader state
-  const loadingData = getLoadingData(6).map((item, index) => ({
-    ...item,
-    [xDataKey]: `Label ${index}`,
-    [barDataKey]: Math.floor(Math.random() * 80) + 20,
-    [lineDataKey]: Math.floor(Math.random() * 6) + 1,
-  }));
+  const loadingData = useMemo(
+    () =>
+      getLoadingData(6).map((item, index) => ({
+        ...item,
+        [xDataKey]: `Label ${index}`,
+        [barDataKey]: Math.floor(Math.random() * 80) + 20,
+        [lineDataKey]: Math.floor(Math.random() * 6) + 1,
+      })),
+    [barDataKey, lineDataKey, xDataKey]
+  );
 
   const displayData = isLoading ? loadingData : data;
 
@@ -180,7 +184,7 @@ export function EvilComposedChart<
 
         {/* Bar Series: Total Budget */}
         <Bar
-          dataKey={barDataKey as any}
+          dataKey={barDataKey as string}
           fill={`url(#${chartId}-gradient-${barDataKey})`}
           filter={
             glowingBar ? `url(#${chartId}-glow-${barDataKey})` : undefined
@@ -200,7 +204,7 @@ export function EvilComposedChart<
               type="colored-border"
             />
           }
-          dataKey={lineDataKey as any}
+          dataKey={lineDataKey as string}
           dot={
             <ChartDot chartId={chartId} dataKey={lineDataKey} type="default" />
           }

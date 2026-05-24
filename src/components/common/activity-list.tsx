@@ -135,7 +135,7 @@ export function UnifiedActivityList<T>({
             </span>
 
             {item.canManage ? (
-              <div className="absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-1 rounded bg-background pl-2 opacity-0 transition-opacity duration-200 group-hover:bg-accent/40 group-hover:opacity-100">
+              <div className="pointer-events-none absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-1 rounded bg-background pl-2 opacity-0 transition-opacity duration-200 group-focus-within:pointer-events-auto group-focus-within:bg-accent/40 group-focus-within:opacity-100 group-hover:bg-accent/40 group-hover:opacity-100">
                 {item.onEdit && (
                   <Button
                     className="h-6 border border-border/40 bg-background px-2 font-bold text-[10px] text-foreground transition-transform duration-200 hover:scale-105 hover:bg-muted active:scale-95"
