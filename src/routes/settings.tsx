@@ -26,6 +26,9 @@ import { cn } from "@/lib/utils";
 
 type TabId = "profile" | "features";
 
+const DEFAULT_WORKSPACE_NAME = "Clientra";
+const DEFAULT_SUPPORT_EMAIL = "support@clientra.com";
+
 function getPortalPath(workspaceName: string) {
   return (
     workspaceName
@@ -149,25 +152,23 @@ function WorkspaceTab() {
   // Is the settings at factory defaults?
   const isDefaultSettings =
     settings &&
-    settings.workspaceName === "Clientra" &&
-    settings.supportEmail === "support@clientra.com";
+    settings.workspaceName === DEFAULT_WORKSPACE_NAME &&
+    settings.supportEmail === DEFAULT_SUPPORT_EMAIL;
 
   // Sync local state when settings load
   useEffect(() => {
     if (settings) {
-      if (
-        settings.workspaceName === "Clientra" &&
-        settings.supportEmail === "support@clientra.com" &&
-        currentUser
-      ) {
-        setWorkspaceName(currentUser.name ?? "My Workspace");
-        setSupportEmail(currentUser.email ?? "support@myworkspace.com");
+      const userName = currentUser?.name;
+      const userEmail = currentUser?.email;
+      if (isDefaultSettings && (userName || userEmail)) {
+        setWorkspaceName(userName ?? "My Workspace");
+        setSupportEmail(userEmail ?? DEFAULT_SUPPORT_EMAIL);
       } else {
         setWorkspaceName(settings.workspaceName);
         setSupportEmail(settings.supportEmail);
       }
     }
-  }, [settings, currentUser]);
+  }, [settings, isDefaultSettings, currentUser?.name, currentUser?.email]);
 
   async function handleSave() {
     if (!settings) {
@@ -530,7 +531,7 @@ function FeatureToggle({
       >
         <span
           className={cn(
-            "absolute top-[2px] h-4.5 w-4.5 rounded-full bg-white shadow-sm transition-all duration-200 ease-out",
+            "absolute top-0.5 h-4.5 w-4.5 rounded-full bg-white shadow-sm transition-all duration-200 ease-out",
             checked
               ? "left-[calc(100%-1.25rem)] scale-100"
               : "left-0.5 scale-90"
