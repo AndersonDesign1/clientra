@@ -29,7 +29,7 @@ type TabId = "profile" | "features";
 const DEFAULT_WORKSPACE_NAME = "Clientra";
 const DEFAULT_SUPPORT_EMAIL = "support@clientra.com";
 
-function getPortalPath(workspaceName: string) {
+export function getPortalPath(workspaceName: string) {
   return (
     workspaceName
       .trim()
@@ -130,7 +130,7 @@ function SettingsPage() {
 
 // ── Workspace Tab ──────────────────────────────────────────────────────────
 
-function WorkspaceTab() {
+export function WorkspaceTab() {
   const settingsQuery = useSettingsData();
   const updateMutation = useUpdateSettingsMutation();
   const settings = settingsQuery.data;
