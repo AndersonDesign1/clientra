@@ -1,9 +1,24 @@
 // @vitest-environment jsdom
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LoadableData, PendingInvite } from "@/lib/api";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+function renderWithClient(ui: ReactNode) {
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+}
 
 vi.mock("@/lib/api", () => ({
   ensureClientsData: vi.fn(),
@@ -36,6 +51,7 @@ import { PendingInvitesPanel } from "@/routes/clients/$id";
 
 afterEach(() => {
   cleanup();
+  queryClient.clear();
 });
 
 function createState(
@@ -51,7 +67,7 @@ function createState(
 
 describe("PendingInvitesPanel", () => {
   it("renders pending invite rows", () => {
-    render(
+    renderWithClient(
       <PendingInvitesPanel
         clientId="client_1"
         pendingInvites={createState({
@@ -77,7 +93,7 @@ describe("PendingInvitesPanel", () => {
   });
 
   it("renders an empty state", () => {
-    render(
+    renderWithClient(
       <PendingInvitesPanel clientId="client_1" pendingInvites={createState()} />
     );
 
@@ -88,7 +104,7 @@ describe("PendingInvitesPanel", () => {
   });
 
   it("renders loading and error states without hiding surrounding content", () => {
-    render(
+    renderWithClient(
       <>
         <p>Acme Inc.</p>
         <PendingInvitesPanel
