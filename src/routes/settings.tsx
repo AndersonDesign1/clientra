@@ -146,13 +146,28 @@ function WorkspaceTab() {
     "idle"
   );
 
+  // Is the settings at factory defaults?
+  const isDefaultSettings =
+    settings &&
+    settings.workspaceName === "Clientra" &&
+    settings.supportEmail === "support@clientra.com";
+
   // Sync local state when settings load
   useEffect(() => {
     if (settings) {
-      setWorkspaceName(settings.workspaceName);
-      setSupportEmail(settings.supportEmail);
+      if (
+        settings.workspaceName === "Clientra" &&
+        settings.supportEmail === "support@clientra.com" &&
+        currentUser
+      ) {
+        setWorkspaceName(currentUser.name ?? "My Workspace");
+        setSupportEmail(currentUser.email ?? "support@myworkspace.com");
+      } else {
+        setWorkspaceName(settings.workspaceName);
+        setSupportEmail(settings.supportEmail);
+      }
     }
-  }, [settings]);
+  }, [settings, currentUser]);
 
   async function handleSave() {
     if (!settings) {
@@ -194,6 +209,32 @@ function WorkspaceTab() {
 
   return (
     <div className="space-y-6">
+      {isDefaultSettings && currentUser && (
+        <div className="animate-slide-up-fade rounded-xl border border-primary/25 bg-primary/5 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+          <div className="flex gap-3.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <HugeiconsIcon icon={Settings01Icon} size={15} />
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="font-semibold text-foreground text-sm">
+                ✨ Personalize your workspace
+              </h4>
+              <p className="max-w-2xl text-muted-foreground text-xs leading-relaxed">
+                Welcome,{" "}
+                <span className="font-semibold text-foreground">
+                  {currentUser.name}
+                </span>
+                ! We noticed your workspace is still using default settings.
+                We've pre-filled the profile below with your signup credentials.
+                Review the details, customize your brand, and click{" "}
+                <span className="font-semibold text-primary">Save Changes</span>{" "}
+                to publish your client portal!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Content Card */}
       <div className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
         {/* Workspace Identity Info Row */}
