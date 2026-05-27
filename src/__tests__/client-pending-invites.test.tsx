@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LoadableData, PendingInvite } from "@/lib/api";
@@ -16,9 +16,7 @@ const queryClient = new QueryClient({
 
 function renderWithClient(ui: ReactNode) {
   return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
   );
 }
 
@@ -53,6 +51,7 @@ import { PendingInvitesPanel } from "@/routes/clients/$id";
 
 afterEach(() => {
   cleanup();
+  queryClient.clear();
 });
 
 function createState(

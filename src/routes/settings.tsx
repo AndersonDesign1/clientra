@@ -156,7 +156,7 @@ export function WorkspaceTab() {
     settings.supportEmail === DEFAULT_SUPPORT_EMAIL;
 
   // Sync local state when settings load
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only trigger on defaults and user credential changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Sync when defaults detection, user credentials, or server-side settings change
   useEffect(() => {
     if (settings) {
       if (isDefaultSettings && currentUser) {
@@ -167,7 +167,13 @@ export function WorkspaceTab() {
         setSupportEmail(settings.supportEmail);
       }
     }
-  }, [isDefaultSettings, currentUser?.name, currentUser?.email]);
+  }, [
+    isDefaultSettings,
+    currentUser?.name,
+    currentUser?.email,
+    settings?.workspaceName,
+    settings?.supportEmail,
+  ]);
 
   async function handleSave() {
     if (!settings) {
