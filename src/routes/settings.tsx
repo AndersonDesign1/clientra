@@ -50,11 +50,10 @@ function SettingsPage() {
   if (settingsQuery.isLoading) {
     return (
       <AppShell>
-        <div className="space-y-8">
+        <div className="mx-auto max-w-3xl space-y-8">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-8 w-96" />
-          <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-            <Skeleton className="h-64" />
+          <div className="grid gap-6">
             <Skeleton className="h-64" />
           </div>
         </div>
@@ -65,11 +64,13 @@ function SettingsPage() {
   if (settingsQuery.error) {
     return (
       <AppShell>
-        <PageHeader title="Settings" />
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center">
-          <p className="text-destructive text-sm">
-            Failed to load settings. Please try refreshing the page.
-          </p>
+        <div className="mx-auto max-w-3xl">
+          <PageHeader title="Settings" />
+          <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-8 text-center">
+            <p className="text-destructive text-sm">
+              Failed to load settings. Please try refreshing the page.
+            </p>
+          </div>
         </div>
       </AppShell>
     );
@@ -77,45 +78,47 @@ function SettingsPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        description="Manage your workspace branding, preferences, and configuration."
-        title="Settings"
-      />
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader
+          description="Manage your workspace branding, preferences, and configuration."
+          title="Settings"
+        />
 
-      {/* Tab Navigation - matches project detail pattern */}
-      <div className="mb-6 flex flex-wrap gap-6 border-border/40 border-b pb-px">
-        {[
-          {
-            id: "profile",
-            label: "Workspace",
-            icon: Briefcase01Icon,
-          },
-          { id: "features", label: "Features", icon: Settings01Icon },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              className={cn(
-                "flex select-none items-center gap-1.5 border-b-2 px-1 pt-1.5 pb-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-250",
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-primary"
-              )}
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabId)}
-              type="button"
-            >
-              <HugeiconsIcon className="h-3.5 w-3.5" icon={tab.icon} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+        {/* Tab Navigation - matches project detail pattern */}
+        <div className="mb-6 flex flex-wrap gap-6 border-border/40 border-b pb-px">
+          {[
+            {
+              id: "profile",
+              label: "Workspace",
+              icon: Briefcase01Icon,
+            },
+            { id: "features", label: "Features", icon: Settings01Icon },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                className={cn(
+                  "flex select-none items-center gap-1.5 border-b-2 px-1 pt-1.5 pb-3 font-bold text-[11px] uppercase tracking-wider transition-all duration-250",
+                  isActive
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-primary"
+                )}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabId)}
+                type="button"
+              >
+                <HugeiconsIcon className="h-3.5 w-3.5" icon={tab.icon} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Tab Content */}
-      <div className="min-h-50 animate-slide-up-fade">
-        {activeTab === "profile" && <WorkspaceTab />}
-        {activeTab === "features" && <FeaturesTab />}
+        {/* Tab Content */}
+        <div className="min-h-50 animate-slide-up-fade">
+          {activeTab === "profile" && <WorkspaceTab />}
+          {activeTab === "features" && <FeaturesTab />}
+        </div>
       </div>
     </AppShell>
   );
@@ -186,56 +189,92 @@ function WorkspaceTab() {
       supportEmail.trim() !== settings.supportEmail);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-      {/* Sidebar */}
-      <div className="space-y-2">
-        <h3 className="font-medium text-sm">Workspace Identity</h3>
-        <p className="text-muted-foreground text-xs leading-relaxed">
-          Configure how your workspace appears to clients and team members.
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Content Card */}
+      <div className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+        {/* Workspace Identity Info Row */}
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <HugeiconsIcon icon={Briefcase01Icon} size={18} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-semibold text-base text-foreground">
+              Workspace Profile
+            </h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Configure your public branding, customer communication channels,
+              and secure shareable client portals.
+            </p>
+          </div>
+        </div>
 
-      {/* Content */}
-      <div className="max-w-2xl space-y-6">
+        <div className="h-px bg-border/45" />
+
         {/* Workspace Name */}
         <div className="space-y-2">
-          <label className="font-medium text-sm" htmlFor="workspace-name">
+          <label
+            className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider"
+            htmlFor="workspace-name"
+          >
             Workspace Name
           </label>
-          <input
-            className="h-10 w-full rounded-lg border border-border/60 bg-secondary/50 px-3 text-sm transition-colors focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary/20"
-            id="workspace-name"
-            onChange={(e) => setWorkspaceName(e.target.value)}
-            type="text"
-            value={workspaceName}
-          />
+          <div className="group/input relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground/60 transition-colors group-focus-within/input:text-primary">
+              <HugeiconsIcon icon={Briefcase01Icon} size={15} />
+            </div>
+            <input
+              className="h-10 w-full rounded-lg border border-border/60 bg-secondary/30 pr-3 pl-10 text-sm transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
+              id="workspace-name"
+              onChange={(e) => setWorkspaceName(e.target.value)}
+              type="text"
+              value={workspaceName}
+            />
+          </div>
         </div>
 
         {/* Support Email */}
         <div className="space-y-2">
-          <label className="font-medium text-sm" htmlFor="support-email">
+          <label
+            className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider"
+            htmlFor="support-email"
+          >
             Support Email
           </label>
-          <input
-            className="h-10 w-full rounded-lg border border-border/60 bg-secondary/50 px-3 text-sm transition-colors focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary/20"
-            id="support-email"
-            onChange={(e) => setSupportEmail(e.target.value)}
-            type="email"
-            value={supportEmail}
-          />
+          <div className="group/input relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground/60 transition-colors group-focus-within/input:text-primary">
+              <HugeiconsIcon icon={MailOpen02Icon} size={15} />
+            </div>
+            <input
+              className="h-10 w-full rounded-lg border border-border/60 bg-secondary/30 pr-3 pl-10 text-sm transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-4 focus:ring-primary/10"
+              id="support-email"
+              onChange={(e) => setSupportEmail(e.target.value)}
+              type="email"
+              value={supportEmail}
+            />
+          </div>
         </div>
 
         {/* Portal URL */}
         <div className="space-y-2">
-          <span className="font-medium text-sm">Client Portal URL</span>
-          <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-secondary/50 p-3">
-            <code className="flex-1 text-muted-foreground text-sm">
-              useclientra.com/portal/{portalPath}
+          <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+            Client Portal URL
+          </span>
+          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-secondary/20 p-2.5 pl-3.5 transition-all focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/5">
+            <div className="flex items-center gap-1.5 text-muted-foreground/60">
+              <HugeiconsIcon icon={UserGroupIcon} size={14} />
+            </div>
+            <code className="flex-1 select-all font-mono text-muted-foreground text-xs">
+              useclientra.com/portal/
+              <span className="font-semibold text-foreground">
+                {portalPath}
+              </span>
             </code>
             <Button
               className={cn(
-                "h-7 px-2 text-xs",
-                copiedPath && "text-emerald-600"
+                "h-7 gap-1 px-2.5 text-[11px] transition-all",
+                copiedPath
+                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-600"
+                  : "hover:border-primary/30"
               )}
               onClick={handleCopyPortalUrl}
               size="sm"
@@ -243,38 +282,53 @@ function WorkspaceTab() {
             >
               <HugeiconsIcon
                 icon={copiedPath ? Tick02Icon : Copy01Icon}
-                size={12}
+                size={11}
               />
-              {copiedPath ? "Copied" : "Copy"}
+              <span>{copiedPath ? "Copied!" : "Copy URL"}</span>
             </Button>
           </div>
         </div>
 
-        {/* Logo Upload (Visual Only) */}
+        {/* Workspace Logo Upload (Visual Only) */}
         <div className="space-y-2">
-          <span className="font-medium text-sm">Workspace Logo</span>
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-600 font-bold text-lg text-white">
+          <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+            Workspace Logo
+          </span>
+          <div className="flex flex-col items-center gap-5 rounded-xl border border-border/40 bg-card p-4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)] sm:flex-row">
+            {/* Exact Logo Card reused from individual project route */}
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-600 to-teal-800 font-bold text-white text-xl shadow-sm ring-4 ring-primary/10 transition-all duration-300 hover:scale-105">
               {workspaceName.slice(0, 2).toUpperCase() || "CL"}
             </div>
-            <Button className="h-8 text-xs" size="sm" variant="outline">
-              <HugeiconsIcon icon={Upload01Icon} size={12} />
-              Upload Logo
-            </Button>
+
+            {/* Upload Component re-used from project tabs */}
+            <button
+              className="group relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-border/80 border-dashed bg-secondary/15 p-4.5 text-center transition-all duration-300 hover:border-primary/40 hover:bg-secondary/35 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              type="button"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+                <HugeiconsIcon icon={Upload01Icon} size={14} />
+              </div>
+              <p className="mt-2 font-semibold text-foreground text-xs">
+                Click here to upload workspace logo
+              </p>
+              <p className="mt-0.5 max-w-sm text-[10px] text-muted-foreground leading-relaxed">
+                PNG, JPG or SVG up to 2MB (Visual Only)
+              </p>
+            </button>
           </div>
         </div>
 
         {/* Save Button */}
-        <div className="flex items-center gap-3 pt-4">
+        <div className="flex items-center gap-3 border-border/45 border-t pt-6">
           <Button
-            className="h-9 px-4 text-sm"
+            className="h-9 px-4 font-semibold text-sm shadow-sm transition-transform duration-150 active:scale-98"
             disabled={!hasChanges || saveStatus === "saving"}
             onClick={handleSave}
           >
             {saveStatus === "saving" ? "Saving..." : "Save Changes"}
           </Button>
           {saveStatus === "saved" && (
-            <span className="flex items-center gap-1 text-emerald-600 text-xs">
+            <span className="flex animate-bounce-short items-center gap-1 font-semibold text-emerald-600 text-xs">
               <HugeiconsIcon icon={Tick02Icon} size={12} />
               Saved
             </span>
@@ -321,43 +375,56 @@ function FeaturesTab() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-      {/* Sidebar */}
-      <div className="space-y-2">
-        <h3 className="font-medium text-sm">Feature Preferences</h3>
-        <p className="text-muted-foreground text-xs leading-relaxed">
-          Control workspace features and default behaviors.
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Main Card */}
+      <div className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+        {/* Workspace Features Info Row */}
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <HugeiconsIcon icon={Settings01Icon} size={18} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-semibold text-base text-foreground">
+              Workspace Features
+            </h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Control active client onboarding behaviors, alert configurations,
+              and system cleanups for your workspace.
+            </p>
+          </div>
+        </div>
 
-      {/* Content */}
-      <div className="max-w-2xl space-y-4">
-        <FeatureToggle
-          checked={optimisticSettings.allowSignups}
-          description="Allow new users to sign up without an invitation."
-          disabled={updateMutation.isPending}
-          icon={UserGroupIcon}
-          label="Public Signups"
-          onChange={() => handleToggle("allowSignups")}
-        />
+        <div className="h-px bg-border/45" />
 
-        <FeatureToggle
-          checked={optimisticSettings.enableNotifications}
-          description="Send email notifications for project updates and mentions."
-          disabled={updateMutation.isPending}
-          icon={MailOpen02Icon}
-          label="Email Notifications"
-          onChange={() => handleToggle("enableNotifications")}
-        />
+        {/* Toggles Container */}
+        <div className="space-y-3.5">
+          <FeatureToggle
+            checked={optimisticSettings.allowSignups}
+            description="Allow new users to sign up without an invitation."
+            disabled={updateMutation.isPending}
+            icon={UserGroupIcon}
+            label="Public Signups"
+            onChange={() => handleToggle("allowSignups")}
+          />
 
-        <FeatureToggle
-          checked={optimisticSettings.autoArchive}
-          description="Automatically archive completed projects after 90 days."
-          disabled={updateMutation.isPending}
-          icon={Briefcase01Icon}
-          label="Auto-Archive Completed"
-          onChange={() => handleToggle("autoArchive")}
-        />
+          <FeatureToggle
+            checked={optimisticSettings.enableNotifications}
+            description="Send email notifications for project updates and mentions."
+            disabled={updateMutation.isPending}
+            icon={MailOpen02Icon}
+            label="Email Notifications"
+            onChange={() => handleToggle("enableNotifications")}
+          />
+
+          <FeatureToggle
+            checked={optimisticSettings.autoArchive}
+            description="Automatically archive completed projects after 90 days."
+            disabled={updateMutation.isPending}
+            icon={Briefcase01Icon}
+            label="Auto-Archive Completed"
+            onChange={() => handleToggle("autoArchive")}
+          />
+        </div>
       </div>
     </div>
   );
@@ -380,18 +447,20 @@ function FeatureToggle({
 }) {
   return (
     <button
-      className="group flex w-full items-center justify-between rounded-xl border border-border/40 bg-card p-4 text-left transition-all hover:border-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+      className="group flex w-full items-center justify-between rounded-xl border border-border/40 bg-card p-4 text-left transition-all hover:border-primary/25 hover:shadow-[0_2px_8px_rgba(0,0,0,0.01)] disabled:cursor-not-allowed disabled:opacity-60"
       disabled={disabled}
       onClick={onChange}
       type="button"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <HugeiconsIcon icon={icon} size={14} />
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+          <HugeiconsIcon icon={icon} size={15} />
         </div>
         <div className="space-y-1">
-          <span className="block font-medium text-sm">{label}</span>
-          <span className="block text-muted-foreground text-xs">
+          <span className="block font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
+            {label}
+          </span>
+          <span className="block max-w-lg text-muted-foreground text-xs leading-relaxed">
             {description}
           </span>
         </div>
@@ -399,14 +468,16 @@ function FeatureToggle({
 
       <div
         className={cn(
-          "relative h-6 w-11 rounded-full border-2 border-transparent transition-colors",
-          checked ? "bg-primary" : "bg-muted"
+          "relative h-6 w-11 rounded-full border border-transparent shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] transition-all",
+          checked ? "border-primary bg-primary" : "border-border/40 bg-muted"
         )}
       >
         <span
           className={cn(
-            "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-            checked ? "left-[calc(100%-1.125rem)]" : "left-0.5"
+            "absolute top-[2px] h-4.5 w-4.5 rounded-full bg-white shadow-sm transition-all duration-200 ease-out",
+            checked
+              ? "left-[calc(100%-1.25rem)] scale-100"
+              : "left-0.5 scale-90"
           )}
         />
       </div>
