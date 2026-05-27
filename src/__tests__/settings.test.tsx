@@ -6,20 +6,21 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getPortalPath } from "@/routes/settings";
 
-const mockSettings = {
-  id: "default",
-  workspaceName: "Clientra",
-  supportEmail: "support@clientra.com",
-  portalUrl: "https://useclientra.vercel.app/portal/clientra",
-  allowSignups: true,
-  enableNotifications: true,
-  autoArchive: false,
-};
-
-const mockUser = {
-  name: "Jordan Lee",
-  email: "jordan@example.com",
-};
+const { mockSettings, mockUser } = vi.hoisted(() => ({
+  mockSettings: {
+    id: "default",
+    workspaceName: "Clientra",
+    supportEmail: "support@clientra.com",
+    portalUrl: "https://useclientra.vercel.app/portal/clientra",
+    allowSignups: true,
+    enableNotifications: true,
+    autoArchive: false,
+  },
+  mockUser: {
+    name: "Jordan Lee",
+    email: "jordan@example.com",
+  },
+}));
 
 const ONBOARDING_BANNER_REGEX =
   /We've pre-filled the profile below with your signup credentials/;
