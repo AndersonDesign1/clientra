@@ -176,7 +176,7 @@ function WorkspaceTab() {
 
     setSaveStatus("saving");
     try {
-      const portalUrl = `https://useclientra.com/portal/${portalPath}`;
+      const portalUrl = `https://useclientra.vercel.app/portal/${portalPath}`;
       await updateMutation.mutateAsync({
         portalUrl,
         supportEmail: supportEmail.trim(),
@@ -192,7 +192,7 @@ function WorkspaceTab() {
   const portalPath = getPortalPath(workspaceName);
 
   async function handleCopyPortalUrl() {
-    const url = `https://useclientra.com/portal/${portalPath}`;
+    const url = `https://useclientra.vercel.app/portal/${portalPath}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedPath(true);
@@ -320,7 +320,7 @@ function WorkspaceTab() {
               <HugeiconsIcon icon={UserGroupIcon} size={14} />
             </div>
             <code className="flex-1 select-all font-mono text-muted-foreground text-xs">
-              useclientra.com/portal/
+              useclientra.vercel.app/portal/
               <span className="font-semibold text-foreground">
                 {portalPath}
               </span>
@@ -343,21 +343,6 @@ function WorkspaceTab() {
               <span>{copiedPath ? "Copied!" : "Copy URL"}</span>
             </Button>
           </div>
-          <p className="pt-0.5 pl-1 text-[10px] text-muted-foreground leading-relaxed">
-            💡 **How it works:** When users with the **Client** role log in,
-            Clientra's routing engine automatically opens their custom Portal
-            dashboard at `/portal` pre-loaded with their specific projects and
-            documents. You can test this locally at{" "}
-            <a
-              className="font-semibold text-primary hover:underline"
-              href="http://localhost:3000/portal"
-              rel="noreferrer"
-              target="_blank"
-            >
-              localhost:3000/portal
-            </a>
-            !
-          </p>
         </div>
 
         {/* Workspace Logo Upload (Visual Only) */}
