@@ -156,19 +156,18 @@ function WorkspaceTab() {
     settings.supportEmail === DEFAULT_SUPPORT_EMAIL;
 
   // Sync local state when settings load
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only trigger on defaults and user credential changes
   useEffect(() => {
     if (settings) {
-      const userName = currentUser?.name;
-      const userEmail = currentUser?.email;
-      if (isDefaultSettings && (userName || userEmail)) {
-        setWorkspaceName(userName ?? "My Workspace");
-        setSupportEmail(userEmail ?? DEFAULT_SUPPORT_EMAIL);
+      if (isDefaultSettings && currentUser) {
+        setWorkspaceName(currentUser.name ?? "My Workspace");
+        setSupportEmail(currentUser.email ?? DEFAULT_SUPPORT_EMAIL);
       } else {
         setWorkspaceName(settings.workspaceName);
         setSupportEmail(settings.supportEmail);
       }
     }
-  }, [settings, isDefaultSettings, currentUser?.name, currentUser?.email]);
+  }, [isDefaultSettings, currentUser?.name, currentUser?.email]);
 
   async function handleSave() {
     if (!settings) {
