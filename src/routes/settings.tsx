@@ -21,6 +21,7 @@ import {
   useSettingsData,
   useUpdateSettingsMutation,
 } from "@/lib/api";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 type TabId = "profile" | "features";
@@ -131,6 +132,9 @@ function WorkspaceTab() {
   const updateMutation = useUpdateSettingsMutation();
   const settings = settingsQuery.data;
 
+  const session = authClient.useSession();
+  const currentUser = session.data?.user;
+
   const [workspaceName, setWorkspaceName] = useState(
     settings?.workspaceName ?? ""
   );
@@ -234,12 +238,23 @@ function WorkspaceTab() {
 
         {/* Support Email */}
         <div className="space-y-2">
-          <label
-            className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider"
-            htmlFor="support-email"
-          >
-            Support Email
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider"
+              htmlFor="support-email"
+            >
+              Support Email
+            </label>
+            {currentUser?.email && supportEmail !== currentUser.email && (
+              <button
+                className="cursor-pointer font-medium text-[10px] text-primary transition-all hover:underline focus:outline-none"
+                onClick={() => setSupportEmail(currentUser.email ?? "")}
+                type="button"
+              >
+                Use my email ({currentUser.email})
+              </button>
+            )}
+          </div>
           <div className="group/input relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground/60 transition-colors group-focus-within/input:text-primary">
               <HugeiconsIcon icon={MailOpen02Icon} size={15} />
@@ -287,6 +302,21 @@ function WorkspaceTab() {
               <span>{copiedPath ? "Copied!" : "Copy URL"}</span>
             </Button>
           </div>
+          <p className="pt-0.5 pl-1 text-[10px] text-muted-foreground leading-relaxed">
+            💡 **How it works:** When users with the **Client** role log in,
+            Clientra's routing engine automatically opens their custom Portal
+            dashboard at `/portal` pre-loaded with their specific projects and
+            documents. You can test this locally at{" "}
+            <a
+              className="font-semibold text-primary hover:underline"
+              href="http://localhost:3000/portal"
+              rel="noreferrer"
+              target="_blank"
+            >
+              localhost:3000/portal
+            </a>
+            !
+          </p>
         </div>
 
         {/* Workspace Logo Upload (Visual Only) */}
