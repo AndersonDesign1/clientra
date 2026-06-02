@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useSearch } from "@tanstack/react-router";
 import { useReducer } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ClientAccessDialog } from "@/components/auth/client-access-dialog";
@@ -21,6 +21,22 @@ function getErrorMessage(result: {
   error?: { message?: string | null } | null;
 }) {
   return result.error?.message ?? "Something went wrong. Please try again.";
+}
+
+function getSocialErrorMessage(errorCode: string | null | undefined) {
+  if (!errorCode) return null;
+  switch (errorCode.toUpperCase()) {
+    case "ACCOUNT_LINKING_REQUIRED":
+      return "This email is registered with a different login method. Please sign in using your password.";
+    case "SIGN_UP_DISABLED":
+    case "SIGNIN_FAILED":
+    case "SIGN_IN_FAILED":
+      return "Sign up is disabled. If you have an invite, please register using the invite link.";
+    case "CONFIGURATION_ERROR":
+      return "Authentication provider is not configured correctly.";
+    default:
+      return `Authentication failed: ${errorCode}. Please try again.`;
+  }
 }
 
 interface LoginState {
@@ -57,11 +73,15 @@ function loginReducer(state: LoginState, action: LoginAction): LoginState {
 
 export function LoginForm() {
   const router = useRouter();
+  const search = useSearch({ strict: false }) as { error?: string };
+  const urlError = search.error;
+  const initialError = getSocialErrorMessage(urlError);
+
   const lastMethod = authClient.getLastUsedLoginMethod();
   const [state, dispatch] = useReducer(loginReducer, {
     activeProvider: null,
     email: "",
-    error: null,
+    error: initialError,
     isSubmitting: false,
     password: "",
   });
@@ -102,6 +122,7 @@ export function LoginForm() {
     try {
       const result = await authClient.signIn.social({
         callbackURL: "/",
+        errorCallbackURL: "/login",
         provider,
       });
 

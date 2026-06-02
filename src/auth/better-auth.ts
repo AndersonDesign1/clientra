@@ -93,6 +93,12 @@ const googleProvider = getSocialProviderConfig({
 });
 
 export const auth = betterAuth({
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
+  },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
   },
