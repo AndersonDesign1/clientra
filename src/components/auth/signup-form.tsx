@@ -40,10 +40,7 @@ type SignupAction =
   | { type: "set-password"; value: string }
   | { type: "set-submitting"; value: boolean };
 
-function signupReducer(
-  state: SignupState,
-  action: SignupAction
-) {
+function signupReducer(state: SignupState, action: SignupAction) {
   switch (action.type) {
     case "set-confirm-password":
       return { ...state, confirmPassword: action.value };
@@ -239,9 +236,7 @@ export function SignupForm() {
                 disabled={state.isSubmitting}
                 type="submit"
               >
-                {state.isSubmitting
-                  ? "Creating account..."
-                  : "Create account"}
+                {state.isSubmitting ? "Creating account..." : "Create account"}
               </Button>
               <FieldDescription className="mt-3 text-center text-slate-500">
                 Already have access?{" "}

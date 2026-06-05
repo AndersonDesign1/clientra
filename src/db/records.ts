@@ -36,11 +36,11 @@ interface ClientInsert {
   id: string;
   name: string;
   notes?: string;
+  organizationId?: string | null;
   phone?: string;
   status: "active" | "archived";
   tags: string[];
   website?: string;
-  organizationId?: string | null;
 }
 
 interface ProjectInsert {
@@ -665,7 +665,9 @@ export async function listClients() {
 }
 
 export async function listDashboardActivity(orgId?: string, limit = 8) {
-  const clientCondition = orgId ? eq(clientsTable.organizationId, orgId) : sql`1=1`;
+  const clientCondition = orgId
+    ? eq(clientsTable.organizationId, orgId)
+    : sql`1=1`;
 
   const [clients, projects, comments, files] = await Promise.all([
     db

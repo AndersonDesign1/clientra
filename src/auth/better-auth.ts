@@ -5,7 +5,15 @@ import { lastLoginMethod, organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
-import { accounts, members, organizations, invitations, sessions, users, verifications } from "@/db/schema";
+import {
+  accounts,
+  invitations,
+  members,
+  organizations,
+  sessions,
+  users,
+  verifications,
+} from "@/db/schema";
 import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
@@ -169,7 +177,12 @@ export const auth = betterAuth({
     organization({
       // Any authenticated user can create one organization (their workspace).
       allowUserToCreateOrganization: true,
-      sendInvitationEmail: async ({ email, invitation, organization, inviter }) => {
+      sendInvitationEmail: async ({
+        email,
+        invitation,
+        organization,
+        inviter,
+      }) => {
         const inviteUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/invite/worker/${invitation.id}`;
         try {
           await sendTransactionalEmail({

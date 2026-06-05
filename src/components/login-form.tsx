@@ -24,7 +24,9 @@ function getErrorMessage(result: {
 }
 
 function getSocialErrorMessage(errorCode: string | null | undefined) {
-  if (!errorCode) return null;
+  if (!errorCode) {
+    return null;
+  }
   switch (errorCode.toUpperCase()) {
     case "ACCOUNT_LINKING_REQUIRED":
       return "This email is registered with a different login method. Please sign in using your password.";

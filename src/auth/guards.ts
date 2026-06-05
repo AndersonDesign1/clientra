@@ -69,8 +69,11 @@ export async function redirectAuthenticatedUser() {
   }
 
   throw redirect({
-    to: user.role === ROLES.ADMIN
-      ? (user.activeOrganizationId ? "/dashboard" : "/onboarding")
-      : "/portal",
+    to:
+      user.role === ROLES.ADMIN
+        ? user.activeOrganizationId
+          ? "/dashboard"
+          : "/onboarding"
+        : "/portal",
   });
 }

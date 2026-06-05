@@ -6,9 +6,9 @@ export const ROLES = {
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 export interface SessionUser {
+  activeOrganizationId?: string | null;
   email: string;
   id: string;
   name: string;
   role: Role;
-  activeOrganizationId?: string | null;
 }

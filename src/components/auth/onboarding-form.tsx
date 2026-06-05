@@ -124,10 +124,10 @@ export function OnboardingForm() {
                 Workspace Slug (URL slug)
               </FieldLabel>
               <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-slate-500 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                <span className="text-xs select-none">clientra.app/</span>
+                <span className="select-none text-xs">clientra.app/</span>
                 <input
                   autoComplete="off"
-                  className="flex-1 bg-transparent p-0 text-sm outline-none text-slate-900 dark:text-white"
+                  className="flex-1 bg-transparent p-0 text-slate-900 text-sm outline-none dark:text-white"
                   id="slug"
                   onChange={(event) => setSlug(slugify(event.target.value))}
                   placeholder="anderson-design"
@@ -138,9 +138,7 @@ export function OnboardingForm() {
             </Field>
 
             {error && (
-              <FieldError className="animate-slide-up-fade">
-                {error}
-              </FieldError>
+              <FieldError className="animate-slide-up-fade">{error}</FieldError>
             )}
 
             <Field

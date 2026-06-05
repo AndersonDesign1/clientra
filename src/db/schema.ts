@@ -1,10 +1,10 @@
 import {
+  index,
   integer,
   real,
   sqliteTable,
   text,
   uniqueIndex,
-  index,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -210,9 +210,15 @@ export const workspaceSettings = sqliteTable("workspace_settings", {
   id: text("id").primaryKey().default("default"),
   workspaceName: text("workspace_name").notNull().default("Clientra"),
   supportEmail: text("support_email").notNull().default("support@clientra.com"),
-  allowSignups: integer("allow_signups", { mode: "boolean" }).notNull().default(false),
-  enableNotifications: integer("enable_notifications", { mode: "boolean" }).notNull().default(true),
-  autoArchive: integer("auto_archive", { mode: "boolean" }).notNull().default(true),
+  allowSignups: integer("allow_signups", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  enableNotifications: integer("enable_notifications", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  autoArchive: integer("auto_archive", { mode: "boolean" })
+    .notNull()
+    .default(true),
   portalUrl: text("portal_url"),
   logoUrl: text("logo_url"),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
@@ -229,7 +235,9 @@ export const organizations = sqliteTable(
     metadata: text("metadata"),
   },
   (table) => ({
-    organizationSlugUnique: uniqueIndex("organization_slug_unique").on(table.slug),
+    organizationSlugUnique: uniqueIndex("organization_slug_unique").on(
+      table.slug
+    ),
   })
 );
 
@@ -247,7 +255,9 @@ export const members = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   },
   (table) => ({
-    memberOrganizationIdIdx: index("member_organization_id_idx").on(table.organizationId),
+    memberOrganizationIdIdx: index("member_organization_id_idx").on(
+      table.organizationId
+    ),
     memberUserIdIdx: index("member_user_id_idx").on(table.userId),
   })
 );
@@ -269,7 +279,9 @@ export const invitations = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
   },
   (table) => ({
-    invitationOrganizationIdIdx: index("invitation_organization_id_idx").on(table.organizationId),
+    invitationOrganizationIdIdx: index("invitation_organization_id_idx").on(
+      table.organizationId
+    ),
     invitationEmailIdx: index("invitation_email_idx").on(table.email),
   })
 );
