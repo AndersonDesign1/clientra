@@ -4,6 +4,9 @@ const VALID_ROLES = new Set<Role>(Object.values(ROLES));
 
 export function normalizeSessionUser(
   session: {
+    session?: {
+      activeOrganizationId?: string | null;
+    } | null;
     user: {
       email: string;
       id: string;
@@ -21,5 +24,6 @@ export function normalizeSessionUser(
     id: session.user.id,
     name: session.user.name,
     role: session.user.role as Role,
+    activeOrganizationId: session.session?.activeOrganizationId ?? null,
   } satisfies SessionUser;
 }

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
     if (user?.role === ROLES.CLIENT) {
       destination = "/portal";
     } else if (user?.role === ROLES.ADMIN) {
-      destination = "/dashboard";
+      destination = user.activeOrganizationId ? "/dashboard" : "/onboarding";
     } else if (user) {
       destination = "/unauthorized";
     }

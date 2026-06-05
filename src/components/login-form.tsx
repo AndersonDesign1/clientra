@@ -284,12 +284,12 @@ export function LoginForm() {
                 {state.isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
               <FieldDescription className="mt-3 text-center text-slate-500">
-                Need admin access?{" "}
+                Need an account?{" "}
                 <Link
                   className="font-medium text-slate-900 underline underline-offset-2 transition-colors hover:text-primary dark:text-white"
                   to="/signup"
                 >
-                  Create an admin account
+                  Create one here
                 </Link>
               </FieldDescription>
             </Field>

@@ -22,6 +22,28 @@ export async function requireAdminSession() {
     throw redirect({ to: "/portal" });
   }
 
+  if (!user.activeOrganizationId) {
+    throw redirect({ to: "/onboarding" });
+  }
+
+  return user;
+}
+
+export async function requireOnboardingSession() {
+  const user = await getSessionUser();
+
+  if (!user) {
+    throw redirect({ to: "/login" });
+  }
+
+  if (user.role !== ROLES.ADMIN) {
+    throw redirect({ to: "/portal" });
+  }
+
+  if (user.activeOrganizationId) {
+    throw redirect({ to: "/dashboard" });
+  }
+
   return user;
 }
 
@@ -47,6 +69,8 @@ export async function redirectAuthenticatedUser() {
   }
 
   throw redirect({
-    to: user.role === ROLES.ADMIN ? "/dashboard" : "/portal",
+    to: user.role === ROLES.ADMIN
+      ? (user.activeOrganizationId ? "/dashboard" : "/onboarding")
+      : "/portal",
   });
 }

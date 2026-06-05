@@ -10,4 +10,5 @@ export interface SessionUser {
   id: string;
   name: string;
   role: Role;
+  activeOrganizationId: string | null;
 }

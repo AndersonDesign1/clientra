@@ -13,6 +13,7 @@ import { Route as UsersRouteImport } from './routes/users'
 import { Route as UnauthorizedRouteImport } from './routes/unauthorized'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,7 +44,6 @@ import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redee
 import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
 import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
 import { Route as ApiClientsIdRouteImport } from './routes/api/clients/$id'
-import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as PortalProjectsClientSlugProjectSlugRouteImport } from './routes/portal/projects/$clientSlug/$projectSlug'
 import { Route as ApiProjectsIdUpdatesRouteImport } from './routes/api/projects/$id/updates'
@@ -72,6 +72,11 @@ const SignupRoute = SignupRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -225,11 +230,6 @@ const ApiClientsIdRoute = ApiClientsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiClientsRoute,
 } as any)
-const ApiAuthAdminSignupRoute = ApiAuthAdminSignupRouteImport.update({
-  id: '/api/auth/admin-signup',
-  path: '/api/auth/admin-signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -282,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
@@ -302,7 +303,6 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
@@ -328,6 +328,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
@@ -348,7 +349,6 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
@@ -375,6 +375,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/unauthorized': typeof UnauthorizedRoute
@@ -395,7 +396,6 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
@@ -423,6 +423,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/onboarding'
     | '/settings'
     | '/signup'
     | '/unauthorized'
@@ -443,7 +444,6 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/projects/'
     | '/api/auth/$'
-    | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
@@ -469,6 +469,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/onboarding'
     | '/settings'
     | '/signup'
     | '/unauthorized'
@@ -489,7 +490,6 @@ export interface FileRouteTypes {
     | '/portal'
     | '/projects'
     | '/api/auth/$'
-    | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
@@ -515,6 +515,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/onboarding'
     | '/settings'
     | '/signup'
     | '/unauthorized'
@@ -535,7 +536,6 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/projects/'
     | '/api/auth/$'
-    | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
@@ -562,6 +562,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   UnauthorizedRoute: typeof UnauthorizedRoute
@@ -582,7 +583,6 @@ export interface RootRouteChildren {
   PortalIndexRoute: typeof PortalIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
   ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
   ApiPortalSummaryRoute: typeof ApiPortalSummaryRoute
@@ -622,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -834,13 +841,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiClientsIdRouteImport
       parentRoute: typeof ApiClientsRoute
     }
-    '/api/auth/admin-signup': {
-      id: '/api/auth/admin-signup'
-      path: '/api/auth/admin-signup'
-      fullPath: '/api/auth/admin-signup'
-      preLoaderRoute: typeof ApiAuthAdminSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -993,6 +993,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   UnauthorizedRoute: UnauthorizedRoute,
@@ -1013,7 +1014,6 @@ const rootRouteChildren: RootRouteChildren = {
   PortalIndexRoute: PortalIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
   ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
   ApiPortalSummaryRoute: ApiPortalSummaryRoute,
