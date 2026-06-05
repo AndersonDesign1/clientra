@@ -7,6 +7,7 @@ import {
   seedIfEmpty,
 } from "@/db/records";
 import {
+  forbiddenError,
   internalServerError,
   parseJsonBody,
   requireAdminMutationRequest,
@@ -40,9 +41,14 @@ export const Route = createFileRoute("/api/clients")({
           return parsed.error;
         }
 
+        if (!auth.user.activeOrganizationId) {
+          return forbiddenError("No active organization selected.");
+        }
+
         const created = await createClientRecord({
           ...parsed.data,
           id: crypto.randomUUID(),
+          organizationId: auth.user.activeOrganizationId,
         });
 
         if (!created) {

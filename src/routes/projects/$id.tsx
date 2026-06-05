@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   DeleteProjectDialog,
@@ -55,7 +55,6 @@ import {
   findProjectByPathParam,
   getProjectPathParams,
 } from "@/lib/project-slugs";
-import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/projects/$id")({
@@ -336,9 +335,7 @@ function ProjectRouteError({ error }: { error: Error }) {
         />
         <Button
           className="mt-4"
-          onClick={() =>
-            navigate({ to: "/projects" }).catch(() => undefined)
-          }
+          onClick={() => navigate({ to: "/projects" }).catch(() => undefined)}
           size="sm"
           variant="outline"
         >

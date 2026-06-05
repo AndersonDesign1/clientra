@@ -13,6 +13,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 function getThrownErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
@@ -22,7 +23,7 @@ function getThrownErrorMessage(error: unknown) {
   return "Unable to create your account right now.";
 }
 
-interface AdminSignupState {
+interface SignupState {
   confirmPassword: string;
   email: string;
   error: string | null;
@@ -31,7 +32,7 @@ interface AdminSignupState {
   password: string;
 }
 
-type AdminSignupAction =
+type SignupAction =
   | { type: "set-confirm-password"; value: string }
   | { type: "set-email"; value: string }
   | { type: "set-error"; value: string | null }
@@ -39,10 +40,7 @@ type AdminSignupAction =
   | { type: "set-password"; value: string }
   | { type: "set-submitting"; value: boolean };
 
-function adminSignupReducer(
-  state: AdminSignupState,
-  action: AdminSignupAction
-) {
+function signupReducer(state: SignupState, action: SignupAction) {
   switch (action.type) {
     case "set-confirm-password":
       return { ...state, confirmPassword: action.value };
@@ -61,9 +59,9 @@ function adminSignupReducer(
   }
 }
 
-export function AdminSignupForm() {
+export function SignupForm() {
   const router = useRouter();
-  const [state, dispatch] = useReducer(adminSignupReducer, {
+  const [state, dispatch] = useReducer(signupReducer, {
     confirmPassword: "",
     email: "",
     error: null,
@@ -83,30 +81,21 @@ export function AdminSignupForm() {
 
     dispatch({ type: "set-submitting", value: true });
     try {
-      const response = await fetch("/api/auth/admin-signup", {
-        body: JSON.stringify({
-          email: state.email,
-          name: state.name,
-          password: state.password,
-        }),
-        headers: {
-          "content-type": "application/json",
-        },
-        method: "POST",
+      const { error } = await authClient.signUp.email({
+        email: state.email,
+        password: state.password,
+        name: state.name,
       });
-      const data = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
 
-      if (!response.ok) {
+      if (error) {
         dispatch({
           type: "set-error",
-          value: data?.error ?? "Unable to create your account right now.",
+          value: error.message ?? "Unable to create your account right now.",
         });
         return;
       }
 
-      await router.navigate({ to: "/dashboard" });
+      await router.navigate({ to: "/onboarding" });
     } catch (error) {
       dispatch({ type: "set-error", value: getThrownErrorMessage(error) });
     } finally {
@@ -116,7 +105,7 @@ export function AdminSignupForm() {
 
   return (
     <AuthShell
-      asideDescription="Create the admin account that will own your workspace, send client invites, and manage the delivery side of every project."
+      asideDescription="Create your account to start your workspace, send client invites, and manage the delivery side of every project."
       asideTitle="Start the workspace your clients will trust."
     >
       <div className="mx-auto flex w-full max-w-sm flex-col gap-6 font-sans lg:mx-0">
@@ -125,10 +114,10 @@ export function AdminSignupForm() {
           style={{ animationDelay: "50ms" }}
         >
           <h2 className="font-bold text-3xl text-[#08361f] tracking-tight dark:text-white">
-            Create an admin account
+            Create an account
           </h2>
           <p className="mt-1.5 text-muted-foreground text-xs">
-            Set up your administrator profile to claim your workspace
+            Set up your profile to start your workspace
           </p>
         </div>
 
@@ -247,9 +236,7 @@ export function AdminSignupForm() {
                 disabled={state.isSubmitting}
                 type="submit"
               >
-                {state.isSubmitting
-                  ? "Creating account..."
-                  : "Create admin account"}
+                {state.isSubmitting ? "Creating account..." : "Create account"}
               </Button>
               <FieldDescription className="mt-3 text-center text-slate-500">
                 Already have access?{" "}

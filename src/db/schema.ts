@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   real,
   sqliteTable,
@@ -34,6 +35,9 @@ export const clients = sqliteTable("clients", {
   notes: text("notes"),
   tags: text("tags"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  organizationId: text("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const sessions = sqliteTable("session", {
@@ -47,6 +51,7 @@ export const sessions = sqliteTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
 });
 
 export const accounts = sqliteTable("account", {
@@ -90,6 +95,9 @@ export const clientUsers = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
   },
   (table) => ({
     clientUserUnique: uniqueIndex("client_users_client_id_user_id_unique").on(
@@ -206,10 +214,78 @@ export const workspaceSettings = sqliteTable("workspace_settings", {
   id: text("id").primaryKey().default("default"),
   workspaceName: text("workspace_name").notNull().default("Clientra"),
   supportEmail: text("support_email").notNull().default("support@clientra.com"),
-  allowSignups: integer("allow_signups", { mode: "boolean" }).notNull().default(false),
-  enableNotifications: integer("enable_notifications", { mode: "boolean" }).notNull().default(true),
-  autoArchive: integer("auto_archive", { mode: "boolean" }).notNull().default(true),
+  allowSignups: integer("allow_signups", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  enableNotifications: integer("enable_notifications", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  autoArchive: integer("auto_archive", { mode: "boolean" })
+    .notNull()
+    .default(true),
   portalUrl: text("portal_url"),
   logoUrl: text("logo_url"),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
+
+export const organizations = sqliteTable(
+  "organization",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    logo: text("logo"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    metadata: text("metadata"),
+  },
+  (table) => ({
+    organizationSlugUnique: uniqueIndex("organization_slug_unique").on(
+      table.slug
+    ),
+  })
+);
+
+export const members = sqliteTable(
+  "member",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").default("member").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    memberOrganizationIdIdx: index("member_organization_id_idx").on(
+      table.organizationId
+    ),
+    memberUserIdIdx: index("member_user_id_idx").on(table.userId),
+  })
+);
+
+export const invitations = sqliteTable(
+  "invitation",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role"),
+    status: text("status").default("pending").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    invitationOrganizationIdIdx: index("invitation_organization_id_idx").on(
+      table.organizationId
+    ),
+    invitationEmailIdx: index("invitation_email_idx").on(table.email),
+  })
+);

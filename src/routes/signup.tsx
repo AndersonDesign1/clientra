@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { redirectAuthenticatedUser } from "@/auth/guards";
-import { AdminSignupForm } from "@/components/auth/admin-signup-form";
+import { SignupForm } from "@/components/auth/signup-form";
 
 export const Route = createFileRoute("/signup")({
   beforeLoad: redirectAuthenticatedUser,
@@ -8,5 +8,5 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
-  return <AdminSignupForm />;
+  return <SignupForm />;
 }

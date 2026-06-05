@@ -1,14 +1,28 @@
 import { createHmac } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { lastLoginMethod } from "better-auth/plugins";
+import { lastLoginMethod, organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
-import { accounts, sessions, users, verifications } from "@/db/schema";
+import {
+  accounts,
+  invitations,
+  members,
+  organizations,
+  sessions,
+  users,
+  verifications,
+} from "@/db/schema";
 import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
+
+const rawBaseUrl = process.env.BETTER_AUTH_URL?.trim();
+if (!rawBaseUrl && process.env.NODE_ENV === "production") {
+  throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_URL");
+}
+const validatedBaseUrl = rawBaseUrl || "http://localhost:3000";
 
 function normalizeCredential(value: string | undefined) {
   const normalized = value?.trim();
@@ -76,7 +90,6 @@ function getSocialProviderConfig({
   return {
     clientId: normalizedClientId,
     clientSecret: normalizedClientSecret,
-    disableImplicitSignUp: true,
   };
 }
 
@@ -93,14 +106,23 @@ const googleProvider = getSocialProviderConfig({
 });
 
 export const auth = betterAuth({
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
+  },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
   },
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: validatedBaseUrl,
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
       account: accounts,
+      invitation: invitations,
+      member: members,
+      organization: organizations,
       session: sessions,
       user: users,
       verification: verifications,
@@ -157,24 +179,37 @@ export const auth = betterAuth({
       },
     },
   },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (_user, ctx) => {
-          // Block public signups via built-in routes as a fail-safe.
-          // Legitimate account creation happens via /api/auth/admin-signup or /api/invites/redeem.
-          if (ctx?.path === "/sign-up/email") {
-            const { hasWorkspaceAdmin } = await import("@/db/records");
-            if (await hasWorkspaceAdmin()) {
-              throw new Error(
-                "Public signup is disabled. Use an invite link or sign in."
-              );
-            }
-          }
-        },
+  plugins: [
+    organization({
+      // Any authenticated user can create one organization (their workspace).
+      allowUserToCreateOrganization: true,
+      sendInvitationEmail: async ({
+        email,
+        invitation,
+        organization,
+        inviter,
+      }) => {
+        const inviteUrl = `${validatedBaseUrl}/invite/worker/${invitation.id}`;
+        try {
+          await sendTransactionalEmail({
+            email,
+            template: "invite",
+            idempotencyKey: `org-invite:${organization.id}:${email}`,
+            dataVariables: {
+              appUrl: validatedBaseUrl,
+              clientCompany: organization.name,
+              clientName: inviter.user.name,
+              inviteUrl,
+              recipientEmail: email,
+            },
+          });
+        } catch (error) {
+          console.error("Failed to send organization invitation email", error);
+        }
       },
-    },
-  },
-  plugins: [tanstackStartCookies(), lastLoginMethod()],
+    }),
+    tanstackStartCookies(),
+    lastLoginMethod(),
+  ],
   trustedOrigins: getTrustedOrigins(),
 });

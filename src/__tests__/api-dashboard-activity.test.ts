@@ -28,6 +28,7 @@ describe("dashboard activity API route", () => {
       id: "admin_1",
       name: "Admin User",
       role: ROLES.ADMIN,
+      activeOrganizationId: "org_1",
     });
     vi.mocked(listDashboardActivity).mockResolvedValue([
       {
