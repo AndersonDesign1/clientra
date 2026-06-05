@@ -35,6 +35,6 @@ CREATE TABLE `invitation` (
 --> statement-breakpoint
 CREATE INDEX `invitation_organization_id_idx` ON `invitation` (`organization_id`);--> statement-breakpoint
 CREATE INDEX `invitation_email_idx` ON `invitation` (`email`);--> statement-breakpoint
-ALTER TABLE `client_users` ADD `organization_id` text;--> statement-breakpoint
-ALTER TABLE `clients` ADD `organization_id` text;--> statement-breakpoint
+ALTER TABLE `client_users` ADD `organization_id` text REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE cascade;--> statement-breakpoint
+ALTER TABLE `clients` ADD `organization_id` text REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE cascade;--> statement-breakpoint
 ALTER TABLE `session` ADD `active_organization_id` text;

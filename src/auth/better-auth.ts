@@ -18,6 +18,12 @@ import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
 
+const rawBaseUrl = process.env.BETTER_AUTH_URL?.trim();
+if (!rawBaseUrl && process.env.NODE_ENV === "production") {
+  throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_URL");
+}
+const validatedBaseUrl = rawBaseUrl || "http://localhost:3000";
+
 function normalizeCredential(value: string | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
@@ -109,7 +115,7 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
   },
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: validatedBaseUrl,
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -183,14 +189,14 @@ export const auth = betterAuth({
         organization,
         inviter,
       }) => {
-        const inviteUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/invite/worker/${invitation.id}`;
+        const inviteUrl = `${validatedBaseUrl}/invite/worker/${invitation.id}`;
         try {
           await sendTransactionalEmail({
             email,
             template: "invite",
             idempotencyKey: `org-invite:${organization.id}:${email}`,
             dataVariables: {
-              appUrl: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+              appUrl: validatedBaseUrl,
               clientCompany: organization.name,
               clientName: inviter.user.name,
               inviteUrl,

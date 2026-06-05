@@ -35,7 +35,9 @@ export const clients = sqliteTable("clients", {
   notes: text("notes"),
   tags: text("tags"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  organizationId: text("organization_id"),
+  organizationId: text("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const sessions = sqliteTable("session", {
@@ -93,7 +95,9 @@ export const clientUsers = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    organizationId: text("organization_id"),
+    organizationId: text("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
   },
   (table) => ({
     clientUserUnique: uniqueIndex("client_users_client_id_user_id_unique").on(

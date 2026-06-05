@@ -665,9 +665,10 @@ export async function listClients() {
 }
 
 export async function listDashboardActivity(orgId?: string, limit = 8) {
-  const clientCondition = orgId
-    ? eq(clientsTable.organizationId, orgId)
-    : sql`1=1`;
+  const clientCondition =
+    typeof orgId === "string" && orgId.trim().length > 0
+      ? eq(clientsTable.organizationId, orgId)
+      : sql`1=1`;
 
   const [clients, projects, comments, files] = await Promise.all([
     db
