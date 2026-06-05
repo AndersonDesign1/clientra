@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/users")({
           return forbiddenError();
         }
 
-        return Response.json(await listUsersForAdmin());
+        return Response.json(await listUsersForAdmin(user.activeOrganizationId || ""));
       },
     },
   },

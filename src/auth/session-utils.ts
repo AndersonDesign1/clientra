@@ -14,7 +14,7 @@ export function normalizeSessionUser(
       role?: string | null;
     };
   } | null
-) {
+): SessionUser | null {
   if (!(session?.user?.role && VALID_ROLES.has(session.user.role as Role))) {
     return null;
   }

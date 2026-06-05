@@ -169,6 +169,25 @@ export const auth = betterAuth({
     organization({
       // Any authenticated user can create one organization (their workspace).
       allowUserToCreateOrganization: true,
+      sendInvitationEmail: async ({ email, invitation, organization, inviter }) => {
+        const inviteUrl = `${process.env.BETTER_AUTH_URL || "http://localhost:3000"}/invite/worker/${invitation.id}`;
+        try {
+          await sendTransactionalEmail({
+            email,
+            template: "invite",
+            idempotencyKey: `org-invite:${organization.id}:${email}`,
+            dataVariables: {
+              appUrl: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+              clientCompany: organization.name,
+              clientName: inviter.user.name,
+              inviteUrl,
+              recipientEmail: email,
+            },
+          });
+        } catch (error) {
+          console.error("Failed to send organization invitation email", error);
+        }
+      },
     }),
     tanstackStartCookies(),
     lastLoginMethod(),

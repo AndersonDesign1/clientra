@@ -14,6 +14,7 @@ import {
   clientUsers as clientUsersTable,
   files as filesTable,
   invites as invitesTable,
+  members as membersTable,
   projectMilestones as projectMilestonesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
@@ -39,6 +40,7 @@ interface ClientInsert {
   status: "active" | "archived";
   tags: string[];
   website?: string;
+  organizationId?: string | null;
 }
 
 interface ProjectInsert {
@@ -662,11 +664,14 @@ export async function listClients() {
   return rows.map(mapClient);
 }
 
-export async function listDashboardActivity(limit = 8) {
+export async function listDashboardActivity(orgId?: string, limit = 8) {
+  const clientCondition = orgId ? eq(clientsTable.organizationId, orgId) : sql`1=1`;
+
   const [clients, projects, comments, files] = await Promise.all([
     db
       .select()
       .from(clientsTable)
+      .where(clientCondition)
       .orderBy(desc(clientsTable.createdAt))
       .limit(limit),
     db
@@ -676,6 +681,7 @@ export async function listDashboardActivity(limit = 8) {
       })
       .from(projectsTable)
       .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(clientCondition)
       .orderBy(desc(projectsTable.createdAt))
       .limit(limit),
     db
@@ -690,6 +696,8 @@ export async function listDashboardActivity(limit = 8) {
         projectsTable,
         eq(projectNotesTable.projectId, projectsTable.id)
       )
+      .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(clientCondition)
       .orderBy(desc(projectNotesTable.createdAt))
       .limit(limit),
     db
@@ -701,6 +709,8 @@ export async function listDashboardActivity(limit = 8) {
       .from(filesTable)
       .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
       .leftJoin(projectsTable, eq(filesTable.projectId, projectsTable.id))
+      .leftJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(clientCondition)
       .orderBy(desc(filesTable.createdAt))
       .limit(limit),
   ]);
@@ -874,7 +884,16 @@ export async function getPortalSummary(user: SessionUser) {
 
 export async function listClientsForUser(user: SessionUser) {
   if (user.role === ROLES.ADMIN) {
-    return listClients();
+    if (!user.activeOrganizationId) {
+      return [];
+    }
+    const rows = await db
+      .select()
+      .from(clientsTable)
+      .where(eq(clientsTable.organizationId, user.activeOrganizationId))
+      .orderBy(desc(clientsTable.createdAt));
+
+    return rows.map(mapClient);
   }
 
   const linkedClientRows = await db
@@ -899,6 +918,7 @@ export async function createClientRecord(input: ClientInsert) {
     status: input.status,
     tags: serializeTags(input.tags),
     website: input.website ?? "",
+    organizationId: input.organizationId,
   });
 
   const [created] = await db
@@ -951,7 +971,17 @@ export async function listProjects() {
 
 export async function listProjectsForUser(user: SessionUser) {
   if (user.role === ROLES.ADMIN) {
-    return listProjects();
+    if (!user.activeOrganizationId) {
+      return [];
+    }
+    const rows = await db
+      .select({ project: projectsTable })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(eq(clientsTable.organizationId, user.activeOrganizationId))
+      .orderBy(desc(projectsTable.createdAt));
+
+    return rows.map(({ project }) => mapProject(project));
   }
 
   const linkedProjects = await db
@@ -1578,29 +1608,59 @@ export async function restoreProjectFileRecord(file: {
 
 export async function searchRecords(query: string, user: SessionUser) {
   const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
-  const projectWhere =
-    user.role === ROLES.ADMIN
-      ? sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`
-      : sql`lower(${projectsTable.title}) like ${normalized} escape '\\' and ${projectsTable.clientId} in (
-          select ${clientUsersTable.clientId}
-          from ${clientUsersTable}
-          where ${clientUsersTable.userId} = ${user.id}
-        )`;
 
-  const matchedProjects = await db
-    .select()
-    .from(projectsTable)
-    .where(projectWhere)
-    .orderBy(desc(projectsTable.createdAt));
+  let matchedProjectsRows: any[] = [];
+  if (user.role === ROLES.ADMIN) {
+    if (user.activeOrganizationId) {
+      matchedProjectsRows = await db
+        .select({ project: projectsTable })
+        .from(projectsTable)
+        .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+        .where(
+          and(
+            sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`,
+            eq(clientsTable.organizationId, user.activeOrganizationId)
+          )
+        )
+        .orderBy(desc(projectsTable.createdAt));
+    }
+  } else {
+    matchedProjectsRows = await db
+      .select({ project: projectsTable })
+      .from(projectsTable)
+      .where(
+        and(
+          sql`lower(${projectsTable.title}) like ${normalized} escape '\\'`,
+          inArray(
+            projectsTable.clientId,
+            db
+              .select({ clientId: clientUsersTable.clientId })
+              .from(clientUsersTable)
+              .where(eq(clientUsersTable.userId, user.id))
+          )
+        )
+      )
+      .orderBy(desc(projectsTable.createdAt));
+  }
+
+  const matchedProjects = matchedProjectsRows.map((r) =>
+    "project" in r ? r.project : r
+  );
 
   if (user.role === ROLES.ADMIN) {
+    if (!user.activeOrganizationId) {
+      return { clients: [], projects: [] };
+    }
     const matchedClients = await db
       .select()
       .from(clientsTable)
       .where(
-        or(
-          sql`lower(${clientsTable.name}) like ${normalized} escape '\\'`,
-          sql`lower(${clientsTable.company}) like ${normalized} escape '\\'`
+        and(
+          eq(clientsTable.organizationId, user.activeOrganizationId),
+          or(
+            sql`lower(${clientsTable.name}) like ${normalized} escape '\\'`,
+            sql`lower(${clientsTable.company}) like ${normalized} escape '\\'`
+          )
         )
       )
       .orderBy(desc(clientsTable.createdAt));
@@ -1807,16 +1867,46 @@ export async function promoteUserToInitialAdmin(userId: string) {
   return promotedUsers.length > 0;
 }
 
-export async function listUsersForAdmin() {
-  const [userRows, accountRows] = await Promise.all([
-    db.select().from(usersTable).orderBy(desc(usersTable.createdAt)),
-    db
+export async function listUsersForAdmin(orgId: string) {
+  // Get all members of the organization
+  const orgMembers = await db
+    .select({ user: usersTable })
+    .from(membersTable)
+    .innerJoin(usersTable, eq(membersTable.userId, usersTable.id))
+    .where(eq(membersTable.organizationId, orgId));
+
+  // Get all client users of the organization's clients
+  const clientUsers = await db
+    .select({ user: usersTable })
+    .from(clientUsersTable)
+    .innerJoin(usersTable, eq(clientUsersTable.userId, usersTable.id))
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(eq(clientsTable.organizationId, orgId));
+
+  // Merge them (deduplicating by user ID)
+  const userMap = new Map<string, typeof usersTable.$inferSelect>();
+  for (const m of orgMembers) {
+    userMap.set(m.user.id, m.user);
+  }
+  for (const c of clientUsers) {
+    userMap.set(c.user.id, c.user);
+  }
+
+  const userRows = Array.from(userMap.values()).sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  );
+
+  const userIds = Array.from(userMap.keys());
+  let accountRows: any[] = [];
+  if (userIds.length > 0) {
+    accountRows = await db
       .select({
         providerId: accountsTable.providerId,
         userId: accountsTable.userId,
       })
-      .from(accountsTable),
-  ]);
+      .from(accountsTable)
+      .where(inArray(accountsTable.userId, userIds));
+  }
 
   const providersByUserId = new Map<string, string[]>();
 

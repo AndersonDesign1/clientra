@@ -461,15 +461,6 @@ function FeaturesTab() {
         {/* Toggles Container */}
         <div className="space-y-3.5">
           <FeatureToggle
-            checked={optimisticSettings.allowSignups}
-            description="Allow new users to sign up without an invitation."
-            disabled={updateMutation.isPending}
-            icon={UserGroupIcon}
-            label="Public Signups"
-            onChange={() => handleToggle("allowSignups")}
-          />
-
-          <FeatureToggle
             checked={optimisticSettings.enableNotifications}
             description="Send email notifications for project updates and mentions."
             disabled={updateMutation.isPending}

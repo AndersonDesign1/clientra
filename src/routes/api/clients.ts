@@ -43,6 +43,7 @@ export const Route = createFileRoute("/api/clients")({
         const created = await createClientRecord({
           ...parsed.data,
           id: crypto.randomUUID(),
+          organizationId: auth.user.activeOrganizationId,
         });
 
         if (!created) {

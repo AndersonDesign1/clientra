@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/dashboard/activity")({
           return forbiddenError();
         }
 
-        return Response.json(await listDashboardActivity());
+        return Response.json(await listDashboardActivity(user.activeOrganizationId || ""));
       },
     },
   },

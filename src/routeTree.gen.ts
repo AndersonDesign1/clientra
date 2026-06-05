@@ -35,6 +35,7 @@ import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as PortalProjectsIndexRouteImport } from './routes/portal/projects/index'
 import { Route as ProjectsClientSlugProjectSlugRouteImport } from './routes/projects/$clientSlug/$projectSlug'
 import { Route as PortalProjectsIdRouteImport } from './routes/portal/projects/$id'
+import { Route as InviteWorkerTokenRouteImport } from './routes/invite/worker/$token'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
 import { Route as ApiProjectsIdRouteImport } from './routes/api/projects/$id'
 import { Route as ApiProjectUpdatesIdRouteImport } from './routes/api/project-updates/$id'
@@ -185,6 +186,11 @@ const PortalProjectsIdRoute = PortalProjectsIdRouteImport.update({
   path: '/portal/projects/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteWorkerTokenRoute = InviteWorkerTokenRouteImport.update({
+  id: '/invite/worker/$token',
+  path: '/invite/worker/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUsersIdRoute = ApiUsersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
+  '/invite/worker/$token': typeof InviteWorkerTokenRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
+  '/invite/worker/$token': typeof InviteWorkerTokenRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects': typeof PortalProjectsIndexRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
   '/api/users/$id': typeof ApiUsersIdRoute
+  '/invite/worker/$token': typeof InviteWorkerTokenRoute
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
@@ -453,6 +462,7 @@ export interface FileRouteTypes {
     | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
+    | '/invite/worker/$token'
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
+    | '/invite/worker/$token'
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/api/project-updates/$id'
     | '/api/projects/$id'
     | '/api/users/$id'
+    | '/invite/worker/$token'
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
@@ -588,6 +600,7 @@ export interface RootRouteChildren {
   ApiPortalSummaryRoute: typeof ApiPortalSummaryRoute
   ApiProjectMilestonesIdRoute: typeof ApiProjectMilestonesIdRoute
   ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute
+  InviteWorkerTokenRoute: typeof InviteWorkerTokenRoute
   PortalProjectsIdRoute: typeof PortalProjectsIdRoute
   ProjectsClientSlugProjectSlugRoute: typeof ProjectsClientSlugProjectSlugRoute
   PortalProjectsIndexRoute: typeof PortalProjectsIndexRoute
@@ -776,6 +789,13 @@ declare module '@tanstack/react-router' {
       path: '/portal/projects/$id'
       fullPath: '/portal/projects/$id'
       preLoaderRoute: typeof PortalProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/worker/$token': {
+      id: '/invite/worker/$token'
+      path: '/invite/worker/$token'
+      fullPath: '/invite/worker/$token'
+      preLoaderRoute: typeof InviteWorkerTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/users/$id': {
@@ -1019,6 +1039,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPortalSummaryRoute: ApiPortalSummaryRoute,
   ApiProjectMilestonesIdRoute: ApiProjectMilestonesIdRoute,
   ApiProjectUpdatesIdRoute: ApiProjectUpdatesIdRoute,
+  InviteWorkerTokenRoute: InviteWorkerTokenRoute,
   PortalProjectsIdRoute: PortalProjectsIdRoute,
   ProjectsClientSlugProjectSlugRoute: ProjectsClientSlugProjectSlugRoute,
   PortalProjectsIndexRoute: PortalProjectsIndexRoute,
