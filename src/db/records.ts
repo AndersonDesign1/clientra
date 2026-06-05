@@ -1828,12 +1828,19 @@ export async function linkUserToClient(
   userId: string,
   executor: DatabaseExecutor = db
 ) {
+  const [client] = await executor
+    .select({ organizationId: clientsTable.organizationId })
+    .from(clientsTable)
+    .where(eq(clientsTable.id, clientId))
+    .limit(1);
+
   await executor
     .insert(clientUsersTable)
     .values({
       clientId,
       id: crypto.randomUUID(),
       userId,
+      organizationId: client?.organizationId ?? null,
     })
     .onConflictDoNothing();
 }

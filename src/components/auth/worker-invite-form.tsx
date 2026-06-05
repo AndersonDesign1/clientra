@@ -180,21 +180,19 @@ export function WorkerInviteForm({ token }: { token: string }) {
                       , but this invitation was sent to{" "}
                       <span className="font-semibold">{invitation.email}</span>.
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-3">
                       <Button
-                        className="h-10 border-border bg-card font-semibold text-sm hover:bg-accent"
+                        className="h-10 w-full bg-primary font-semibold text-primary-foreground text-sm hover:bg-primary/90"
                         onClick={handleSignOut}
-                        variant="outline"
                       >
-                        Sign out
+                        Sign out to accept invitation
                       </Button>
-                      <Button
-                        className="h-10 bg-primary font-semibold text-primary-foreground text-sm hover:bg-primary/90"
-                        disabled={isSubmitting}
-                        onClick={handleAccept}
+                      <Link
+                        className="inline-flex h-10 w-full items-center justify-center rounded-lg border border-border bg-card font-semibold text-sm hover:bg-accent hover:text-accent-foreground"
+                        to="/dashboard"
                       >
-                        Accept anyway
-                      </Button>
+                        Go to Dashboard
+                      </Link>
                     </div>
                   </div>
                 )
