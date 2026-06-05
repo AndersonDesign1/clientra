@@ -1,11 +1,11 @@
 import { createHmac } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { lastLoginMethod } from "better-auth/plugins";
+import { lastLoginMethod, organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
-import { accounts, sessions, users, verifications } from "@/db/schema";
+import { accounts, members, organizations, invitations, sessions, users, verifications } from "@/db/schema";
 import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
@@ -76,7 +76,6 @@ function getSocialProviderConfig({
   return {
     clientId: normalizedClientId,
     clientSecret: normalizedClientSecret,
-    disableImplicitSignUp: true,
   };
 }
 
@@ -107,6 +106,9 @@ export const auth = betterAuth({
     provider: "sqlite",
     schema: {
       account: accounts,
+      invitation: invitations,
+      member: members,
+      organization: organizations,
       session: sessions,
       user: users,
       verification: verifications,
@@ -163,24 +165,13 @@ export const auth = betterAuth({
       },
     },
   },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (_user, ctx) => {
-          // Block public signups via built-in routes as a fail-safe.
-          // Legitimate account creation happens via /api/auth/admin-signup or /api/invites/redeem.
-          if (ctx?.path === "/sign-up/email") {
-            const { hasWorkspaceAdmin } = await import("@/db/records");
-            if (await hasWorkspaceAdmin()) {
-              throw new Error(
-                "Public signup is disabled. Use an invite link or sign in."
-              );
-            }
-          }
-        },
-      },
-    },
-  },
-  plugins: [tanstackStartCookies(), lastLoginMethod()],
+  plugins: [
+    organization({
+      // Any authenticated user can create one organization (their workspace).
+      allowUserToCreateOrganization: true,
+    }),
+    tanstackStartCookies(),
+    lastLoginMethod(),
+  ],
   trustedOrigins: getTrustedOrigins(),
 });
