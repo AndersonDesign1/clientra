@@ -6,6 +6,7 @@ import {
   listStatusChangeRequestsForProject,
 } from "@/db/records";
 import {
+  conflictError,
   forbiddenError,
   internalServerError,
   parseJsonBody,
@@ -43,6 +44,12 @@ export const Route = createFileRoute("/api/portal/status-change-requests")({
 
         const hasAccess = await canAccessProject(auth.user, parsed.data.projectId);
         if (!hasAccess) return forbiddenError("You do not have access to this project.");
+
+        const existingRequests = await listStatusChangeRequestsForProject(parsed.data.projectId);
+        const hasPending = existingRequests.some((r) => r.approvalState === "pending");
+        if (hasPending) {
+          return conflictError("A pending status change request already exists for this project.");
+        }
 
         const created = await createStatusChangeRequestRecord({
           id: crypto.randomUUID(),

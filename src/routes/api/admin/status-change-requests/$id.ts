@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/admin/status-change-requests/$id")({
           return Response.json(updated);
         } catch (err) {
           console.error("Failed to review status change request:", err);
-          return Response.json({ error: (err as Error).message }, { status: 400 });
+          return Response.json({ error: "Unable to process request" }, { status: 400 });
         }
       },
     },

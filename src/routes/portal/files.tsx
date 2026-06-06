@@ -75,7 +75,9 @@ function isProjectFile(value: unknown): value is ProjectFile {
     typeof c.fileUrl === "string" &&
     typeof c.mimeType === "string" &&
     typeof c.uploadedBy === "string" &&
-    typeof c.uploaderName === "string"
+    typeof c.uploaderName === "string" &&
+    typeof c.fileSize === "number" &&
+    typeof c.createdAt === "string"
   );
 }
 
