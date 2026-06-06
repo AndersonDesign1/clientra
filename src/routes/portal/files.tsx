@@ -90,13 +90,19 @@ function PortalFilesPage() {
 
   const { isUploading, startUpload } = useUploadThing("projectFiles", {
     onClientUploadComplete: (uploaded) => {
-      setUploadError(null);
       const newFiles: PortalFileWithProject[] = [];
+      const invalidFiles: string[] = [];
       for (const entry of uploaded) {
         if (isProjectFile(entry.serverData)) {
           const project = projectsQuery.data?.find(p => p.id === entry.serverData.projectId);
           newFiles.push({ ...entry.serverData, projectTitle: project?.title ?? "Project" });
+        } else {
+          console.warn("Invalid project file uploaded:", entry);
+          invalidFiles.push(entry.name || entry.key);
         }
+      }
+      if (invalidFiles.length > 0) {
+        setUploadError(`Failed validation for files: ${invalidFiles.join(", ")}`);
       }
       queryClient.setQueryData<PortalFileWithProject[]>(
         portalFilesQueryOptions().queryKey,

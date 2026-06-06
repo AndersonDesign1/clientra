@@ -1632,6 +1632,8 @@ export function useReviewStatusChangeRequestMutation() {
       );
       // Refresh projects so updated status reflects
       queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+      // Refresh portal summary
+      queryClient.invalidateQueries({ queryKey: queryKeys.portalSummary });
     },
   });
 }

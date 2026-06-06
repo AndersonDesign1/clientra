@@ -182,7 +182,12 @@ function NavUser() {
   const handleSignOut = async () => {
     try {
       await authClient.signOut();
-      queryClient.clear();
+      queryClient.removeQueries({
+        predicate: (query) =>
+          ["users", "settings", "portal-summary", "portal-files", "portal-activity", "portal-team", "portal-status-change-requests"].some(
+            (key) => query.queryKey[0] === key
+          ),
+      });
       await router.navigate({ to: "/login" });
     } catch (e) {
       console.error(e);

@@ -79,7 +79,7 @@ function InviteDialog() {
         <DialogHeader>
           <DialogTitle>Invite a colleague</DialogTitle>
           <DialogDescription>
-            Send an invite link to a colleague so they can access this client portal. The invite will be delivered via email.
+            Send an invite link to a colleague so they can access this client portal. The invite will be sent by email once an admin approves the request.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

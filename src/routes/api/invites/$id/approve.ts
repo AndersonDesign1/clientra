@@ -45,7 +45,14 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
             requestUrl: request.url,
           });
         } catch (error) {
-          console.error("invite approval email failed", error);
+          console.error("invite approval email failed", {
+            inviteId: approvedInvite.id,
+            email: approvedInvite.email,
+            clientCompany: client.company,
+            clientName: client.name,
+            requestUrl: request.url,
+            error,
+          });
           emailSent = false;
         }
 

@@ -705,7 +705,7 @@ function StatusChangeRequestPanel({
 }) {
   const requestsQuery = useStatusChangeRequestsData(projectId);
   const createMutation = useCreateStatusChangeRequestMutation();
-  const [requestedStatus, setRequestedStatus] = useState<ProjectStatusValue>(currentStatus);
+  const [requestedStatus, setRequestedStatus] = useState<ProjectStatusValue | "">("");
   const [reason, setReason] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
@@ -718,7 +718,7 @@ function StatusChangeRequestPanel({
     setFormError(null);
     setFormSuccess(false);
 
-    if (requestedStatus === currentStatus) {
+    if (requestedStatus === "" || requestedStatus === currentStatus) {
       setFormError("Please select a different status than the current one.");
       return;
     }
@@ -766,8 +766,9 @@ function StatusChangeRequestPanel({
                 id="requested-status"
                 className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                 value={requestedStatus}
-                onChange={(e) => setRequestedStatus(e.target.value as ProjectStatusValue)}
+                onChange={(e) => setRequestedStatus(e.target.value as ProjectStatusValue | "")}
               >
+                <option value="">Select new status…</option>
                 {PROJECT_STATUSES.map((s) => (
                   <option key={s.value} value={s.value} disabled={s.value === currentStatus}>
                     {s.label}{s.value === currentStatus ? " (current)" : ""}
