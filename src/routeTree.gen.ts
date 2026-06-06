@@ -20,6 +20,9 @@ import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as PortalIndexRouteImport } from './routes/portal/index'
 import { Route as ClientsIndexRouteImport } from './routes/clients/index'
 import { Route as ProjectsIdRouteImport } from './routes/projects/$id'
+import { Route as PortalTeamRouteImport } from './routes/portal/team'
+import { Route as PortalFilesRouteImport } from './routes/portal/files'
+import { Route as PortalActivityRouteImport } from './routes/portal/activity'
 import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as ClientsIdRouteImport } from './routes/clients/$id'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
@@ -113,6 +116,21 @@ const ClientsIndexRoute = ClientsIndexRouteImport.update({
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
   id: '/projects/$id',
   path: '/projects/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalTeamRoute = PortalTeamRouteImport.update({
+  id: '/portal/team',
+  path: '/portal/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalFilesRoute = PortalFilesRouteImport.update({
+  id: '/portal/files',
+  path: '/portal/files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalActivityRoute = PortalActivityRouteImport.update({
+  id: '/portal/activity',
+  path: '/portal/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -336,6 +354,9 @@ export interface FileRoutesByFullPath {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/portal/activity': typeof PortalActivityRoute
+  '/portal/files': typeof PortalFilesRoute
+  '/portal/team': typeof PortalTeamRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/clients/': typeof ClientsIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -388,6 +409,9 @@ export interface FileRoutesByTo {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/portal/activity': typeof PortalActivityRoute
+  '/portal/files': typeof PortalFilesRoute
+  '/portal/team': typeof PortalTeamRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/clients': typeof ClientsIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -441,6 +465,9 @@ export interface FileRoutesById {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/clients/$id': typeof ClientsIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/portal/activity': typeof PortalActivityRoute
+  '/portal/files': typeof PortalFilesRoute
+  '/portal/team': typeof PortalTeamRoute
   '/projects/$id': typeof ProjectsIdRoute
   '/clients/': typeof ClientsIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -495,6 +522,9 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
+    | '/portal/activity'
+    | '/portal/files'
+    | '/portal/team'
     | '/projects/$id'
     | '/clients/'
     | '/portal/'
@@ -547,6 +577,9 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
+    | '/portal/activity'
+    | '/portal/files'
+    | '/portal/team'
     | '/projects/$id'
     | '/clients'
     | '/portal'
@@ -599,6 +632,9 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/clients/$id'
     | '/invite/$token'
+    | '/portal/activity'
+    | '/portal/files'
+    | '/portal/team'
     | '/projects/$id'
     | '/clients/'
     | '/portal/'
@@ -652,6 +688,9 @@ export interface RootRouteChildren {
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ClientsIdRoute: typeof ClientsIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  PortalActivityRoute: typeof PortalActivityRoute
+  PortalFilesRoute: typeof PortalFilesRoute
+  PortalTeamRoute: typeof PortalTeamRoute
   ProjectsIdRoute: typeof ProjectsIdRoute
   ClientsIndexRoute: typeof ClientsIndexRoute
   PortalIndexRoute: typeof PortalIndexRoute
@@ -751,6 +790,27 @@ declare module '@tanstack/react-router' {
       path: '/projects/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof ProjectsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/team': {
+      id: '/portal/team'
+      path: '/portal/team'
+      fullPath: '/portal/team'
+      preLoaderRoute: typeof PortalTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/files': {
+      id: '/portal/files'
+      path: '/portal/files'
+      fullPath: '/portal/files'
+      preLoaderRoute: typeof PortalFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/activity': {
+      id: '/portal/activity'
+      path: '/portal/activity'
+      fullPath: '/portal/activity'
+      preLoaderRoute: typeof PortalActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -1144,6 +1204,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ClientsIdRoute: ClientsIdRoute,
   InviteTokenRoute: InviteTokenRoute,
+  PortalActivityRoute: PortalActivityRoute,
+  PortalFilesRoute: PortalFilesRoute,
+  PortalTeamRoute: PortalTeamRoute,
   ProjectsIdRoute: ProjectsIdRoute,
   ClientsIndexRoute: ClientsIndexRoute,
   PortalIndexRoute: PortalIndexRoute,

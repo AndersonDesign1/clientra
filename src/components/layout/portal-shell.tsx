@@ -145,9 +145,9 @@ function PortalSidebarNav() {
             {portalNav.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link
-                  activeOptions={item.exact ? { exact: true } : undefined}
                   className="block"
                   to={item.href}
+                  activeOptions={"exact" in item && item.exact ? { exact: true } : undefined}
                 >
                   {({ isActive }) => (
                     <SidebarMenuButton

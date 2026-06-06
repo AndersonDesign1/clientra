@@ -4,9 +4,9 @@ import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
   createPortalColleagueInvite,
   getClientById,
-  getInviteRecordById,
   listPortalTeam,
 } from "@/db/records";
+
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
   forbiddenError,

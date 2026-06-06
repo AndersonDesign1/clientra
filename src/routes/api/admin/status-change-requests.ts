@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listAllPendingStatusChangeRequests, reviewStatusChangeRequestRecord } from "@/db/records";
+import { listAllPendingStatusChangeRequests } from "@/db/records";
 import {
-  internalServerError,
-  notFoundError,
-  parseJsonBody,
-  requireAdminMutationRequest,
   requireSessionRequest,
 } from "@/server/http/route-utils";
-import { reviewStatusChangeRequestSchema } from "@/api/validation";
 
 export const Route = createFileRoute("/api/admin/status-change-requests")({
   server: {

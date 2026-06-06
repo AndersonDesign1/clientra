@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { reviewStatusChangeRequestSchema } from "@/api/validation";
 import { reviewStatusChangeRequestRecord } from "@/db/records";
 import {
-  internalServerError,
   notFoundError,
   parseJsonBody,
   requireAdminMutationRequest,
