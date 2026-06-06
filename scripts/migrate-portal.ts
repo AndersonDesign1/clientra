@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import { db } from "../src/db/client.ts";
 
+let hadError = false;
+
 // Add new columns to invites table (ignore if already exist)
 for (const [col, ddl] of [
   ["initiated_by_client_id", "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id) ON DELETE SET NULL"],
@@ -10,8 +12,18 @@ for (const [col, ddl] of [
     await db.run(sql.raw(ddl));
     console.log(`✓ Added column: ${col}`);
   } catch (e: unknown) {
-    console.log(`- Column ${col} already exists or error:`, (e as Error).message);
+    const errMsg = (e as Error).message;
+    if (errMsg.includes("duplicate column name")) {
+      console.log(`- Column ${col} already exists.`);
+    } else {
+      console.error(`Error adding column ${col} with operation "${ddl}":`, e);
+      hadError = true;
+    }
   }
+}
+
+if (hadError) {
+  process.exit(1);
 }
 
 // Create status_change_requests table
@@ -31,7 +43,12 @@ try {
   `));
   console.log("✓ Created status_change_requests table");
 } catch (e: unknown) {
-  console.log("status_change_requests error:", (e as Error).message);
+  console.error("status_change_requests error:", e);
+  hadError = true;
+}
+
+if (hadError) {
+  process.exit(1);
 }
 
 console.log("Migration complete ✓");

@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewStatusChangeRequestSchema } from "@/api/validation";
-import { reviewStatusChangeRequestRecord } from "@/db/records";
+import {
+  reviewStatusChangeRequestRecord,
+  getStatusChangeRequestById,
+} from "@/db/records";
 import {
   notFoundError,
+  conflictError,
   parseJsonBody,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -17,15 +21,28 @@ export const Route = createFileRoute("/api/admin/status-change-requests/$id")({
         const parsed = await parseJsonBody(request, reviewStatusChangeRequestSchema);
         if (!parsed.ok) return parsed.error;
 
-        const updated = await reviewStatusChangeRequestRecord(
-          params.id,
-          auth.user.id,
-          parsed.data.approvalState
-        );
+        const requestRecord = await getStatusChangeRequestById(params.id);
+        if (!requestRecord) {
+          return notFoundError("Request not found");
+        }
+        if (requestRecord.approvalState !== "pending") {
+          return conflictError("Request already reviewed");
+        }
 
-        if (!updated) return notFoundError("Request not found or already reviewed.");
+        try {
+          const updated = await reviewStatusChangeRequestRecord(
+            params.id,
+            auth.user.id,
+            parsed.data.approvalState
+          );
 
-        return Response.json(updated);
+          if (!updated) return notFoundError("Request not found or already reviewed.");
+
+          return Response.json(updated);
+        } catch (err) {
+          console.error("Failed to review status change request:", err);
+          return Response.json({ error: (err as Error).message }, { status: 400 });
+        }
       },
     },
   },

@@ -50,6 +50,7 @@ import {
   useUpdateProjectMutation,
   useStatusChangeRequestsData,
   useReviewStatusChangeRequestMutation,
+  queryKeys,
 } from "@/lib/api";
 import { getDeadlineLabel } from "@/lib/insights";
 import {
@@ -59,6 +60,7 @@ import {
 } from "@/lib/project-slugs";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/projects/$id")({
   beforeLoad: requireAdminSession,
@@ -416,6 +418,11 @@ export function AdminProjectDetailPage({
   const updatesQuery = useProjectUpdatesData(project?.id ?? "");
   const statusRequestsQuery = useStatusChangeRequestsData(project?.id ?? "");
   const reviewMutation = useReviewStatusChangeRequestMutation();
+  const queryClient = useQueryClient();
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const statusRequests = statusRequestsQuery.data ?? [];
   const pendingStatusRequest = statusRequests.find((r) => r.approvalState === "pending");
@@ -457,10 +464,21 @@ export function AdminProjectDetailPage({
     if (!project) {
       return;
     }
+    setNotification(null);
     try {
       await reviewMutation.mutateAsync({ id: requestId, projectId: project.id, approvalState });
+      setNotification({
+        type: "success",
+        message: `Request ${approvalState === "approved" ? "approved" : "rejected"} successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portalStatusChangeRequests(project.id) });
     } catch (err) {
       console.error("Failed to review status change request:", err);
+      setNotification({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to review status change request.",
+      });
     }
   }
 
@@ -586,6 +604,27 @@ export function AdminProjectDetailPage({
           </div>
         }
       />
+
+      {notification && (
+        <div
+          className={`mb-6 rounded-xl border p-4 text-xs font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.015)] ${
+            notification.type === "success"
+              ? "border-emerald-200 bg-emerald-50/10 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/10 dark:text-emerald-400"
+              : "border-rose-200 bg-rose-50/10 text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/10 dark:text-rose-400"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="text-[10px] uppercase font-bold hover:underline cursor-pointer"
+              type="button"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pending status change request banner */}
       {pendingStatusRequest && (

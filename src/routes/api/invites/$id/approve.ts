@@ -51,11 +51,11 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
 
         return Response.json({
           clientId: approvedInvite.clientId,
-          createdAt: approvedInvite.createdAt,
+          createdAt: approvedInvite.createdAt.toISOString(),
           email: approvedInvite.email,
-          expiresAt: approvedInvite.expiresAt,
+          expiresAt: approvedInvite.expiresAt.toISOString(),
           id: approvedInvite.id,
-          adminApprovedAt: approvedInvite.adminApprovedAt,
+          adminApprovedAt: approvedInvite.adminApprovedAt?.toISOString() ?? null,
           initiatedByClientId: approvedInvite.initiatedByClientId,
           emailSent,
         });

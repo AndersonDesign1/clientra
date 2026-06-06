@@ -2456,6 +2456,15 @@ export async function createStatusChangeRequestRecord(input: {
   return created ? mapStatusChangeRequest(created.req, created.requesterName) : null;
 }
 
+export async function getStatusChangeRequestById(id: string) {
+  const [row] = await db
+    .select()
+    .from(statusChangeRequestsTable)
+    .where(eq(statusChangeRequestsTable.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function listStatusChangeRequestsForProject(projectId: string) {
   const rows = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
@@ -2489,67 +2498,59 @@ export async function reviewStatusChangeRequestRecord(
 ) {
   const now = new Date();
 
-  const [updated] = await db
-    .update(statusChangeRequestsTable)
-    .set({ approvalState, reviewedAt: now, reviewedBy })
-    .where(
-      and(
-        eq(statusChangeRequestsTable.id, id),
-        eq(statusChangeRequestsTable.approvalState, "pending")
+  return await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(statusChangeRequestsTable)
+      .set({ approvalState, reviewedAt: now, reviewedBy })
+      .where(
+        and(
+          eq(statusChangeRequestsTable.id, id),
+          eq(statusChangeRequestsTable.approvalState, "pending")
+        )
       )
-    )
-    .returning();
-
-  if (!updated) return null;
-
-  // If approved, update the project status
-  if (approvalState === "approved") {
-    const [project] = await db
-      .select()
-      .from(projectsTable)
-      .where(eq(projectsTable.id, updated.projectId))
-      .limit(1);
-
-    const isValidTransition = project && project.status !== updated.requestedStatus;
-
-    if (!project || !isValidTransition) {
-      await db
-        .update(statusChangeRequestsTable)
-        .set({ approvalState: "pending", reviewedAt: null, reviewedBy: null })
-        .where(eq(statusChangeRequestsTable.id, id));
-
-      console.error(
-        `Status change approval failed: Project ${updated.projectId} missing or invalid transition to ${updated.requestedStatus}.`
-      );
-      throw new Error(`Invalid status transition to ${updated.requestedStatus}`);
-    }
-
-    const updatedProjects = await db
-      .update(projectsTable)
-      .set({ status: updated.requestedStatus })
-      .where(eq(projectsTable.id, updated.projectId))
       .returning();
 
-    if (updatedProjects.length === 0) {
-      await db
-        .update(statusChangeRequestsTable)
-        .set({ approvalState: "pending", reviewedAt: null, reviewedBy: null })
-        .where(eq(statusChangeRequestsTable.id, id));
+    if (!updated) return null;
 
-      console.error(
-        `Status change approval failed: No project was updated for ID ${updated.projectId}.`
-      );
-      throw new Error(`No project was updated.`);
+    // If approved, update the project status
+    if (approvalState === "approved") {
+      const [project] = await tx
+        .select()
+        .from(projectsTable)
+        .where(eq(projectsTable.id, updated.projectId))
+        .limit(1);
+
+      const isValidTransition = project && project.status !== updated.requestedStatus;
+
+      if (!project || !isValidTransition) {
+        console.error(
+          `Status change approval failed: Project ${updated.projectId} missing or invalid transition to ${updated.requestedStatus}.`
+        );
+        throw new Error(`Invalid status transition to ${updated.requestedStatus}`);
+      }
+
+      const updatedProjects = await tx
+        .update(projectsTable)
+        .set({ status: updated.requestedStatus })
+        .where(eq(projectsTable.id, updated.projectId))
+        .returning();
+
+      if (updatedProjects.length === 0) {
+        console.error(
+          `Status change approval failed: No project was updated for ID ${updated.projectId}.`
+        );
+        throw new Error(`No project was updated.`);
+      }
     }
-  }
 
-  const [requesterRow] = await db
-    .select({ name: usersTable.name })
-    .from(usersTable)
-    .where(eq(usersTable.id, updated.requestedBy))
-    .limit(1);
+    const [requesterRow] = await tx
+      .select({ name: usersTable.name })
+      .from(usersTable)
+      .where(eq(usersTable.id, updated.requestedBy))
+      .limit(1);
 
-  return mapStatusChangeRequest(updated, requesterRow?.name ?? null);
+    return mapStatusChangeRequest(updated, requesterRow?.name ?? null);
+  });
 }
 
 // ── Portal Global Files Hub ────────────────────────────────────────────────
