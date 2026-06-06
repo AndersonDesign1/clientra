@@ -2364,3 +2364,317 @@ export async function updateWorkspaceSettings(
 
   return mapWorkspaceSettings(updated);
 }
+
+// ── Status Change Requests ─────────────────────────────────────────────────
+
+import {
+  statusChangeRequests as statusChangeRequestsTable,
+} from "./schema";
+
+export interface PublicStatusChangeRequest {
+  approvalState: "pending" | "approved" | "rejected";
+  createdAt: string;
+  id: string;
+  projectId: string;
+  reason: string;
+  requestedBy: string;
+  requesterName: string;
+  requestedStatus: "planning" | "in_progress" | "completed";
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+}
+
+function mapStatusChangeRequest(
+  row: typeof statusChangeRequestsTable.$inferSelect,
+  requesterName: string | null
+): PublicStatusChangeRequest {
+  return {
+    approvalState: row.approvalState,
+    createdAt: row.createdAt.toISOString(),
+    id: row.id,
+    projectId: row.projectId,
+    reason: row.reason,
+    requestedBy: row.requestedBy,
+    requesterName: requesterName ?? "Unknown user",
+    requestedStatus: row.requestedStatus,
+    reviewedAt: row.reviewedAt ? row.reviewedAt.toISOString() : null,
+    reviewedBy: row.reviewedBy,
+  };
+}
+
+export async function createStatusChangeRequestRecord(input: {
+  id: string;
+  projectId: string;
+  requestedBy: string;
+  requestedStatus: "planning" | "in_progress" | "completed";
+  reason: string;
+}) {
+  await db.insert(statusChangeRequestsTable).values({
+    approvalState: "pending",
+    createdAt: new Date(),
+    id: input.id,
+    projectId: input.projectId,
+    reason: input.reason,
+    requestedBy: input.requestedBy,
+    requestedStatus: input.requestedStatus,
+  });
+
+  const [created] = await db
+    .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
+    .from(statusChangeRequestsTable)
+    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .where(eq(statusChangeRequestsTable.id, input.id))
+    .limit(1);
+
+  return created ? mapStatusChangeRequest(created.req, created.requesterName) : null;
+}
+
+export async function listStatusChangeRequestsForProject(projectId: string) {
+  const rows = await db
+    .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
+    .from(statusChangeRequestsTable)
+    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .where(eq(statusChangeRequestsTable.projectId, projectId))
+    .orderBy(desc(statusChangeRequestsTable.createdAt));
+
+  return rows.map(({ req, requesterName }) =>
+    mapStatusChangeRequest(req, requesterName)
+  );
+}
+
+export async function listAllPendingStatusChangeRequests() {
+  const rows = await db
+    .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
+    .from(statusChangeRequestsTable)
+    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .where(eq(statusChangeRequestsTable.approvalState, "pending"))
+    .orderBy(desc(statusChangeRequestsTable.createdAt));
+
+  return rows.map(({ req, requesterName }) =>
+    mapStatusChangeRequest(req, requesterName)
+  );
+}
+
+export async function reviewStatusChangeRequestRecord(
+  id: string,
+  reviewedBy: string,
+  approvalState: "approved" | "rejected"
+) {
+  const now = new Date();
+
+  const [updated] = await db
+    .update(statusChangeRequestsTable)
+    .set({ approvalState, reviewedAt: now, reviewedBy })
+    .where(
+      and(
+        eq(statusChangeRequestsTable.id, id),
+        eq(statusChangeRequestsTable.approvalState, "pending")
+      )
+    )
+    .returning();
+
+  if (!updated) return null;
+
+  // If approved, update the project status
+  if (approvalState === "approved") {
+    await db
+      .update(projectsTable)
+      .set({ status: updated.requestedStatus })
+      .where(eq(projectsTable.id, updated.projectId));
+  }
+
+  const [requesterRow] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, updated.requestedBy))
+    .limit(1);
+
+  return mapStatusChangeRequest(updated, requesterRow?.name ?? null);
+}
+
+// ── Portal Global Files Hub ────────────────────────────────────────────────
+
+export async function listPortalFilesForUser(user: SessionUser) {
+  const projects = await listPortalProjectsForUser(user);
+  const projectIds = projects.map((p) => p.id);
+
+  if (projectIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      file: filesTable,
+      projectTitle: projectsTable.title,
+      uploaderName: usersTable.name,
+    })
+    .from(filesTable)
+    .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+    .innerJoin(projectsTable, eq(filesTable.projectId, projectsTable.id))
+    .where(inArray(filesTable.projectId, projectIds))
+    .orderBy(desc(filesTable.createdAt));
+
+  return rows.map(({ file, uploaderName, projectTitle }) => ({
+    ...serializeProjectFile(mapProjectFile(file, uploaderName)),
+    projectTitle: projectTitle ?? "Project",
+  }));
+}
+
+// ── Portal Global Activity Hub ─────────────────────────────────────────────
+
+export async function listPortalActivityForUser(user: SessionUser) {
+  const projects = await listPortalProjectsForUser(user);
+  const projectIds = projects.map((p) => p.id);
+
+  if (projectIds.length === 0) return [];
+
+  const projectTitles = new Map(projects.map((p) => [p.id, p.title]));
+
+  const [notes, updates, files] = await Promise.all([
+    db
+      .select({ authorName: usersTable.name, authorRole: usersTable.role, note: projectNotesTable })
+      .from(projectNotesTable)
+      .leftJoin(usersTable, eq(projectNotesTable.userId, usersTable.id))
+      .where(inArray(projectNotesTable.projectId, projectIds))
+      .orderBy(desc(projectNotesTable.createdAt))
+      .limit(100),
+    db
+      .select({ authorName: usersTable.name, update: projectUpdatesTable })
+      .from(projectUpdatesTable)
+      .leftJoin(usersTable, eq(projectUpdatesTable.authorId, usersTable.id))
+      .where(inArray(projectUpdatesTable.projectId, projectIds))
+      .orderBy(desc(projectUpdatesTable.createdAt))
+      .limit(100),
+    db
+      .select({ file: filesTable, uploaderName: usersTable.name })
+      .from(filesTable)
+      .leftJoin(usersTable, eq(filesTable.uploadedBy, usersTable.id))
+      .where(inArray(filesTable.projectId, projectIds))
+      .orderBy(desc(filesTable.createdAt))
+      .limit(100),
+  ]);
+
+  type ActivityItem =
+    | { type: "comment"; createdAt: string; data: ReturnType<typeof mapProjectComment>; projectTitle: string }
+    | { type: "update"; createdAt: string; data: ReturnType<typeof mapProjectUpdate>; projectTitle: string }
+    | { type: "file"; createdAt: string; data: ReturnType<typeof mapProjectFile>; projectTitle: string };
+
+  const items: ActivityItem[] = [
+    ...notes.map(({ note, authorName, authorRole }) => {
+      const mapped = mapProjectComment(note, authorName, authorRole);
+      return {
+        type: "comment" as const,
+        createdAt: mapped.createdAt.toISOString(),
+        data: mapped,
+        projectTitle: projectTitles.get(note.projectId) ?? "Project",
+      };
+    }),
+    ...updates.map(({ update, authorName }) => {
+      const mapped = mapProjectUpdate(update, authorName);
+      return {
+        type: "update" as const,
+        createdAt: mapped.createdAt.toISOString(),
+        data: mapped,
+        projectTitle: projectTitles.get(update.projectId) ?? "Project",
+      };
+    }),
+    ...files.map(({ file, uploaderName }) => {
+      const mapped = mapProjectFile(file, uploaderName);
+      return {
+        type: "file" as const,
+        createdAt: mapped.createdAt.toISOString(),
+        data: mapped,
+        projectTitle: projectTitles.get(file.projectId) ?? "Project",
+      };
+    }),
+  ];
+
+  return items
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 150)
+    .map((item) => {
+      if (item.type === "comment") {
+        return { ...item, data: serializeProjectComment(item.data) };
+      }
+      if (item.type === "update") {
+        return { ...item, data: serializeProjectUpdate(item.data) };
+      }
+      return { ...item, data: serializeProjectFile(item.data) };
+    });
+}
+
+// ── Portal Team / Colleague Invites ────────────────────────────────────────
+
+export async function createPortalColleagueInvite(input: {
+  clientId: string;
+  email: string;
+  id: string;
+  initiatedByClientId: string;
+  token: string;
+}) {
+  await db.insert(invitesTable).values({
+    clientId: input.clientId,
+    createdAt: new Date(),
+    email: input.email,
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    id: input.id,
+    initiatedByClientId: input.initiatedByClientId,
+    token: input.token,
+  });
+
+  return getInviteRecordById(input.id);
+}
+
+export async function listPortalTeam(user: SessionUser) {
+  // Get the client linked to this portal user
+  const [clientUser] = await db
+    .select({ client: clientsTable })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(eq(clientUsersTable.userId, user.id))
+    .limit(1);
+
+  if (!clientUser) return { clientId: null, members: [], pendingInvites: [] };
+
+  const clientId = clientUser.client.id;
+
+  const [members, pendingInvites] = await Promise.all([
+    db
+      .select({ user: usersTable })
+      .from(clientUsersTable)
+      .innerJoin(usersTable, eq(clientUsersTable.userId, usersTable.id))
+      .where(eq(clientUsersTable.clientId, clientId)),
+    db
+      .select()
+      .from(invitesTable)
+      .where(
+        and(
+          eq(invitesTable.clientId, clientId),
+          isNull(invitesTable.consumedAt),
+          isNull(invitesTable.revokedAt),
+          gt(invitesTable.expiresAt, new Date())
+        )
+      )
+      .orderBy(desc(invitesTable.createdAt)),
+  ]);
+
+  return {
+    clientId,
+    members: members.map(({ user }) => ({
+      createdAt: user.createdAt.toISOString(),
+      email: user.email,
+      id: user.id,
+      image: user.image,
+      name: user.name,
+      role: user.role,
+    })),
+    pendingInvites: pendingInvites.map((invite) => ({
+      adminApprovedAt: invite.adminApprovedAt?.toISOString() ?? null,
+      clientId: invite.clientId,
+      createdAt: invite.createdAt.toISOString(),
+      email: invite.email,
+      expiresAt: invite.expiresAt.toISOString(),
+      id: invite.id,
+      initiatedByClientId: invite.initiatedByClientId,
+    })),
+  };
+}
+

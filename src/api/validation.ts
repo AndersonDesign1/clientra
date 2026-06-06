@@ -84,3 +84,17 @@ export const updateUserRoleSchema = z.object({
 export const searchSchema = z.object({
   query: z.string().trim().max(200).default(""),
 });
+
+export const statusChangeRequestSchema = z.object({
+  projectId: idSchema,
+  requestedStatus: z.enum(["planning", "in_progress", "completed"]),
+  reason: z.string().trim().min(1).max(2000),
+});
+
+export const reviewStatusChangeRequestSchema = z.object({
+  approvalState: z.enum(["approved", "rejected"]),
+});
+
+export const portalInviteSchema = z.object({
+  email: emailSchema,
+});

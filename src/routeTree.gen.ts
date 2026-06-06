@@ -39,6 +39,7 @@ import { Route as ApiProjectsIdRouteImport } from './routes/api/projects/$id'
 import { Route as ApiProjectUpdatesIdRouteImport } from './routes/api/project-updates/$id'
 import { Route as ApiProjectMilestonesIdRouteImport } from './routes/api/project-milestones/$id'
 import { Route as ApiPortalSummaryRouteImport } from './routes/api/portal/summary'
+import { Route as ApiPortalStatusChangeRequestsRouteImport } from './routes/api/portal/status-change-requests'
 import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
 import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
 import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
@@ -205,6 +206,12 @@ const ApiPortalSummaryRoute = ApiPortalSummaryRouteImport.update({
   path: '/api/portal/summary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPortalStatusChangeRequestsRoute =
+  ApiPortalStatusChangeRequestsRouteImport.update({
+    id: '/api/portal/status-change-requests',
+    path: '/api/portal/status-change-requests',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInvitesRedeemRoute = ApiInvitesRedeemRouteImport.update({
   id: '/redeem',
   path: '/redeem',
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
@@ -353,6 +361,7 @@ export interface FileRoutesByTo {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
@@ -400,6 +409,7 @@ export interface FileRoutesById {
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/status-change-requests'
     | '/api/portal/summary'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/status-change-requests'
     | '/api/portal/summary'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
@@ -540,6 +552,7 @@ export interface FileRouteTypes {
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/status-change-requests'
     | '/api/portal/summary'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
@@ -585,6 +598,7 @@ export interface RootRouteChildren {
   ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
   ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
+  ApiPortalStatusChangeRequestsRoute: typeof ApiPortalStatusChangeRequestsRoute
   ApiPortalSummaryRoute: typeof ApiPortalSummaryRoute
   ApiProjectMilestonesIdRoute: typeof ApiProjectMilestonesIdRoute
   ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute
@@ -806,6 +820,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPortalSummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/portal/status-change-requests': {
+      id: '/api/portal/status-change-requests'
+      path: '/api/portal/status-change-requests'
+      fullPath: '/api/portal/status-change-requests'
+      preLoaderRoute: typeof ApiPortalStatusChangeRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invites/redeem': {
       id: '/api/invites/redeem'
       path: '/redeem'
@@ -1016,6 +1037,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
   ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
+  ApiPortalStatusChangeRequestsRoute: ApiPortalStatusChangeRequestsRoute,
   ApiPortalSummaryRoute: ApiPortalSummaryRoute,
   ApiProjectMilestonesIdRoute: ApiProjectMilestonesIdRoute,
   ApiProjectUpdatesIdRoute: ApiProjectUpdatesIdRoute,
