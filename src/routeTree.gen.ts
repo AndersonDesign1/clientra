@@ -38,14 +38,18 @@ import { Route as ApiUsersIdRouteImport } from './routes/api/users/$id'
 import { Route as ApiProjectsIdRouteImport } from './routes/api/projects/$id'
 import { Route as ApiProjectUpdatesIdRouteImport } from './routes/api/project-updates/$id'
 import { Route as ApiProjectMilestonesIdRouteImport } from './routes/api/project-milestones/$id'
+import { Route as ApiPortalTeamRouteImport } from './routes/api/portal/team'
 import { Route as ApiPortalSummaryRouteImport } from './routes/api/portal/summary'
 import { Route as ApiPortalStatusChangeRequestsRouteImport } from './routes/api/portal/status-change-requests'
+import { Route as ApiPortalFilesRouteImport } from './routes/api/portal/files'
+import { Route as ApiPortalActivityRouteImport } from './routes/api/portal/activity'
 import { Route as ApiInvitesRedeemRouteImport } from './routes/api/invites/redeem'
 import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
 import { Route as ApiDashboardActivityRouteImport } from './routes/api/dashboard/activity'
 import { Route as ApiClientsIdRouteImport } from './routes/api/clients/$id'
 import { Route as ApiAuthAdminSignupRouteImport } from './routes/api/auth/admin-signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAdminStatusChangeRequestsRouteImport } from './routes/api/admin/status-change-requests'
 import { Route as PortalProjectsClientSlugProjectSlugRouteImport } from './routes/portal/projects/$clientSlug/$projectSlug'
 import { Route as ApiProjectsIdUpdatesRouteImport } from './routes/api/projects/$id/updates'
 import { Route as ApiProjectsIdMilestonesRouteImport } from './routes/api/projects/$id/milestones'
@@ -54,6 +58,7 @@ import { Route as ApiProjectsIdCollaborationRouteImport } from './routes/api/pro
 import { Route as ApiInvitesIdRevokeRouteImport } from './routes/api/invites/$id/revoke'
 import { Route as ApiInvitesIdResendRouteImport } from './routes/api/invites/$id/resend'
 import { Route as ApiClientsIdInvitesRouteImport } from './routes/api/clients/$id/invites'
+import { Route as ApiAdminStatusChangeRequestsIdRouteImport } from './routes/api/admin/status-change-requests/$id'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -201,6 +206,11 @@ const ApiProjectMilestonesIdRoute = ApiProjectMilestonesIdRouteImport.update({
   path: '/api/project-milestones/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPortalTeamRoute = ApiPortalTeamRouteImport.update({
+  id: '/api/portal/team',
+  path: '/api/portal/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPortalSummaryRoute = ApiPortalSummaryRouteImport.update({
   id: '/api/portal/summary',
   path: '/api/portal/summary',
@@ -212,6 +222,16 @@ const ApiPortalStatusChangeRequestsRoute =
     path: '/api/portal/status-change-requests',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPortalFilesRoute = ApiPortalFilesRouteImport.update({
+  id: '/api/portal/files',
+  path: '/api/portal/files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPortalActivityRoute = ApiPortalActivityRouteImport.update({
+  id: '/api/portal/activity',
+  path: '/api/portal/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInvitesRedeemRoute = ApiInvitesRedeemRouteImport.update({
   id: '/redeem',
   path: '/redeem',
@@ -242,6 +262,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminStatusChangeRequestsRoute =
+  ApiAdminStatusChangeRequestsRouteImport.update({
+    id: '/api/admin/status-change-requests',
+    path: '/api/admin/status-change-requests',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PortalProjectsClientSlugProjectSlugRoute =
   PortalProjectsClientSlugProjectSlugRouteImport.update({
     id: '/portal/projects/$clientSlug/$projectSlug',
@@ -284,6 +310,12 @@ const ApiClientsIdInvitesRoute = ApiClientsIdInvitesRouteImport.update({
   path: '/invites',
   getParentRoute: () => ApiClientsIdRoute,
 } as any)
+const ApiAdminStatusChangeRequestsIdRoute =
+  ApiAdminStatusChangeRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminStatusChangeRequestsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -308,14 +340,18 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof ClientsIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/admin/status-change-requests': typeof ApiAdminStatusChangeRequestsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/activity': typeof ApiPortalActivityRoute
+  '/api/portal/files': typeof ApiPortalFilesRoute
   '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/portal/team': typeof ApiPortalTeamRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
@@ -323,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
+  '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
@@ -355,14 +392,18 @@ export interface FileRoutesByTo {
   '/clients': typeof ClientsIndexRoute
   '/portal': typeof PortalIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/api/admin/status-change-requests': typeof ApiAdminStatusChangeRequestsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/activity': typeof ApiPortalActivityRoute
+  '/api/portal/files': typeof ApiPortalFilesRoute
   '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/portal/team': typeof ApiPortalTeamRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
@@ -370,6 +411,7 @@ export interface FileRoutesByTo {
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects': typeof PortalProjectsIndexRoute
+  '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
@@ -403,14 +445,18 @@ export interface FileRoutesById {
   '/clients/': typeof ClientsIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/api/admin/status-change-requests': typeof ApiAdminStatusChangeRequestsRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/admin-signup': typeof ApiAuthAdminSignupRoute
   '/api/clients/$id': typeof ApiClientsIdRouteWithChildren
   '/api/dashboard/activity': typeof ApiDashboardActivityRoute
   '/api/files/$id': typeof ApiFilesIdRoute
   '/api/invites/redeem': typeof ApiInvitesRedeemRoute
+  '/api/portal/activity': typeof ApiPortalActivityRoute
+  '/api/portal/files': typeof ApiPortalFilesRoute
   '/api/portal/status-change-requests': typeof ApiPortalStatusChangeRequestsRoute
   '/api/portal/summary': typeof ApiPortalSummaryRoute
+  '/api/portal/team': typeof ApiPortalTeamRoute
   '/api/project-milestones/$id': typeof ApiProjectMilestonesIdRoute
   '/api/project-updates/$id': typeof ApiProjectUpdatesIdRoute
   '/api/projects/$id': typeof ApiProjectsIdRouteWithChildren
@@ -418,6 +464,7 @@ export interface FileRoutesById {
   '/portal/projects/$id': typeof PortalProjectsIdRoute
   '/projects/$clientSlug/$projectSlug': typeof ProjectsClientSlugProjectSlugRoute
   '/portal/projects/': typeof PortalProjectsIndexRoute
+  '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
@@ -452,14 +499,18 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/portal/'
     | '/projects/'
+    | '/api/admin/status-change-requests'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/activity'
+    | '/api/portal/files'
     | '/api/portal/status-change-requests'
     | '/api/portal/summary'
+    | '/api/portal/team'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
     | '/api/projects/$id'
@@ -467,6 +518,7 @@ export interface FileRouteTypes {
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
+    | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
@@ -499,14 +551,18 @@ export interface FileRouteTypes {
     | '/clients'
     | '/portal'
     | '/projects'
+    | '/api/admin/status-change-requests'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/activity'
+    | '/api/portal/files'
     | '/api/portal/status-change-requests'
     | '/api/portal/summary'
+    | '/api/portal/team'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
     | '/api/projects/$id'
@@ -514,6 +570,7 @@ export interface FileRouteTypes {
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects'
+    | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
@@ -546,14 +603,18 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/portal/'
     | '/projects/'
+    | '/api/admin/status-change-requests'
     | '/api/auth/$'
     | '/api/auth/admin-signup'
     | '/api/clients/$id'
     | '/api/dashboard/activity'
     | '/api/files/$id'
     | '/api/invites/redeem'
+    | '/api/portal/activity'
+    | '/api/portal/files'
     | '/api/portal/status-change-requests'
     | '/api/portal/summary'
+    | '/api/portal/team'
     | '/api/project-milestones/$id'
     | '/api/project-updates/$id'
     | '/api/projects/$id'
@@ -561,6 +622,7 @@ export interface FileRouteTypes {
     | '/portal/projects/$id'
     | '/projects/$clientSlug/$projectSlug'
     | '/portal/projects/'
+    | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
@@ -594,12 +656,16 @@ export interface RootRouteChildren {
   ClientsIndexRoute: typeof ClientsIndexRoute
   PortalIndexRoute: typeof PortalIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
+  ApiAdminStatusChangeRequestsRoute: typeof ApiAdminStatusChangeRequestsRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAuthAdminSignupRoute: typeof ApiAuthAdminSignupRoute
   ApiDashboardActivityRoute: typeof ApiDashboardActivityRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
+  ApiPortalActivityRoute: typeof ApiPortalActivityRoute
+  ApiPortalFilesRoute: typeof ApiPortalFilesRoute
   ApiPortalStatusChangeRequestsRoute: typeof ApiPortalStatusChangeRequestsRoute
   ApiPortalSummaryRoute: typeof ApiPortalSummaryRoute
+  ApiPortalTeamRoute: typeof ApiPortalTeamRoute
   ApiProjectMilestonesIdRoute: typeof ApiProjectMilestonesIdRoute
   ApiProjectUpdatesIdRoute: typeof ApiProjectUpdatesIdRoute
   PortalProjectsIdRoute: typeof PortalProjectsIdRoute
@@ -813,6 +879,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectMilestonesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/portal/team': {
+      id: '/api/portal/team'
+      path: '/api/portal/team'
+      fullPath: '/api/portal/team'
+      preLoaderRoute: typeof ApiPortalTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/portal/summary': {
       id: '/api/portal/summary'
       path: '/api/portal/summary'
@@ -825,6 +898,20 @@ declare module '@tanstack/react-router' {
       path: '/api/portal/status-change-requests'
       fullPath: '/api/portal/status-change-requests'
       preLoaderRoute: typeof ApiPortalStatusChangeRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/portal/files': {
+      id: '/api/portal/files'
+      path: '/api/portal/files'
+      fullPath: '/api/portal/files'
+      preLoaderRoute: typeof ApiPortalFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/portal/activity': {
+      id: '/api/portal/activity'
+      path: '/api/portal/activity'
+      fullPath: '/api/portal/activity'
+      preLoaderRoute: typeof ApiPortalActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/invites/redeem': {
@@ -867,6 +954,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/status-change-requests': {
+      id: '/api/admin/status-change-requests'
+      path: '/api/admin/status-change-requests'
+      fullPath: '/api/admin/status-change-requests'
+      preLoaderRoute: typeof ApiAdminStatusChangeRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portal/projects/$clientSlug/$projectSlug': {
@@ -924,6 +1018,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/clients/$id/invites'
       preLoaderRoute: typeof ApiClientsIdInvitesRouteImport
       parentRoute: typeof ApiClientsIdRoute
+    }
+    '/api/admin/status-change-requests/$id': {
+      id: '/api/admin/status-change-requests/$id'
+      path: '/$id'
+      fullPath: '/api/admin/status-change-requests/$id'
+      preLoaderRoute: typeof ApiAdminStatusChangeRequestsIdRouteImport
+      parentRoute: typeof ApiAdminStatusChangeRequestsRoute
     }
   }
 }
@@ -1010,6 +1111,20 @@ const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
   ApiUsersRouteChildren,
 )
 
+interface ApiAdminStatusChangeRequestsRouteChildren {
+  ApiAdminStatusChangeRequestsIdRoute: typeof ApiAdminStatusChangeRequestsIdRoute
+}
+
+const ApiAdminStatusChangeRequestsRouteChildren: ApiAdminStatusChangeRequestsRouteChildren =
+  {
+    ApiAdminStatusChangeRequestsIdRoute: ApiAdminStatusChangeRequestsIdRoute,
+  }
+
+const ApiAdminStatusChangeRequestsRouteWithChildren =
+  ApiAdminStatusChangeRequestsRoute._addFileChildren(
+    ApiAdminStatusChangeRequestsRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
@@ -1033,12 +1148,17 @@ const rootRouteChildren: RootRouteChildren = {
   ClientsIndexRoute: ClientsIndexRoute,
   PortalIndexRoute: PortalIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
+  ApiAdminStatusChangeRequestsRoute:
+    ApiAdminStatusChangeRequestsRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthAdminSignupRoute: ApiAuthAdminSignupRoute,
   ApiDashboardActivityRoute: ApiDashboardActivityRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,
+  ApiPortalActivityRoute: ApiPortalActivityRoute,
+  ApiPortalFilesRoute: ApiPortalFilesRoute,
   ApiPortalStatusChangeRequestsRoute: ApiPortalStatusChangeRequestsRoute,
   ApiPortalSummaryRoute: ApiPortalSummaryRoute,
+  ApiPortalTeamRoute: ApiPortalTeamRoute,
   ApiProjectMilestonesIdRoute: ApiProjectMilestonesIdRoute,
   ApiProjectUpdatesIdRoute: ApiProjectUpdatesIdRoute,
   PortalProjectsIdRoute: PortalProjectsIdRoute,

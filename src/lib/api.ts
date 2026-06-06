@@ -251,11 +251,18 @@ export const queryKeys = {
   pendingInvites: (clientId: string) =>
     [...queryKeys.allPendingInvites, clientId] as const,
   portalSummary: ["portal-summary"] as const,
+  portalFiles: ["portal-files"] as const,
+  portalActivity: ["portal-activity"] as const,
+  portalTeam: ["portal-team"] as const,
+  portalStatusChangeRequests: (projectId: string) =>
+    ["portal-status-change-requests", projectId] as const,
+  adminStatusChangeRequests: ["admin-status-change-requests"] as const,
   projects: ["projects"] as const,
   search: (query: string) => ["search", query] as const,
   users: ["users"] as const,
   settings: ["settings"] as const,
 };
+
 
 function mapQueryState<TData>(query: {
   data: TData | undefined;
@@ -1384,3 +1391,221 @@ export function useUpdateSettingsMutation() {
     },
   });
 }
+
+// ── Portal Files Hub ──────────────────────────────────────────────────────
+
+export interface PortalFileWithProject extends ProjectFile {
+  projectTitle: string;
+}
+
+export function portalFilesQueryOptions() {
+  return queryOptions({
+    queryFn: () => fetchJson<PortalFileWithProject[]>("/api/portal/files"),
+    queryKey: queryKeys.portalFiles,
+  });
+}
+
+export function usePortalFilesData(): LoadableData<PortalFileWithProject[]> {
+  return mapQueryState(useQuery(portalFilesQueryOptions()));
+}
+
+export function ensurePortalFilesData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(portalFilesQueryOptions());
+}
+
+// ── Portal Activity Inbox ─────────────────────────────────────────────────
+
+export type PortalActivityItemType = "comment" | "update" | "file";
+
+export interface PortalActivityItem {
+  createdAt: string;
+  data: ProjectComment | ProjectUpdate | ProjectFile;
+  projectTitle: string;
+  type: PortalActivityItemType;
+}
+
+export function portalActivityQueryOptions() {
+  return queryOptions({
+    queryFn: () => fetchJson<PortalActivityItem[]>("/api/portal/activity"),
+    queryKey: queryKeys.portalActivity,
+  });
+}
+
+export function usePortalActivityData(): LoadableData<PortalActivityItem[]> {
+  return mapQueryState(useQuery(portalActivityQueryOptions()));
+}
+
+export function ensurePortalActivityData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(portalActivityQueryOptions());
+}
+
+// ── Portal Team ───────────────────────────────────────────────────────────
+
+export interface PortalTeamMember {
+  createdAt: string;
+  email: string;
+  id: string;
+  image: string | null;
+  name: string;
+  role: string;
+}
+
+export interface PortalPendingInvite {
+  adminApprovedAt: string | null;
+  clientId: string;
+  createdAt: string;
+  email: string;
+  expiresAt: string;
+  id: string;
+  initiatedByClientId: string | null;
+}
+
+export interface PortalTeam {
+  clientId: string | null;
+  members: PortalTeamMember[];
+  pendingInvites: PortalPendingInvite[];
+}
+
+export function portalTeamQueryOptions() {
+  return queryOptions({
+    queryFn: () => fetchJson<PortalTeam>("/api/portal/team"),
+    queryKey: queryKeys.portalTeam,
+  });
+}
+
+export function usePortalTeamData(): LoadableData<PortalTeam> {
+  return mapQueryState(useQuery(portalTeamQueryOptions()));
+}
+
+export function ensurePortalTeamData(queryClient: QueryClient) {
+  return queryClient.ensureQueryData(portalTeamQueryOptions());
+}
+
+async function createPortalInviteRequest(email: string) {
+  const response = await createApiRequest("/api/portal/team", {
+    body: JSON.stringify({ email }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  return parseMutationResponse<{ id: string; email: string }>(response, "invite");
+}
+
+export function useCreatePortalInviteMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (email: string) => createPortalInviteRequest(email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.portalTeam });
+    },
+  });
+}
+
+// ── Status Change Requests ────────────────────────────────────────────────
+
+export type StatusChangeRequestApprovalState = "pending" | "approved" | "rejected";
+export type ProjectStatusValue = "planning" | "in_progress" | "completed";
+
+export interface StatusChangeRequest {
+  approvalState: StatusChangeRequestApprovalState;
+  createdAt: string;
+  id: string;
+  projectId: string;
+  reason: string;
+  requestedBy: string;
+  requesterName: string;
+  requestedStatus: ProjectStatusValue;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+}
+
+export function statusChangeRequestsQueryOptions(projectId: string) {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<StatusChangeRequest[]>(
+        `/api/portal/status-change-requests?projectId=${projectId}`
+      ),
+    queryKey: queryKeys.portalStatusChangeRequests(projectId),
+    enabled: Boolean(projectId),
+  });
+}
+
+export function useStatusChangeRequestsData(
+  projectId: string
+): LoadableData<StatusChangeRequest[]> {
+  return mapQueryState(useQuery(statusChangeRequestsQueryOptions(projectId)));
+}
+
+async function createStatusChangeRequestFn(input: {
+  projectId: string;
+  reason: string;
+  requestedStatus: ProjectStatusValue;
+}) {
+  const response = await createApiRequest("/api/portal/status-change-requests", {
+    body: JSON.stringify(input),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  return parseMutationResponse<StatusChangeRequest>(response, "status change request");
+}
+
+export function useCreateStatusChangeRequestMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createStatusChangeRequestFn,
+    onSuccess: (req) => {
+      queryClient.setQueryData<StatusChangeRequest[]>(
+        queryKeys.portalStatusChangeRequests(req.projectId),
+        (current) => [req, ...(current ?? [])]
+      );
+    },
+  });
+}
+
+// Admin SCR
+export function adminStatusChangeRequestsQueryOptions() {
+  return queryOptions({
+    queryFn: () =>
+      fetchJson<StatusChangeRequest[]>("/api/admin/status-change-requests"),
+    queryKey: queryKeys.adminStatusChangeRequests,
+  });
+}
+
+export function useAdminStatusChangeRequestsData(): LoadableData<StatusChangeRequest[]> {
+  return mapQueryState(useQuery(adminStatusChangeRequestsQueryOptions()));
+}
+
+async function reviewStatusChangeRequestFn(input: {
+  id: string;
+  approvalState: "approved" | "rejected";
+  projectId: string;
+}) {
+  const response = await createApiRequest(
+    `/api/admin/status-change-requests/${input.id}`,
+    {
+      body: JSON.stringify({ approvalState: input.approvalState }),
+      headers: { "content-type": "application/json" },
+      method: "PATCH",
+    }
+  );
+  return parseMutationResponse<StatusChangeRequest>(response, "status change request");
+}
+
+export function useReviewStatusChangeRequestMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: reviewStatusChangeRequestFn,
+    onSuccess: (updated) => {
+      // Remove from admin pending list
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminStatusChangeRequests });
+      // Update per-project SCR list
+      queryClient.setQueryData<StatusChangeRequest[]>(
+        queryKeys.portalStatusChangeRequests(updated.projectId),
+        (current) =>
+          (current ?? []).map((r) => (r.id === updated.id ? updated : r))
+      );
+      // Refresh projects so updated status reflects
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects });
+    },
+  });
+}
+
