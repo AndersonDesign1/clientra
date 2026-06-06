@@ -5,7 +5,6 @@ import {
 } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
-  internalServerError,
   notFoundError,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -35,6 +34,7 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
 
         const inviteUrl = new URL(`/invite/${approvedInvite.token}`, request.url);
 
+        let emailSent = true;
         try {
           await sendInviteEmail({
             clientCompany: client.company,
@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
           });
         } catch (error) {
           console.error("invite approval email failed", error);
-          return internalServerError("Invite email could not be sent.");
+          emailSent = false;
         }
 
         return Response.json({
@@ -56,6 +56,8 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
           expiresAt: approvedInvite.expiresAt,
           id: approvedInvite.id,
           adminApprovedAt: approvedInvite.adminApprovedAt,
+          initiatedByClientId: approvedInvite.initiatedByClientId,
+          emailSent,
         });
       },
     },

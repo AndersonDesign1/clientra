@@ -185,9 +185,29 @@ describe("invite management API routes", () => {
     expect(revokeInviteRecord).not.toHaveBeenCalled();
   });
 
+  it("rejects non-admin approve requests", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
+      email: "client@example.com",
+      id: "client_user",
+      name: "Client User",
+      role: ROLES.CLIENT,
+    });
+
+    const response = await approveHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/approve", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(403);
+    expect(approveInviteRecord).not.toHaveBeenCalled();
+  });
+
   it("approves client-initiated colleague invites", async () => {
     const approvedInvite = {
       ...invite,
+      initiatedByClientId: "client_1",
       adminApprovedAt: new Date("2026-06-06T10:00:00.000Z"),
     };
     vi.mocked(approveInviteRecord).mockResolvedValue(approvedInvite);
@@ -207,6 +227,8 @@ describe("invite management API routes", () => {
       expiresAt: approvedInvite.expiresAt.toISOString(),
       id: approvedInvite.id,
       adminApprovedAt: approvedInvite.adminApprovedAt.toISOString(),
+      initiatedByClientId: "client_1",
+      emailSent: true,
     });
     expect(approveInviteRecord).toHaveBeenCalledWith("invite_1");
     expect(sendInviteEmail).toHaveBeenCalled();

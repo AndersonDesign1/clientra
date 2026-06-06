@@ -616,7 +616,7 @@ export function AdminProjectDetailPage({
             <Button
               size="sm"
               variant="outline"
-              className="border-rose-250 text-rose-600 hover:bg-rose-50/50 hover:text-rose-700 font-semibold text-xs"
+              className="border-rose-200 text-rose-600 hover:bg-rose-50/50 hover:text-rose-700 font-semibold text-xs"
               onClick={() => handleReviewRequest(pendingStatusRequest.id, "rejected")}
               disabled={reviewMutation.isPending}
             >

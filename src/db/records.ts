@@ -2504,10 +2504,43 @@ export async function reviewStatusChangeRequestRecord(
 
   // If approved, update the project status
   if (approvalState === "approved") {
-    await db
+    const [project] = await db
+      .select()
+      .from(projectsTable)
+      .where(eq(projectsTable.id, updated.projectId))
+      .limit(1);
+
+    const isValidTransition = project && project.status !== updated.requestedStatus;
+
+    if (!project || !isValidTransition) {
+      await db
+        .update(statusChangeRequestsTable)
+        .set({ approvalState: "pending", reviewedAt: null, reviewedBy: null })
+        .where(eq(statusChangeRequestsTable.id, id));
+
+      console.error(
+        `Status change approval failed: Project ${updated.projectId} missing or invalid transition to ${updated.requestedStatus}.`
+      );
+      throw new Error(`Invalid status transition to ${updated.requestedStatus}`);
+    }
+
+    const updatedProjects = await db
       .update(projectsTable)
       .set({ status: updated.requestedStatus })
-      .where(eq(projectsTable.id, updated.projectId));
+      .where(eq(projectsTable.id, updated.projectId))
+      .returning();
+
+    if (updatedProjects.length === 0) {
+      await db
+        .update(statusChangeRequestsTable)
+        .set({ approvalState: "pending", reviewedAt: null, reviewedBy: null })
+        .where(eq(statusChangeRequestsTable.id, id));
+
+      console.error(
+        `Status change approval failed: No project was updated for ID ${updated.projectId}.`
+      );
+      throw new Error(`No project was updated.`);
+    }
   }
 
   const [requesterRow] = await db

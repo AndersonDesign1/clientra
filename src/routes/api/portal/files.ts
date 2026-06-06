@@ -9,6 +9,7 @@ export const Route = createFileRoute("/api/portal/files")({
       GET: async ({ request }) => {
         const user = await getSessionUserFromHeaders(request.headers);
         if (!user) return unauthorizedError();
+        if (user.role !== "client") return unauthorizedError();
         const files = await listPortalFilesForUser(user);
         return Response.json(files);
       },

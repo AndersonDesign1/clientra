@@ -101,7 +101,7 @@ function InviteDialog() {
               </p>
             )}
             <div className="rounded-lg border border-amber-200/50 bg-amber-50/10 px-3 py-2.5 text-amber-700 text-xs dark:text-amber-400">
-              <strong>Note:</strong> Your invite request will be sent immediately. The recipient will receive an email with a link to join.
+              <strong>Note:</strong> Your invite request will be reviewed by an administrator and sent to the recipient once approved.
             </div>
           </div>
           <DialogFooter className="mt-4">

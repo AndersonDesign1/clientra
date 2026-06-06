@@ -3,7 +3,7 @@ import { db } from "../src/db/client.ts";
 
 // Add new columns to invites table (ignore if already exist)
 for (const [col, ddl] of [
-  ["initiated_by_client_id", "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id)"],
+  ["initiated_by_client_id", "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id) ON DELETE SET NULL"],
   ["admin_approved_at", "ALTER TABLE invites ADD COLUMN admin_approved_at INTEGER"],
 ] as const) {
   try {
@@ -21,10 +21,10 @@ try {
       id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
       requested_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      requested_status TEXT NOT NULL,
+      requested_status TEXT NOT NULL CHECK (requested_status IN ('planning','in_progress','completed')),
       reason TEXT NOT NULL,
-      approval_state TEXT NOT NULL DEFAULT 'pending',
-      reviewed_by TEXT REFERENCES users(id),
+      approval_state TEXT NOT NULL DEFAULT 'pending' CHECK (approval_state IN ('pending','approved','rejected')),
+      reviewed_by TEXT REFERENCES users(id) ON DELETE SET NULL,
       reviewed_at INTEGER,
       created_at INTEGER NOT NULL
     )
