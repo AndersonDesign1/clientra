@@ -39,6 +39,12 @@ vi.mock("@/lib/api", () => ({
     mutateAsync: vi.fn(async () => undefined),
     variables: undefined,
   }),
+  useApproveInviteMutation: () => ({
+    error: null,
+    isPending: false,
+    mutateAsync: vi.fn(async () => undefined),
+    variables: undefined,
+  }),
   useUpdateClientMutation: vi.fn(),
 }));
 

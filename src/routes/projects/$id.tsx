@@ -48,6 +48,8 @@ import {
   useProjectsData,
   useProjectUpdatesData,
   useUpdateProjectMutation,
+  useStatusChangeRequestsData,
+  useReviewStatusChangeRequestMutation,
 } from "@/lib/api";
 import { getDeadlineLabel } from "@/lib/insights";
 import {
@@ -409,6 +411,16 @@ export function AdminProjectDetailPage({
 
   const milestonesQuery = useProjectMilestonesData(project?.id ?? "");
   const updatesQuery = useProjectUpdatesData(project?.id ?? "");
+  const statusRequestsQuery = useStatusChangeRequestsData(project?.id ?? "");
+  const reviewMutation = useReviewStatusChangeRequestMutation();
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const statusRequests = statusRequestsQuery.data ?? [];
+  const pendingStatusRequests = statusRequests.filter((r) => r.approvalState === "pending");
+  const hasPendingRequest = pendingStatusRequests.length > 0;
 
   if (projectsQuery.isLoading || clientsQuery.isLoading) {
     return (
@@ -441,6 +453,26 @@ export function AdminProjectDetailPage({
         />
       </AppShell>
     );
+  }
+
+  async function handleReviewRequest(requestId: string, approvalState: "approved" | "rejected") {
+    if (!project) {
+      return;
+    }
+    setNotification(null);
+    try {
+      await reviewMutation.mutateAsync({ id: requestId, projectId: project.id, approvalState });
+      setNotification({
+        type: "success",
+        message: `Request ${approvalState === "approved" ? "approved" : "rejected"} successfully.`,
+      });
+    } catch (err) {
+      console.error("Failed to review status change request:", err);
+      setNotification({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to review status change request.",
+      });
+    }
   }
 
   async function handleStatusChange(status: Project["status"]) {
@@ -565,6 +597,66 @@ export function AdminProjectDetailPage({
           </div>
         }
       />
+
+      {notification && (
+        <div
+          className={`mb-6 rounded-xl border p-4 text-xs font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.015)] ${
+            notification.type === "success"
+              ? "border-emerald-200 bg-emerald-50/10 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/10 dark:text-emerald-400"
+              : "border-rose-200 bg-rose-50/10 text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/10 dark:text-rose-400"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="text-[10px] uppercase font-bold hover:underline cursor-pointer"
+              type="button"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pending status change request banner */}
+      {hasPendingRequest && pendingStatusRequests.map((pendingReq) => (
+        <div key={pendingReq.id} className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-200/50 bg-amber-50/10 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] dark:border-amber-900/50 dark:bg-amber-950/10">
+          <div className="space-y-1">
+            <h4 className="font-semibold text-amber-700 text-xs dark:text-amber-400">
+              Pending Status Change Request
+            </h4>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Client requested to change status from <span className="font-bold">{formatStatusLabel(project.status)}</span> to{" "}
+              <span className="font-bold">{formatStatusLabel(pendingReq.requestedStatus)}</span>.
+            </p>
+            {pendingReq.reason && (
+              <p className="mt-1 text-muted-foreground text-xs italic">
+                "{pendingReq.reason}"
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
+              onClick={() => handleReviewRequest(pendingReq.id, "approved")}
+              disabled={reviewMutation.isPending}
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-rose-200 text-rose-600 hover:bg-rose-50/50 hover:text-rose-700 font-semibold text-xs"
+              onClick={() => handleReviewRequest(pendingReq.id, "rejected")}
+              disabled={reviewMutation.isPending}
+            >
+              Reject
+            </Button>
+          </div>
+        </div>
+      ))}
 
       {/* Metrics Ledger */}
       <div className="mb-6">

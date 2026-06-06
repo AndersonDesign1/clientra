@@ -1,0 +1,55 @@
+import { sql } from "drizzle-orm";
+import { db } from "../src/db/client.ts";
+
+let hadError = false;
+
+// Add new columns to invites table (ignore if already exist)
+for (const [col, ddl] of [
+  ["initiated_by_client_id", "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id) ON DELETE SET NULL"],
+  ["admin_approved_at", "ALTER TABLE invites ADD COLUMN admin_approved_at INTEGER"],
+] as const) {
+  try {
+    await db.run(sql.raw(ddl));
+    console.log(`✓ Added column: ${col}`);
+  } catch (e: unknown) {
+    const errMsg = (e as Error).message;
+    if (errMsg.includes("duplicate column name")) {
+      console.log(`- Column ${col} already exists.`);
+    } else {
+      console.error(`Error adding column ${col} with operation "${ddl}":`, e);
+      hadError = true;
+    }
+  }
+}
+
+if (hadError) {
+  process.exit(1);
+}
+
+// Create status_change_requests table
+try {
+  await db.run(sql.raw(`
+    CREATE TABLE IF NOT EXISTS status_change_requests (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+      requested_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      requested_status TEXT NOT NULL CHECK (requested_status IN ('planning','in_progress','completed')),
+      reason TEXT NOT NULL,
+      approval_state TEXT NOT NULL DEFAULT 'pending' CHECK (approval_state IN ('pending','approved','rejected')),
+      reviewed_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+      reviewed_at INTEGER,
+      created_at INTEGER NOT NULL
+    )
+  `));
+  console.log("✓ Created status_change_requests table");
+} catch (e: unknown) {
+  console.error("status_change_requests error:", e);
+  hadError = true;
+}
+
+if (hadError) {
+  process.exit(1);
+}
+
+console.log("Migration complete ✓");
+process.exit(0);

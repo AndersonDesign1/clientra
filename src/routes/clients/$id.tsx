@@ -73,6 +73,7 @@ import {
   useResendInviteMutation,
   useRevokeInviteMutation,
   useUpdateClientMutation,
+  useApproveInviteMutation,
 } from "@/lib/api";
 import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
 import { cn } from "@/lib/utils";
@@ -568,6 +569,7 @@ export function PendingInvitesPanel({
   const invites = pendingInvites.data ?? [];
   const resendInvite = useResendInviteMutation(clientId);
   const revokeInvite = useRevokeInviteMutation(clientId);
+  const approveInvite = useApproveInviteMutation(clientId);
 
   let inviteBadgeStyle =
     "border-zinc-500/20 bg-zinc-500/10 text-zinc-500 dark:text-zinc-400";
@@ -626,6 +628,7 @@ export function PendingInvitesPanel({
                 key={invite.id}
                 resendInvite={resendInvite}
                 revokeInvite={revokeInvite}
+                approveInvite={approveInvite}
               />
             ))}
           </div>
@@ -639,30 +642,46 @@ interface InviteRowProps {
   invite: PendingInvite;
   resendInvite: ReturnType<typeof useResendInviteMutation>;
   revokeInvite: ReturnType<typeof useRevokeInviteMutation>;
+  approveInvite: ReturnType<typeof useApproveInviteMutation>;
 }
 
-function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
+function InviteRow({ invite, resendInvite, revokeInvite, approveInvite }: InviteRowProps) {
   const isResending =
     resendInvite.isPending && resendInvite.variables?.id === invite.id;
   const isRevoking =
     revokeInvite.isPending && revokeInvite.variables?.id === invite.id;
+  const isApproving =
+    approveInvite.isPending && approveInvite.variables?.id === invite.id;
 
   const isResendError =
     resendInvite.variables?.id === invite.id && resendInvite.error != null;
   const isRevokeError =
     revokeInvite.variables?.id === invite.id && revokeInvite.error != null;
+  const isApproveError =
+    approveInvite.variables?.id === invite.id && approveInvite.error != null;
+
   let rowError: string | undefined;
   if (isResendError) {
     rowError = resendInvite.error.message;
   } else if (isRevokeError) {
     rowError = revokeInvite.error.message;
+  } else if (isApproveError) {
+    rowError = approveInvite.error.message;
   }
+
+  const isAwaitingApproval = invite.initiatedByClientId && !invite.adminApprovedAt;
 
   return (
     <div className="grid items-center gap-3 px-0 py-3.5 text-xs transition-colors duration-200 hover:bg-secondary/15 sm:grid-cols-[minmax(0,1.2fr)_0.8fr_1fr_1fr_1.2fr]">
       <p className="truncate font-semibold text-foreground">{invite.email}</p>
       <div>
-        <StatusBadge value="pending" />
+        {isAwaitingApproval ? (
+          <span className="rounded bg-amber-500/10 px-1.5 py-0.5 font-bold text-[9px] text-amber-700 uppercase tracking-wider border border-amber-200/50">
+            Awaiting Approval
+          </span>
+        ) : (
+          <StatusBadge value="pending" />
+        )}
       </div>
       <time
         className="font-medium text-muted-foreground"
@@ -677,15 +696,36 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
         Expires: {formatInviteDate(invite.expiresAt)}
       </time>
       <div className="flex items-center justify-end gap-2">
+        {isAwaitingApproval && (
+          <Button
+            className="flex h-8 items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            disabled={isResending || isRevoking || isApproving}
+            onClick={() => {
+              resendInvite.reset();
+              revokeInvite.reset();
+              approveInvite.reset();
+              approveInvite
+                .mutateAsync({
+                  id: invite.id,
+                })
+                .catch(() => undefined);
+            }}
+            size="sm"
+            type="button"
+          >
+            {isApproving ? "Approving" : "Approve"}
+          </Button>
+        )}
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
                 className="flex h-8 items-center gap-1.5 text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                disabled={isResending || isRevoking}
+                disabled={isResending || isRevoking || isApproving}
                 onClick={() => {
                   resendInvite.reset();
                   revokeInvite.reset();
+                  approveInvite.reset();
                   resendInvite
                     .mutateAsync({
                       id: invite.id,
@@ -731,11 +771,12 @@ function InviteRow({ invite, resendInvite, revokeInvite }: InviteRowProps) {
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
-                disabled={isRevoking}
+                disabled={isRevoking || isApproving}
                 onClick={(event) => {
                   event.preventDefault();
                   resendInvite.reset();
                   revokeInvite.reset();
+                  approveInvite.reset();
                   revokeInvite
                     .mutateAsync({
                       id: invite.id,

@@ -118,6 +118,9 @@ export const invites = sqliteTable("invites", {
   consumedAt: integer("consumed_at", { mode: "timestamp" }),
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  // Client-initiated colleague invite fields
+  initiatedByClientId: text("initiated_by_client_id").references(() => clients.id, { onDelete: "set null" }),
+  adminApprovedAt: integer("admin_approved_at", { mode: "timestamp" }),
 });
 
 export const projects = sqliteTable(
@@ -207,6 +210,28 @@ export const files = sqliteTable("files", {
   fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+export const statusChangeRequests = sqliteTable("status_change_requests", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  requestedBy: text("requested_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  requestedStatus: text("requested_status", {
+    enum: ["planning", "in_progress", "completed"],
+  }).notNull(),
+  reason: text("reason").notNull(),
+  approvalState: text("approval_state", {
+    enum: ["pending", "approved", "rejected"],
+  })
+    .notNull()
+    .default("pending"),
+  reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 

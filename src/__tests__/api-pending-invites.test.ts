@@ -73,6 +73,8 @@ describe("pending invite API route", () => {
         id: "invite_1",
         revokedAt: null,
         token: "secret-token",
+        initiatedByClientId: null,
+        adminApprovedAt: null,
       },
     ]);
 
@@ -86,11 +88,13 @@ describe("pending invite API route", () => {
     expect(listPendingInvitesForClient).toHaveBeenCalledWith("client_1");
     expect(data).toEqual([
       {
+        adminApprovedAt: null,
         clientId: "client_1",
         createdAt: "2026-04-01T10:00:00.000Z",
         email: "jordan@example.com",
         expiresAt: "2026-04-08T10:00:00.000Z",
         id: "invite_1",
+        initiatedByClientId: null,
       },
     ]);
   });

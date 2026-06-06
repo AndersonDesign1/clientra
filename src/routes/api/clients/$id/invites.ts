@@ -9,10 +9,12 @@ function serializePendingInvite(
 ) {
   return {
     clientId: invite.clientId,
-    createdAt: invite.createdAt,
+    createdAt: invite.createdAt.toISOString(),
     email: invite.email,
-    expiresAt: invite.expiresAt,
+    expiresAt: invite.expiresAt.toISOString(),
     id: invite.id,
+    initiatedByClientId: invite.initiatedByClientId,
+    adminApprovedAt: invite.adminApprovedAt ? invite.adminApprovedAt.toISOString() : null,
   };
 }
 
