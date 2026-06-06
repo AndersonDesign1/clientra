@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, isNotNull, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
@@ -332,6 +332,8 @@ function mapInvite(row: typeof invitesTable.$inferSelect) {
     id: row.id,
     revokedAt: row.revokedAt,
     token: row.token,
+    initiatedByClientId: row.initiatedByClientId,
+    adminApprovedAt: row.adminApprovedAt,
   };
 }
 
@@ -1674,7 +1676,11 @@ export async function getActiveInviteByToken(token: string) {
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
         isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
+        gt(invitesTable.expiresAt, new Date()),
+        or(
+          isNull(invitesTable.initiatedByClientId),
+          isNotNull(invitesTable.adminApprovedAt)
+        )
       )
     )
     .limit(1);
@@ -1698,7 +1704,11 @@ export async function consumeInvite(
         eq(invitesTable.token, token),
         isNull(invitesTable.consumedAt),
         isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
+        gt(invitesTable.expiresAt, new Date()),
+        or(
+          isNull(invitesTable.initiatedByClientId),
+          isNotNull(invitesTable.adminApprovedAt)
+        )
       )
     )
     .returning({ token: invitesTable.token });
@@ -1730,6 +1740,23 @@ export async function refreshInviteExpiration(
   const [invite] = await db
     .update(invitesTable)
     .set({ expiresAt })
+    .where(
+      and(
+        eq(invitesTable.id, inviteId),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .returning();
+
+  return invite ? mapInvite(invite) : null;
+}
+
+export async function approveInviteRecord(inviteId: string) {
+  const [invite] = await db
+    .update(invitesTable)
+    .set({ adminApprovedAt: new Date() })
     .where(
       and(
         eq(invitesTable.id, inviteId),

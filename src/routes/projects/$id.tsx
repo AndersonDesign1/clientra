@@ -48,6 +48,8 @@ import {
   useProjectsData,
   useProjectUpdatesData,
   useUpdateProjectMutation,
+  useStatusChangeRequestsData,
+  useReviewStatusChangeRequestMutation,
 } from "@/lib/api";
 import { getDeadlineLabel } from "@/lib/insights";
 import {
@@ -412,6 +414,11 @@ export function AdminProjectDetailPage({
 
   const milestonesQuery = useProjectMilestonesData(project?.id ?? "");
   const updatesQuery = useProjectUpdatesData(project?.id ?? "");
+  const statusRequestsQuery = useStatusChangeRequestsData(project?.id ?? "");
+  const reviewMutation = useReviewStatusChangeRequestMutation();
+
+  const statusRequests = statusRequestsQuery.data ?? [];
+  const pendingStatusRequest = statusRequests.find((r) => r.approvalState === "pending");
 
   if (projectsQuery.isLoading || clientsQuery.isLoading) {
     return (
@@ -444,6 +451,17 @@ export function AdminProjectDetailPage({
         />
       </AppShell>
     );
+  }
+
+  async function handleReviewRequest(requestId: string, approvalState: "approved" | "rejected") {
+    if (!project) {
+      return;
+    }
+    try {
+      await reviewMutation.mutateAsync({ id: requestId, projectId: project.id, approvalState });
+    } catch (err) {
+      console.error("Failed to review status change request:", err);
+    }
   }
 
   async function handleStatusChange(status: Project["status"]) {
@@ -568,6 +586,45 @@ export function AdminProjectDetailPage({
           </div>
         }
       />
+
+      {/* Pending status change request banner */}
+      {pendingStatusRequest && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-200/50 bg-amber-50/10 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.015)] dark:border-amber-900/50 dark:bg-amber-950/10">
+          <div className="space-y-1">
+            <h4 className="font-semibold text-amber-700 text-xs dark:text-amber-400">
+              Pending Status Change Request
+            </h4>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Client requested to change status from <span className="font-bold capitalize">{project.status.replace("_", " ")}</span> to{" "}
+              <span className="font-bold capitalize">{pendingStatusRequest.requestedStatus.replace("_", " ")}</span>.
+            </p>
+            {pendingStatusRequest.reason && (
+              <p className="mt-1 text-muted-foreground text-xs italic">
+                "{pendingStatusRequest.reason}"
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
+              onClick={() => handleReviewRequest(pendingStatusRequest.id, "approved")}
+              disabled={reviewMutation.isPending}
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-rose-250 text-rose-600 hover:bg-rose-50/50 hover:text-rose-700 font-semibold text-xs"
+              onClick={() => handleReviewRequest(pendingStatusRequest.id, "rejected")}
+              disabled={reviewMutation.isPending}
+            >
+              Reject
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Ledger */}
       <div className="mb-6">

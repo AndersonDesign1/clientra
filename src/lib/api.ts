@@ -153,6 +153,8 @@ export interface PendingInvite {
   email: string;
   expiresAt: string;
   id: string;
+  initiatedByClientId?: string | null;
+  adminApprovedAt?: string | null;
 }
 
 export type ProjectActivityEvent =
@@ -465,6 +467,14 @@ async function deleteProjectRequest(id: string) {
 
 async function resendInviteRequest(id: string): Promise<PendingInvite> {
   const response = await createApiRequest(`/api/invites/${id}/resend`, {
+    method: "POST",
+  });
+
+  return parseMutationResponse<PendingInvite>(response, "invite");
+}
+
+async function approveInviteRequest(id: string): Promise<PendingInvite> {
+  const response = await createApiRequest(`/api/invites/${id}/approve`, {
     method: "POST",
   });
 
@@ -1107,6 +1117,23 @@ export function useRevokeInviteMutation(clientId: string) {
         queryKeys.pendingInvites(clientId),
         (current) =>
           (current ?? []).filter((invite) => invite.id !== variables.id)
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
+    },
+  });
+}
+
+export function useApproveInviteMutation(clientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (variables: { id: string }) =>
+      approveInviteRequest(variables.id),
+    onSuccess: (invite) => {
+      queryClient.setQueryData<PendingInvite[]>(
+        queryKeys.pendingInvites(clientId),
+        (current) =>
+          (current ?? []).map((item) => (item.id === invite.id ? invite : item))
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.allPendingInvites });
     },

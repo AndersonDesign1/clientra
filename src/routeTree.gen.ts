@@ -60,6 +60,7 @@ import { Route as ApiProjectsIdFilesRouteImport } from './routes/api/projects/$i
 import { Route as ApiProjectsIdCollaborationRouteImport } from './routes/api/projects/$id/collaboration'
 import { Route as ApiInvitesIdRevokeRouteImport } from './routes/api/invites/$id/revoke'
 import { Route as ApiInvitesIdResendRouteImport } from './routes/api/invites/$id/resend'
+import { Route as ApiInvitesIdApproveRouteImport } from './routes/api/invites/$id/approve'
 import { Route as ApiClientsIdInvitesRouteImport } from './routes/api/clients/$id/invites'
 import { Route as ApiAdminStatusChangeRequestsIdRouteImport } from './routes/api/admin/status-change-requests/$id'
 
@@ -323,6 +324,11 @@ const ApiInvitesIdResendRoute = ApiInvitesIdResendRouteImport.update({
   path: '/$id/resend',
   getParentRoute: () => ApiInvitesRoute,
 } as any)
+const ApiInvitesIdApproveRoute = ApiInvitesIdApproveRouteImport.update({
+  id: '/$id/approve',
+  path: '/$id/approve',
+  getParentRoute: () => ApiInvitesRoute,
+} as any)
 const ApiClientsIdInvitesRoute = ApiClientsIdInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
@@ -382,6 +388,7 @@ export interface FileRoutesByFullPath {
   '/portal/projects/': typeof PortalProjectsIndexRoute
   '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/approve': typeof ApiInvitesIdApproveRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
@@ -437,6 +444,7 @@ export interface FileRoutesByTo {
   '/portal/projects': typeof PortalProjectsIndexRoute
   '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/approve': typeof ApiInvitesIdApproveRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
@@ -493,6 +501,7 @@ export interface FileRoutesById {
   '/portal/projects/': typeof PortalProjectsIndexRoute
   '/api/admin/status-change-requests/$id': typeof ApiAdminStatusChangeRequestsIdRoute
   '/api/clients/$id/invites': typeof ApiClientsIdInvitesRoute
+  '/api/invites/$id/approve': typeof ApiInvitesIdApproveRoute
   '/api/invites/$id/resend': typeof ApiInvitesIdResendRoute
   '/api/invites/$id/revoke': typeof ApiInvitesIdRevokeRoute
   '/api/projects/$id/collaboration': typeof ApiProjectsIdCollaborationRoute
@@ -550,6 +559,7 @@ export interface FileRouteTypes {
     | '/portal/projects/'
     | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/approve'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
@@ -605,6 +615,7 @@ export interface FileRouteTypes {
     | '/portal/projects'
     | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/approve'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
@@ -660,6 +671,7 @@ export interface FileRouteTypes {
     | '/portal/projects/'
     | '/api/admin/status-change-requests/$id'
     | '/api/clients/$id/invites'
+    | '/api/invites/$id/approve'
     | '/api/invites/$id/resend'
     | '/api/invites/$id/revoke'
     | '/api/projects/$id/collaboration'
@@ -1072,6 +1084,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInvitesIdResendRouteImport
       parentRoute: typeof ApiInvitesRoute
     }
+    '/api/invites/$id/approve': {
+      id: '/api/invites/$id/approve'
+      path: '/$id/approve'
+      fullPath: '/api/invites/$id/approve'
+      preLoaderRoute: typeof ApiInvitesIdApproveRouteImport
+      parentRoute: typeof ApiInvitesRoute
+    }
     '/api/clients/$id/invites': {
       id: '/api/clients/$id/invites'
       path: '/invites'
@@ -1115,12 +1134,14 @@ const ApiClientsRouteWithChildren = ApiClientsRoute._addFileChildren(
 
 interface ApiInvitesRouteChildren {
   ApiInvitesRedeemRoute: typeof ApiInvitesRedeemRoute
+  ApiInvitesIdApproveRoute: typeof ApiInvitesIdApproveRoute
   ApiInvitesIdResendRoute: typeof ApiInvitesIdResendRoute
   ApiInvitesIdRevokeRoute: typeof ApiInvitesIdRevokeRoute
 }
 
 const ApiInvitesRouteChildren: ApiInvitesRouteChildren = {
   ApiInvitesRedeemRoute: ApiInvitesRedeemRoute,
+  ApiInvitesIdApproveRoute: ApiInvitesIdApproveRoute,
   ApiInvitesIdResendRoute: ApiInvitesIdResendRoute,
   ApiInvitesIdRevokeRoute: ApiInvitesIdRevokeRoute,
 }

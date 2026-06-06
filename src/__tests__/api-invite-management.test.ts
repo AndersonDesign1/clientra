@@ -12,6 +12,7 @@ vi.mock("@/db/records", () => ({
   getInviteRecordById: vi.fn(),
   refreshInviteExpiration: vi.fn(),
   revokeInviteRecord: vi.fn(),
+  approveInviteRecord: vi.fn(),
 }));
 
 vi.mock("@/server/email/notifications", () => ({
@@ -26,10 +27,12 @@ import {
   getInviteRecordById,
   refreshInviteExpiration,
   revokeInviteRecord,
+  approveInviteRecord,
 } from "@/db/records";
 import { Route as InvitesRoute } from "@/routes/api/invites";
 import { Route as ResendInviteRoute } from "@/routes/api/invites/$id/resend";
 import { Route as RevokeInviteRoute } from "@/routes/api/invites/$id/revoke";
+import { Route as ApproveInviteRoute } from "@/routes/api/invites/$id/approve";
 import { sendInviteEmail } from "@/server/email/notifications";
 
 const inviteHandlers = InvitesRoute.options.server?.handlers as {
@@ -39,6 +42,9 @@ const resendHandlers = ResendInviteRoute.options.server?.handlers as {
   POST: (context: unknown) => Promise<Response>;
 };
 const revokeHandlers = RevokeInviteRoute.options.server?.handlers as {
+  POST: (context: unknown) => Promise<Response>;
+};
+const approveHandlers = ApproveInviteRoute.options.server?.handlers as {
   POST: (context: unknown) => Promise<Response>;
 };
 
@@ -65,6 +71,8 @@ const invite = {
   id: "invite_1",
   revokedAt: null,
   token: "secret-token",
+  initiatedByClientId: null,
+  adminApprovedAt: null,
 };
 
 function createRequest(path: string, init?: RequestInit) {
@@ -91,6 +99,7 @@ describe("invite management API routes", () => {
     vi.mocked(getActiveInviteById).mockResolvedValue(invite);
     vi.mocked(refreshInviteExpiration).mockResolvedValue(invite);
     vi.mocked(revokeInviteRecord).mockResolvedValue(invite);
+    vi.mocked(approveInviteRecord).mockResolvedValue(invite);
     vi.mocked(sendInviteEmail).mockResolvedValue({ skipped: false });
   });
 
@@ -174,5 +183,32 @@ describe("invite management API routes", () => {
 
     expect(response.status).toBe(403);
     expect(revokeInviteRecord).not.toHaveBeenCalled();
+  });
+
+  it("approves client-initiated colleague invites", async () => {
+    const approvedInvite = {
+      ...invite,
+      adminApprovedAt: new Date("2026-06-06T10:00:00.000Z"),
+    };
+    vi.mocked(approveInviteRecord).mockResolvedValue(approvedInvite);
+
+    const response = await approveHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/approve", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      clientId: approvedInvite.clientId,
+      createdAt: approvedInvite.createdAt.toISOString(),
+      email: approvedInvite.email,
+      expiresAt: approvedInvite.expiresAt.toISOString(),
+      id: approvedInvite.id,
+      adminApprovedAt: approvedInvite.adminApprovedAt.toISOString(),
+    });
+    expect(approveInviteRecord).toHaveBeenCalledWith("invite_1");
+    expect(sendInviteEmail).toHaveBeenCalled();
   });
 });
