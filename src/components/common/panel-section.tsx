@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface PanelSectionProps {
   title: string;
@@ -6,6 +7,7 @@ interface PanelSectionProps {
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  variant?: "card" | "ghost";
 }
 
 export function PanelSection({
@@ -14,14 +16,34 @@ export function PanelSection({
   action,
   children,
   className,
+  variant = "card",
 }: PanelSectionProps) {
   return (
-    <section className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
+    <section
+      className={cn(
+        "space-y-5",
+        variant === "card" &&
+          "rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]",
+        className
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
         <div>
-          <h2 className="font-semibold text-foreground text-lg">{title}</h2>
+          <h2
+            className={cn(
+              "font-semibold text-foreground",
+              variant === "card" ? "text-lg" : "text-base"
+            )}
+          >
+            {title}
+          </h2>
           {description && (
-            <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
+            <p
+              className={cn(
+                "mt-1 text-muted-foreground leading-relaxed",
+                variant === "card" ? "text-sm" : "text-xs"
+              )}
+            >
               {description}
             </p>
           )}
