@@ -390,7 +390,7 @@ export function WorkspaceTab() {
             {saveStatus === "saving" ? "Saving..." : "Save Changes"}
           </Button>
           {saveStatus === "saved" && (
-            <span className="flex animate-bounce-short items-center gap-1 font-semibold text-emerald-600 text-xs">
+            <span className="flex animate-slide-up-fade items-center gap-1 font-semibold text-emerald-600 text-xs">
               <HugeiconsIcon icon={Tick02Icon} size={12} />
               Saved
             </span>
