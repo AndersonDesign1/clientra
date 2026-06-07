@@ -148,13 +148,13 @@ export interface PortalSummary {
 }
 
 export interface PendingInvite {
+  adminApprovedAt?: string | null;
   clientId: string;
   createdAt: string;
   email: string;
   expiresAt: string;
   id: string;
   initiatedByClientId?: string | null;
-  adminApprovedAt?: string | null;
 }
 
 export type ProjectActivityEvent =
@@ -264,7 +264,6 @@ export const queryKeys = {
   users: ["users"] as const,
   settings: ["settings"] as const,
 };
-
 
 function mapQueryState<TData>(query: {
   data: TData | undefined;
@@ -919,7 +918,7 @@ export function useProjectMilestonesData(
 export function usePendingInvitesData(
   clientId: string | null | undefined
 ): LoadableData<PendingInvite[]> {
-  const result = useQuery({
+  const { data, error, isPending } = useQuery({
     ...pendingInvitesQueryOptions(clientId ?? ""),
     enabled: Boolean(clientId),
   });
@@ -932,12 +931,12 @@ export function usePendingInvitesData(
     };
   }
 
-  return mapQueryState(result);
+  return mapQueryState({ data, error, isPending });
 }
 
 export function useSearchData(query: string): LoadableData<SearchResults> {
   const normalized = query.trim();
-  const result = useQuery({
+  const { data, error, isPending } = useQuery({
     ...searchQueryOptions(normalized),
     enabled: normalized.length > 0,
     placeholderData: keepPreviousData,
@@ -951,7 +950,7 @@ export function useSearchData(query: string): LoadableData<SearchResults> {
     };
   }
 
-  return mapQueryState(result);
+  return mapQueryState({ data, error, isPending });
 }
 
 export function useUpdateUserRoleMutation() {
@@ -1514,7 +1513,10 @@ async function createPortalInviteRequest(email: string) {
     headers: { "content-type": "application/json" },
     method: "POST",
   });
-  return parseMutationResponse<{ id: string; email: string }>(response, "invite");
+  return parseMutationResponse<{ id: string; email: string }>(
+    response,
+    "invite"
+  );
 }
 
 export function useCreatePortalInviteMutation() {
@@ -1529,7 +1531,10 @@ export function useCreatePortalInviteMutation() {
 
 // ── Status Change Requests ────────────────────────────────────────────────
 
-export type StatusChangeRequestApprovalState = "pending" | "approved" | "rejected";
+export type StatusChangeRequestApprovalState =
+  | "pending"
+  | "approved"
+  | "rejected";
 export type ProjectStatusValue = "planning" | "in_progress" | "completed";
 
 export interface StatusChangeRequest {
@@ -1539,8 +1544,8 @@ export interface StatusChangeRequest {
   projectId: string;
   reason: string;
   requestedBy: string;
-  requesterName: string;
   requestedStatus: ProjectStatusValue;
+  requesterName: string;
   reviewedAt: string | null;
   reviewedBy: string | null;
 }
@@ -1567,12 +1572,18 @@ async function createStatusChangeRequestFn(input: {
   reason: string;
   requestedStatus: ProjectStatusValue;
 }) {
-  const response = await createApiRequest("/api/portal/status-change-requests", {
-    body: JSON.stringify(input),
-    headers: { "content-type": "application/json" },
-    method: "POST",
-  });
-  return parseMutationResponse<StatusChangeRequest>(response, "status change request");
+  const response = await createApiRequest(
+    "/api/portal/status-change-requests",
+    {
+      body: JSON.stringify(input),
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    }
+  );
+  return parseMutationResponse<StatusChangeRequest>(
+    response,
+    "status change request"
+  );
 }
 
 export function useCreateStatusChangeRequestMutation() {
@@ -1597,7 +1608,9 @@ export function adminStatusChangeRequestsQueryOptions() {
   });
 }
 
-export function useAdminStatusChangeRequestsData(): LoadableData<StatusChangeRequest[]> {
+export function useAdminStatusChangeRequestsData(): LoadableData<
+  StatusChangeRequest[]
+> {
   return mapQueryState(useQuery(adminStatusChangeRequestsQueryOptions()));
 }
 
@@ -1614,7 +1627,10 @@ async function reviewStatusChangeRequestFn(input: {
       method: "PATCH",
     }
   );
-  return parseMutationResponse<StatusChangeRequest>(response, "status change request");
+  return parseMutationResponse<StatusChangeRequest>(
+    response,
+    "status change request"
+  );
 }
 
 export function useReviewStatusChangeRequestMutation() {
@@ -1623,7 +1639,9 @@ export function useReviewStatusChangeRequestMutation() {
     mutationFn: reviewStatusChangeRequestFn,
     onSuccess: (updated) => {
       // Remove from admin pending list
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminStatusChangeRequests });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.adminStatusChangeRequests,
+      });
       // Update per-project SCR list
       queryClient.setQueryData<StatusChangeRequest[]>(
         queryKeys.portalStatusChangeRequests(updated.projectId),
@@ -1637,4 +1655,3 @@ export function useReviewStatusChangeRequestMutation() {
     },
   });
 }
-

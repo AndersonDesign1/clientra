@@ -67,13 +67,13 @@ import {
   type ProjectMilestone,
   projectMilestonesQueryOptions,
   queryKeys,
+  useApproveInviteMutation,
   useClientsData,
   usePendingInvitesData,
   useProjectsData,
   useResendInviteMutation,
   useRevokeInviteMutation,
   useUpdateClientMutation,
-  useApproveInviteMutation,
 } from "@/lib/api";
 import { findClientByPathParam, getClientPathParam } from "@/lib/client-slugs";
 import { cn } from "@/lib/utils";
@@ -624,11 +624,11 @@ export function PendingInvitesPanel({
           <div className="divide-y divide-border/60 border-border/40 border-t">
             {invites.map((invite) => (
               <InviteRow
+                approveInvite={approveInvite}
                 invite={invite}
                 key={invite.id}
                 resendInvite={resendInvite}
                 revokeInvite={revokeInvite}
-                approveInvite={approveInvite}
               />
             ))}
           </div>
@@ -639,13 +639,18 @@ export function PendingInvitesPanel({
 }
 
 interface InviteRowProps {
+  approveInvite: ReturnType<typeof useApproveInviteMutation>;
   invite: PendingInvite;
   resendInvite: ReturnType<typeof useResendInviteMutation>;
   revokeInvite: ReturnType<typeof useRevokeInviteMutation>;
-  approveInvite: ReturnType<typeof useApproveInviteMutation>;
 }
 
-function InviteRow({ invite, resendInvite, revokeInvite, approveInvite }: InviteRowProps) {
+function InviteRow({
+  invite,
+  resendInvite,
+  revokeInvite,
+  approveInvite,
+}: InviteRowProps) {
   const isResending =
     resendInvite.isPending && resendInvite.variables?.id === invite.id;
   const isRevoking =
@@ -669,14 +674,15 @@ function InviteRow({ invite, resendInvite, revokeInvite, approveInvite }: Invite
     rowError = approveInvite.error.message;
   }
 
-  const isAwaitingApproval = invite.initiatedByClientId && !invite.adminApprovedAt;
+  const isAwaitingApproval =
+    invite.initiatedByClientId && !invite.adminApprovedAt;
 
   return (
     <div className="grid items-center gap-3 px-0 py-3.5 text-xs transition-colors duration-200 hover:bg-secondary/15 sm:grid-cols-[minmax(0,1.2fr)_0.8fr_1fr_1fr_1.2fr]">
       <p className="truncate font-semibold text-foreground">{invite.email}</p>
       <div>
         {isAwaitingApproval ? (
-          <span className="rounded bg-amber-500/10 px-1.5 py-0.5 font-bold text-[9px] text-amber-700 uppercase tracking-wider border border-amber-200/50">
+          <span className="rounded border border-amber-200/50 bg-amber-500/10 px-1.5 py-0.5 font-bold text-[9px] text-amber-700 uppercase tracking-wider">
             Awaiting Approval
           </span>
         ) : (
@@ -698,7 +704,7 @@ function InviteRow({ invite, resendInvite, revokeInvite, approveInvite }: Invite
       <div className="flex items-center justify-end gap-2">
         {isAwaitingApproval && (
           <Button
-            className="flex h-8 items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="flex h-8 items-center gap-1.5 bg-emerald-600 font-semibold text-white text-xs transition-transform duration-200 hover:scale-[1.02] hover:bg-emerald-700 active:scale-[0.98]"
             disabled={isResending || isRevoking || isApproving}
             onClick={() => {
               resendInvite.reset();

@@ -58,7 +58,7 @@ function PortalHomePage() {
       <PageHeader
         actions={
           <Link
-            className="text-sm font-semibold text-foreground/80 transition-colors hover:text-primary underline underline-offset-2"
+            className="font-semibold text-foreground/80 text-sm underline underline-offset-2 transition-colors hover:text-primary"
             to="/portal/projects"
           >
             View all projects
@@ -102,13 +102,17 @@ function PortalHomePage() {
           <DataSection className="mt-6" title="Project overview">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
-                <h3 className="mb-4 font-semibold text-xs text-foreground uppercase tracking-wider">Status Distribution</h3>
+                <h3 className="mb-4 font-semibold text-foreground text-xs uppercase tracking-wider">
+                  Status Distribution
+                </h3>
                 <ProjectStatusPieChart
                   data={getProjectStatusData(summary.activeProjects)}
                 />
               </div>
               <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
-                <h3 className="mb-4 font-semibold text-xs text-foreground uppercase tracking-wider">Upcoming Deadlines</h3>
+                <h3 className="mb-4 font-semibold text-foreground text-xs uppercase tracking-wider">
+                  Upcoming Deadlines
+                </h3>
                 <DeadlineAreaChart
                   data={getDeadlineData(summary.activeProjects)}
                 />
@@ -209,7 +213,7 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
             <div className="divide-y divide-border/15 border-border/30 border-y">
               {summary.latestUpdates.map((update) => (
                 <article className="py-3" key={update.id}>
-                  <p className="text-muted-foreground text-[10px]">
+                  <p className="text-[10px] text-muted-foreground">
                     {update.projectTitle} · {formatDate(update.createdAt)}
                   </p>
                   <h3 className="mt-1 font-semibold text-foreground text-sm">
@@ -238,7 +242,7 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
                     <h3 className="font-semibold text-foreground text-sm">
                       {milestone.title}
                     </h3>
-                    <Badge variant="outline" className="text-[10px]">
+                    <Badge className="text-[10px]" variant="outline">
                       {milestone.status.replaceAll("_", " ")}
                     </Badge>
                   </div>
@@ -269,7 +273,9 @@ export function PortalSummaryView({ summary }: { summary: PortalSummary }) {
                 rel="noreferrer"
                 target="_blank"
               >
-                <p className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">{file.fileName}</p>
+                <p className="font-semibold text-foreground text-sm transition-colors group-hover:text-primary">
+                  {file.fileName}
+                </p>
                 <p className="mt-1 text-muted-foreground text-xs">
                   {file.projectTitle} · {formatDate(file.createdAt)}
                 </p>

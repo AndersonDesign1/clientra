@@ -19,17 +19,24 @@ export const Route = createFileRoute("/api/portal/status-change-requests")({
     handlers: {
       GET: async ({ request }) => {
         const auth = await requireSessionRequest(request);
-        if (auth.error) return auth.error;
+        if (auth.error) {
+          return auth.error;
+        }
 
         const url = new URL(request.url);
         const projectId = url.searchParams.get("projectId");
 
         if (!projectId) {
-          return Response.json({ error: "projectId is required." }, { status: 400 });
+          return Response.json(
+            { error: "projectId is required." },
+            { status: 400 }
+          );
         }
 
         const hasAccess = await canAccessProject(auth.user, projectId);
-        if (!hasAccess) return forbiddenError("You do not have access to this project.");
+        if (!hasAccess) {
+          return forbiddenError("You do not have access to this project.");
+        }
 
         const requests = await listStatusChangeRequestsForProject(projectId);
         return Response.json(requests);
@@ -37,18 +44,33 @@ export const Route = createFileRoute("/api/portal/status-change-requests")({
 
       POST: async ({ request }) => {
         const auth = await requireMutationSessionRequest(request);
-        if (auth.error) return auth.error;
+        if (auth.error) {
+          return auth.error;
+        }
 
         const parsed = await parseJsonBody(request, statusChangeRequestSchema);
-        if (!parsed.ok) return parsed.error;
+        if (!parsed.ok) {
+          return parsed.error;
+        }
 
-        const hasAccess = await canAccessProject(auth.user, parsed.data.projectId);
-        if (!hasAccess) return forbiddenError("You do not have access to this project.");
+        const hasAccess = await canAccessProject(
+          auth.user,
+          parsed.data.projectId
+        );
+        if (!hasAccess) {
+          return forbiddenError("You do not have access to this project.");
+        }
 
-        const existingRequests = await listStatusChangeRequestsForProject(parsed.data.projectId);
-        const hasPending = existingRequests.some((r) => r.approvalState === "pending");
+        const existingRequests = await listStatusChangeRequestsForProject(
+          parsed.data.projectId
+        );
+        const hasPending = existingRequests.some(
+          (r) => r.approvalState === "pending"
+        );
         if (hasPending) {
-          return conflictError("A pending status change request already exists for this project.");
+          return conflictError(
+            "A pending status change request already exists for this project."
+          );
         }
 
         const created = await createStatusChangeRequestRecord({
@@ -59,7 +81,9 @@ export const Route = createFileRoute("/api/portal/status-change-requests")({
           requestedStatus: parsed.data.requestedStatus,
         });
 
-        if (!created) return internalServerError("Request could not be created.");
+        if (!created) {
+          return internalServerError("Request could not be created.");
+        }
 
         return Response.json(created, { status: 201 });
       },

@@ -174,10 +174,11 @@ export function getNextDeadline(projects: Project[]) {
       continue;
     }
     const deadlineTime = deadlineDate.getTime();
-    if (deadlineTime >= todayTime) {
-      if (!nextProject || deadlineTime < nextProject.deadlineTime) {
-        nextProject = { ...project, deadlineTime };
-      }
+    if (
+      deadlineTime >= todayTime &&
+      (!nextProject || deadlineTime < nextProject.deadlineTime)
+    ) {
+      nextProject = { ...project, deadlineTime };
     }
   }
 

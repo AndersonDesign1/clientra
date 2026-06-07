@@ -60,11 +60,12 @@ export function MutationErrorBanner({
 }: {
   error: { message: string } | null | undefined;
 }) {
-  if (!error) return null;
+  if (!error) {
+    return null;
+  }
   return (
     <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-sm">
       {error.message}
     </p>
   );
 }
-

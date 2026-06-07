@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewStatusChangeRequestSchema } from "@/api/validation";
 import {
-  reviewStatusChangeRequestRecord,
   getStatusChangeRequestById,
+  reviewStatusChangeRequestRecord,
 } from "@/db/records";
 import {
-  notFoundError,
   conflictError,
+  notFoundError,
   parseJsonBody,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -16,10 +16,17 @@ export const Route = createFileRoute("/api/admin/status-change-requests/$id")({
     handlers: {
       PATCH: async ({ request, params }) => {
         const auth = await requireAdminMutationRequest(request);
-        if (auth.error) return auth.error;
+        if (auth.error) {
+          return auth.error;
+        }
 
-        const parsed = await parseJsonBody(request, reviewStatusChangeRequestSchema);
-        if (!parsed.ok) return parsed.error;
+        const parsed = await parseJsonBody(
+          request,
+          reviewStatusChangeRequestSchema
+        );
+        if (!parsed.ok) {
+          return parsed.error;
+        }
 
         const requestRecord = await getStatusChangeRequestById(params.id);
         if (!requestRecord) {
@@ -36,12 +43,17 @@ export const Route = createFileRoute("/api/admin/status-change-requests/$id")({
             parsed.data.approvalState
           );
 
-          if (!updated) return notFoundError("Request not found or already reviewed.");
+          if (!updated) {
+            return notFoundError("Request not found or already reviewed.");
+          }
 
           return Response.json(updated);
         } catch (err) {
           console.error("Failed to review status change request:", err);
-          return Response.json({ error: "Unable to process request" }, { status: 400 });
+          return Response.json(
+            { error: "Unable to process request" },
+            { status: 400 }
+          );
         }
       },
     },

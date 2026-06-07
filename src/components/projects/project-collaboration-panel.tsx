@@ -235,7 +235,6 @@ export function ProjectCollaborationView({
           title="Project Discussion"
           variant="ghost"
         >
-
           {/* Comment Creation Dialog */}
           <Dialog onOpenChange={onAddOpenChange} open={isAddOpen}>
             <DialogContent className="sm:max-w-lg">
@@ -330,7 +329,6 @@ export function ProjectCollaborationView({
           title="Activity Timeline"
           variant="ghost"
         >
-
           <UnifiedActivityList
             emptyState={
               <EmptyPanel

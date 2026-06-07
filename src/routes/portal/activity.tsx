@@ -1,7 +1,7 @@
 import {
   ArrowRight01Icon,
-  Comment01Icon,
   Clock01Icon,
+  Comment01Icon,
   FileUploadIcon,
   NotificationSquareIcon,
 } from "@hugeicons/core-free-icons";
@@ -17,13 +17,13 @@ import {
 } from "@/components/common/state-panel";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { Badge } from "@/components/ui/badge";
+import type { ProjectComment, ProjectFile, ProjectUpdate } from "@/lib/api";
 import {
   ensurePortalActivityData,
   type PortalActivityItem,
   usePortalActivityData,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import type { ProjectComment, ProjectFile, ProjectUpdate } from "@/lib/api";
 
 export const Route = createFileRoute("/portal/activity")({
   beforeLoad: requireClientSession,
@@ -33,19 +33,29 @@ export const Route = createFileRoute("/portal/activity")({
 
 function formatRelativeTime(dateStr: string) {
   const diff = Date.now() - Date.parse(dateStr);
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) {
+    return "just now";
+  }
+  if (min < 60) {
+    return `${min}m ago`;
+  }
   const hrs = Math.floor(min / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {
+    return `${hrs}h ago`;
+  }
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return new Date(dateStr).toLocaleDateString();
 }
 
 const updateStatusColors: Record<string, string> = {
-  on_track: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
-  at_risk: "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
+  on_track:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
+  at_risk:
+    "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
   blocked: "bg-rose-100 text-rose-700 dark:bg-rose-950/30 dark:text-rose-400",
   complete: "bg-primary/10 text-primary",
 };
@@ -72,13 +82,21 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
       <div
         className={cn(
           "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
-          isComment && "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950/20",
+          isComment &&
+            "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950/20",
           isUpdate && "border-primary/30 bg-primary/10 text-primary",
-          isFile && "border-teal-200 bg-teal-50 text-teal-600 dark:border-teal-900 dark:bg-teal-950/20"
+          isFile &&
+            "border-teal-200 bg-teal-50 text-teal-600 dark:border-teal-900 dark:bg-teal-950/20"
         )}
       >
         <HugeiconsIcon
-          icon={isComment ? Comment01Icon : isFile ? FileUploadIcon : NotificationSquareIcon}
+          icon={
+            isComment
+              ? Comment01Icon
+              : isFile
+                ? FileUploadIcon
+                : NotificationSquareIcon
+          }
           size={14}
         />
       </div>
@@ -89,20 +107,33 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
           <div className="flex flex-wrap items-center gap-1.5">
             {isComment && comment && (
               <>
-                <span className="font-bold text-foreground text-xs">{comment.authorName}</span>
-                <span className="text-muted-foreground text-xs">left a note on</span>
-                <span className="font-semibold text-primary text-xs">{item.projectTitle}</span>
+                <span className="font-bold text-foreground text-xs">
+                  {comment.authorName}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  left a note on
+                </span>
+                <span className="font-semibold text-primary text-xs">
+                  {item.projectTitle}
+                </span>
               </>
             )}
             {isUpdate && update && (
               <>
-                <span className="font-bold text-foreground text-xs">{update.authorName}</span>
-                <span className="text-muted-foreground text-xs">posted an update on</span>
-                <span className="font-semibold text-primary text-xs">{item.projectTitle}</span>
+                <span className="font-bold text-foreground text-xs">
+                  {update.authorName}
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  posted an update on
+                </span>
+                <span className="font-semibold text-primary text-xs">
+                  {item.projectTitle}
+                </span>
                 <span
                   className={cn(
                     "rounded px-1.5 py-0.5 font-bold text-[9px] uppercase tracking-wider",
-                    updateStatusColors[update.status] ?? "bg-secondary text-foreground"
+                    updateStatusColors[update.status] ??
+                      "bg-secondary text-foreground"
                   )}
                 >
                   {updateStatusLabels[update.status] ?? update.status}
@@ -111,15 +142,21 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
             )}
             {isFile && file && (
               <>
-                <span className="font-bold text-foreground text-xs">{file.uploaderName}</span>
+                <span className="font-bold text-foreground text-xs">
+                  {file.uploaderName}
+                </span>
                 <span className="text-muted-foreground text-xs">uploaded</span>
-                <span className="max-w-[200px] truncate font-bold text-foreground text-xs">{file.fileName}</span>
+                <span className="max-w-[200px] truncate font-bold text-foreground text-xs">
+                  {file.fileName}
+                </span>
                 <span className="text-muted-foreground text-xs">to</span>
-                <span className="font-semibold text-primary text-xs">{item.projectTitle}</span>
+                <span className="font-semibold text-primary text-xs">
+                  {item.projectTitle}
+                </span>
               </>
             )}
           </div>
-          <div className="flex shrink-0 items-center gap-1 text-muted-foreground/60 text-[10px]">
+          <div className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground/60">
             <HugeiconsIcon icon={Clock01Icon} size={10} />
             {formatRelativeTime(item.createdAt)}
           </div>
@@ -133,8 +170,12 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
         )}
         {isUpdate && update && (
           <div className="mt-1.5">
-            <p className="font-semibold text-foreground text-xs">{update.title}</p>
-            <p className="mt-0.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed">{update.body}</p>
+            <p className="font-semibold text-foreground text-xs">
+              {update.title}
+            </p>
+            <p className="mt-0.5 line-clamp-2 text-muted-foreground text-xs leading-relaxed">
+              {update.body}
+            </p>
           </div>
         )}
         {isFile && file && (
@@ -167,18 +208,26 @@ function PortalActivityPage() {
   return (
     <PortalShell>
       <PageHeader
-        title="Activity"
         description="A unified feed of all updates, notes, and file activity across your projects."
+        title="Activity"
       />
 
-      {activityQuery.isLoading && <LoadingPanel title="Loading activity" description="Fetching your project activity…" />}
-      {!activityQuery.isLoading && activityQuery.error && <ErrorPanel description={activityQuery.error} />}
-      {!activityQuery.isLoading && !activityQuery.error && items.length === 0 && (
-        <EmptyPanel
-          title="No activity yet"
-          description="Updates, notes, and files shared on your projects will appear here."
+      {activityQuery.isLoading && (
+        <LoadingPanel
+          description="Fetching your project activity…"
+          title="Loading activity"
         />
       )}
+      {!activityQuery.isLoading && activityQuery.error && (
+        <ErrorPanel description={activityQuery.error} />
+      )}
+      {!(activityQuery.isLoading || activityQuery.error) &&
+        items.length === 0 && (
+          <EmptyPanel
+            description="Updates, notes, and files shared on your projects will appear here."
+            title="No activity yet"
+          />
+        )}
 
       {items.length > 0 && (
         <div className="space-y-5">
@@ -190,7 +239,7 @@ function PortalActivityPage() {
               { key: "comment", label: "Notes" },
               { key: "file", label: "Files" },
             ].map(({ key, label }) => (
-              <Badge key={key} variant="outline" className="gap-1.5 text-xs">
+              <Badge className="gap-1.5 text-xs" key={key} variant="outline">
                 {label}
                 <span className="rounded bg-secondary px-1 py-0.5 font-bold text-[9px]">
                   {typeFilter[key]}
@@ -203,8 +252,8 @@ function PortalActivityPage() {
           <div className="space-y-2">
             {items.map((item, i) => (
               <ActivityCard
-                key={`${item.type}-${(item.data as { id: string }).id}-${i}`}
                 item={item}
+                key={`${item.type}-${(item.data as { id: string }).id}-${i}`}
               />
             ))}
           </div>

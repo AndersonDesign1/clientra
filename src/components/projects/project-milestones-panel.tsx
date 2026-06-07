@@ -78,7 +78,6 @@ function toMilestonePayload(
   };
 }
 
-
 export function formatMilestoneStatus(status: ProjectMilestoneStatus) {
   return (
     MILESTONE_STATUS_OPTIONS.find((option) => option.value === status)?.label ??

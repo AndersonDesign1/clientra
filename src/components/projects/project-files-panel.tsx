@@ -90,13 +90,15 @@ function getFileTypeInfo(mimeType: string, fileName: string) {
   if (mime.startsWith("image/")) {
     return {
       icon: FileImageIcon,
-      colorStyles: "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900",
+      colorStyles:
+        "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900",
     };
   }
   if (mime === "application/pdf" || name.endsWith(".pdf")) {
     return {
       icon: Pdf01Icon,
-      colorStyles: "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900",
+      colorStyles:
+        "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900",
     };
   }
   if (
@@ -109,12 +111,14 @@ function getFileTypeInfo(mimeType: string, fileName: string) {
   ) {
     return {
       icon: FileChartColumnIcon,
-      colorStyles: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900",
+      colorStyles:
+        "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900",
     };
   }
   return {
     icon: FileEmpty01Icon,
-    colorStyles: "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900",
+    colorStyles:
+      "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900",
   };
 }
 
@@ -211,7 +215,6 @@ export function ProjectFilesPanel({
       description="Share and retrieve assets, templates, or documents securely."
       title="Project Files"
     >
-
       <input
         accept={fileInputAccept}
         className="hidden"
@@ -252,7 +255,9 @@ export function ProjectFilesPanel({
         </p>
       </button>
 
-      <MutationErrorBanner error={mutationError ? { message: mutationError } : null} />
+      <MutationErrorBanner
+        error={mutationError ? { message: mutationError } : null}
+      />
 
       {/* Loading & Error States */}
       {filesQuery.isLoading && visibleFiles.length === 0 ? (

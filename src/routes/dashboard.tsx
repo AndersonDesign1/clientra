@@ -43,7 +43,6 @@ import {
 } from "@/lib/insights";
 import { cn } from "@/lib/utils";
 
-
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: requireAdminSession,
   loader: async ({ context }) => {
@@ -59,11 +58,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 interface ChartCardProps {
-  title: string;
-  delayMs?: number;
-  className?: string;
   center?: boolean;
   children: React.ReactNode;
+  className?: string;
+  delayMs?: number;
+  title: string;
 }
 
 function ChartCard({
@@ -186,7 +185,11 @@ function DashboardPage() {
               isLoading={isLoading}
             />
           </ChartCard>
-          <ChartCard className="md:col-span-2" delayMs={200} title="Activity Flow">
+          <ChartCard
+            className="md:col-span-2"
+            delayMs={200}
+            title="Activity Flow"
+          >
             <ActivitySankeyChart
               data={getActivitySankeyData(activity)}
               isLoading={isLoading}

@@ -42,7 +42,12 @@ import { authClient } from "@/lib/auth-client";
 const logoUrl = "/logo.webp";
 
 const portalNav = [
-  { href: "/portal", label: "Overview", icon: DashboardSquare01Icon, exact: true },
+  {
+    href: "/portal",
+    label: "Overview",
+    icon: DashboardSquare01Icon,
+    exact: true,
+  },
   { href: "/portal/projects", label: "Projects", icon: Briefcase01Icon },
   { href: "/portal/files", label: "Files", icon: File01Icon },
   { href: "/portal/activity", label: "Activity", icon: Activity01Icon },
@@ -68,7 +73,9 @@ function PortalNavUser() {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   return (
     <DropdownMenu>
@@ -125,11 +132,11 @@ function PortalSidebarNav() {
             width={32}
           />
           {showText && (
-            <div className="flex flex-col min-w-0">
+            <div className="flex min-w-0 flex-col">
               <span className="truncate font-semibold text-foreground text-lg tracking-tight transition-opacity duration-200">
                 Clientra
               </span>
-              <span className="rounded-sm bg-primary/10 px-1.5 py-0.5 font-bold text-[9px] text-primary uppercase tracking-wider w-fit">
+              <span className="w-fit rounded-sm bg-primary/10 px-1.5 py-0.5 font-bold text-[9px] text-primary uppercase tracking-wider">
                 Client Portal
               </span>
             </div>
@@ -145,9 +152,11 @@ function PortalSidebarNav() {
             {portalNav.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <Link
+                  activeOptions={
+                    "exact" in item && item.exact ? { exact: true } : undefined
+                  }
                   className="block"
                   to={item.href}
-                  activeOptions={"exact" in item && item.exact ? { exact: true } : undefined}
                 >
                   {({ isActive }) => (
                     <SidebarMenuButton

@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface PanelSectionProps {
-  title: string;
-  description?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  description?: string;
+  title: string;
   variant?: "card" | "ghost";
 }
 

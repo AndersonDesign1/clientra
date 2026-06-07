@@ -10,7 +10,9 @@ export const Route = createFileRoute("/api/admin/status-change-requests")({
     handlers: {
       GET: async ({ request }) => {
         const auth = await requireSessionRequest(request);
-        if (auth.error) return auth.error;
+        if (auth.error) {
+          return auth.error;
+        }
         if (auth.user.role !== "admin") {
           return forbiddenError("Admin only.");
         }

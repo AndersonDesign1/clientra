@@ -44,7 +44,6 @@ import {
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-
 const UPDATE_STATUS_OPTIONS = [
   { label: "On track", value: "on_track" },
   { label: "At risk", value: "at_risk" },
@@ -279,7 +278,9 @@ function ProjectUpdateForm({
         </div>
 
         <Field>
-          <FieldLabel htmlFor="update-description">Update Description</FieldLabel>
+          <FieldLabel htmlFor="update-description">
+            Update Description
+          </FieldLabel>
           <Textarea
             className="min-h-[110px] transition-all focus-visible:border-primary focus-visible:ring-primary/20"
             id="update-description"
