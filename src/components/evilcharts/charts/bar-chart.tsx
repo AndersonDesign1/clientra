@@ -138,6 +138,8 @@ type EvilBarChartPropsWithCallback<
 > = EvilBarChartProps<TData, TConfig> &
   (EvilBarChartClickable | EvilBarChartNotClickable);
 
+const EMPTY_GLOWING_BARS: any[] = [];
+
 export function EvilBarChart<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
@@ -169,7 +171,7 @@ export function EvilBarChart<
   enableHoverHighlight = false,
   isLoading = false,
   loadingBars,
-  glowingBars = [],
+  glowingBars = EMPTY_GLOWING_BARS,
   showBrush = false,
   brushHeight,
   brushFormatLabel,

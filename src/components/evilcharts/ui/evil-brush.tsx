@@ -249,18 +249,15 @@ function EvilBrush({
   // mouse movements don't produce index changes (e.g., at boundaries)
   const lastCommittedRef = React.useRef<EvilBrushRange>(internalRange);
 
-  useEffect(() => {
-    if (!isControlled) {
-      setInternalRange((prev) => {
-        const adjusted = {
-          startIndex: Math.min(prev.startIndex, Math.max(0, totalPoints - 1)),
-          endIndex: Math.min(prev.endIndex, Math.max(0, totalPoints - 1)),
-        };
-        lastCommittedRef.current = adjusted;
-        return adjusted;
-      });
-    }
-  }, [totalPoints, isControlled]);
+  // Adjust range when totalPoints changes during render
+  if (totalPoints > 0 && (internalRange.startIndex > totalPoints - 1 || internalRange.endIndex > totalPoints - 1)) {
+    const adjusted = {
+      startIndex: Math.min(internalRange.startIndex, Math.max(0, totalPoints - 1)),
+      endIndex: Math.min(internalRange.endIndex, Math.max(0, totalPoints - 1)),
+    };
+    setInternalRange(adjusted);
+    lastCommittedRef.current = adjusted;
+  }
 
   // ── Clamping & committing ───────────────────────────────────────────────
 
@@ -333,18 +330,19 @@ function EvilBrush({
   // Position always driven by internalRange (never lags behind controlled props)
   const range = internalRange;
 
-  // Sync internalRange with controlled props when not dragging
-  useEffect(() => {
-    if (isControlled && !isDragging) {
-      const syncedRange = {
-        startIndex: controlledStart,
-        endIndex: controlledEnd,
-      };
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setInternalRange(syncedRange);
-      lastCommittedRef.current = syncedRange;
-    }
-  }, [isControlled, controlledStart, controlledEnd, isDragging]);
+  const [prevStart, setPrevStart] = React.useState(controlledStart);
+  const [prevEnd, setPrevEnd] = React.useState(controlledEnd);
+
+  if (isControlled && (controlledStart !== prevStart || controlledEnd !== prevEnd)) {
+    setPrevStart(controlledStart);
+    setPrevEnd(controlledEnd);
+    const syncedRange = {
+      startIndex: controlledStart,
+      endIndex: controlledEnd,
+    };
+    setInternalRange(syncedRange);
+    lastCommittedRef.current = syncedRange;
+  }
 
   // ── Computed positions (%) ──────────────────────────────────────────────
 
@@ -543,16 +541,18 @@ function MiniChart({
   connectNulls?: boolean;
   barRadius?: number;
 }) {
-  const gradients = React.useMemo(
-    () =>
-      Object.entries(chartConfig)
-        .filter(([key]) => keys.includes(key))
-        .map(([dataKey, config]) => ({
-          dataKey,
+  const gradients = React.useMemo(() => {
+    const result: Array<{ dataKey: string; colorsCount: number }> = [];
+    for (const [key, config] of Object.entries(chartConfig)) {
+      if (keys.includes(key)) {
+        result.push({
+          dataKey: key,
           colorsCount: getColorsCount(config),
-        })),
-    [chartConfig, keys]
-  );
+        });
+      }
+    }
+    return result;
+  }, [chartConfig, keys]);
 
   const dashArray =
     strokeVariant === "dashed" || strokeVariant === "animated-dashed"
@@ -740,13 +740,14 @@ function useEvilBrush<TData extends Record<string, unknown>>({
   // deferred value.  React can skip intermediate slices during fast drags.
   const deferredRange = React.useDeferredValue(range);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  const [prevDataLength, setPrevDataLength] = React.useState(data.length);
+  if (data.length !== prevDataLength) {
+    setPrevDataLength(data.length);
     setRange({
       startIndex: 0,
       endIndex: Math.max(0, data.length - 1),
     });
-  }, [data.length]);
+  }
 
   const visibleData = React.useMemo(
     () => data.slice(deferredRange.startIndex, deferredRange.endIndex + 1),

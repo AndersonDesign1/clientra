@@ -60,17 +60,17 @@ export function ProjectStatusPieChart({
       dark: ["#a1a1aa"],
     };
 
-    if (statusKey.indexOf("progress") !== -1) {
+    if (/progress/.test(statusKey)) {
       colors = {
         light: ["#0d9488"],
         dark: ["#2dd4bf"],
       };
-    } else if (statusKey.indexOf("completed") !== -1) {
+    } else if (/completed/.test(statusKey)) {
       colors = {
         light: ["#15803d"],
         dark: ["#22c55e"],
       };
-    } else if (statusKey.indexOf("planning") !== -1) {
+    } else if (/planning/.test(statusKey)) {
       colors = {
         light: ["#0284c7"],
         dark: ["#38bdf8"],

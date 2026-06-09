@@ -826,19 +826,20 @@ const LOADING_LINKS = [
 
 const LoadingSankey = () => {
 
-  // Builds a bezier path connecting the right edge of one node to the left of another
-  const getLinkPath = (fromIdx: number, toIdx: number) => {
-    const from = LOADING_NODES[fromIdx];
-    const to = LOADING_NODES[toIdx];
-    const startX = from.x + from.width;
-    const startY = from.y + from.height / 2;
-    const endX = to.x;
-    const endY = to.y + to.height / 2;
-    const controlX1 = startX + (endX - startX) * 0.4;
-    const controlX2 = startX + (endX - startX) * 0.6;
-    return `M${startX},${startY} C${controlX1},${startY} ${controlX2},${endY} ${endX},${endY}`;
-  };
+// Builds a bezier path connecting the right edge of one node to the left of another
+const getLinkPath = (fromIdx: number, toIdx: number) => {
+  const from = LOADING_NODES[fromIdx];
+  const to = LOADING_NODES[toIdx];
+  const startX = from.x + from.width;
+  const startY = from.y + from.height / 2;
+  const endX = to.x;
+  const endY = to.y + to.height / 2;
+  const controlX1 = startX + (endX - startX) * 0.4;
+  const controlX2 = startX + (endX - startX) * 0.6;
+  return `M${startX},${startY} C${controlX1},${startY} ${controlX2},${endY} ${endX},${endY}`;
+};
 
+const LoadingSankey = () => {
   const baseDuration = LOADING_ANIMATION_DURATION / 1000;
 
   return (

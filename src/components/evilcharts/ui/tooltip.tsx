@@ -56,6 +56,11 @@ function ChartTooltipContent({
     RechartsPrimitive.DefaultTooltipContentProps<ValueType, NameType>,
     "accessibilityLayer"
   >) {
+  if (!(active && payload?.length)) {
+    // Empty tooltip - to prevent position getting 0.0 so it doesnt animate tooltip every time from 0.0 origin
+    return <span className="p-4" />;
+  }
+
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
@@ -94,11 +99,6 @@ function ChartTooltipContent({
     labelKey,
   ]);
 
-  if (!(active && payload?.length)) {
-    // Empty tooltip - to prevent position getting 0.0 so it doesnt animate tooltip every time from 0.0 origin
-    return <span className="p-4" />;
-  }
-
   const nestLabel = payload.length === 1 && indicator !== "dot";
 
   return (
@@ -112,33 +112,35 @@ function ChartTooltipContent({
     >
       {nestLabel ? null : tooltipLabel}
       <div className="grid gap-1.5">
-        {payload
-          .filter((item) => item.type !== "none")
-          .map((item, index) => {
-            // For pie charts, item.name contains the sector name (e.g., "chrome")
-            // For radial charts, the name is in item.payload[nameKey]
-            // For other charts, item.name or item.dataKey contains the series name
-            const payloadName =
-              nameKey && item.payload
-                ? (item.payload as Record<string, unknown>)[nameKey]
-                : undefined;
-            const key = `${payloadName ?? item.name ?? item.dataKey ?? "value"}`;
-            const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        {payload.map((item, index) => {
+          if (item.type === "none") {
+            return null;
+          }
 
-            // Get colors count for this item to determine gradient vs solid
-            const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
+          // For pie charts, item.name contains the sector name (e.g., "chrome")
+          // For radial charts, the name is in item.payload[nameKey]
+          // For other charts, item.name or item.dataKey contains the series name
+          const payloadName =
+            nameKey && item.payload
+              ? (item.payload as Record<string, unknown>)[nameKey]
+              : undefined;
+          const key = `${payloadName ?? item.name ?? item.dataKey ?? "value"}`;
+          const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
-            return (
-              <div
-                className={cn(
-                  "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
-                  indicator === "dot" && "items-center",
-                  selected != null && selected !== item.dataKey && "opacity-30"
-                )}
-                key={index}
-              >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+          // Get colors count for this item to determine gradient vs solid
+          const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
+
+          return (
+            <div
+              className={cn(
+                "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+                indicator === "dot" && "items-center",
+                selected != null && selected !== item.dataKey && "opacity-30"
+              )}
+              key={key}
+            >
+              {formatter && item?.value !== undefined && item.name ? (
+                formatter(item.value, item.name, item, index, item.payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (

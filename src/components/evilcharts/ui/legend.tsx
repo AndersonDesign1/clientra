@@ -52,52 +52,64 @@ function ChartLegendContent({
         className
       )}
     >
-      {payload
-        .filter((item) => item.type !== "none")
-        .map((item) => {
-          // For pie charts, item.value contains the sector name (e.g., "chrome")
-          // For radial charts, the name is in item.payload[nameKey]
-          // For other charts, item.dataKey contains the series name (e.g., "desktop")
-          const payloadName =
-            nameKey && item.payload
-              ? (item.payload as Record<string, unknown>)[nameKey]
-              : undefined;
-          const key = `${payloadName ?? item.value ?? item.dataKey ?? "value"}`;
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
-          const isSelected = selected === null || selected === key;
+      {payload.map((item) => {
+        if (item.type === "none") {
+          return null;
+        }
 
-          // Get colors count for this item to determine gradient vs solid
-          const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
+        // For pie charts, item.value contains the sector name (e.g., "chrome")
+        // For radial charts, the name is in item.payload[nameKey]
+        // For other charts, item.dataKey contains the series name (e.g., "desktop")
+        const payloadName =
+          nameKey && item.payload
+            ? (item.payload as Record<string, unknown>)[nameKey]
+            : undefined;
+        const key = `${payloadName ?? item.value ?? item.dataKey ?? "value"}`;
+        const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        const isSelected = selected === null || selected === key;
 
-          return (
-            <div
-              className={cn(
-                "flex items-center gap-1.5 transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
-                !isSelected && "opacity-30",
-                isClickable && "cursor-pointer"
-              )}
-              key={key}
-              onClick={() => {
-                if (!isClickable) {
-                  return;
-                }
+        // Get colors count for this item to determine gradient vs solid
+        const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
 
-                onSelectChange?.(selected === key ? null : key);
-              }}
-            >
-              {itemConfig?.icon && !hideIcon ? (
-                <itemConfig.icon />
-              ) : (
-                <LegendIndicator
-                  colorsCount={colorsCount}
-                  dataKey={key}
-                  variant={variant}
-                />
-              )}
-              {itemConfig?.label}
-            </div>
-          );
-        })}
+        const handleSelect = () => {
+          if (!isClickable) {
+            return;
+          }
+
+          onSelectChange?.(selected === key ? null : key);
+        };
+
+        return (
+          <div
+            className={cn(
+              "flex items-center gap-1.5 transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
+              !isSelected && "opacity-30",
+              isClickable && "cursor-pointer"
+            )}
+            key={key}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onClick={handleSelect}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleSelect();
+              }
+            }}
+          >
+            {itemConfig?.icon && !hideIcon ? (
+              <itemConfig.icon />
+            ) : (
+              <LegendIndicator
+                colorsCount={colorsCount}
+                dataKey={key}
+                variant={variant}
+              />
+            )}
+            {itemConfig?.label}
+          </div>
+        );
+      })}
     </div>
   );
 }
