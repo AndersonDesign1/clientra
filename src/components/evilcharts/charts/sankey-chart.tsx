@@ -824,8 +824,6 @@ const LOADING_LINKS = [
   { from: 5, to: 7, width: 16, delay: 0.45 },
 ];
 
-const LoadingSankey = () => {
-
 // Builds a bezier path connecting the right edge of one node to the left of another
 const getLinkPath = (fromIdx: number, toIdx: number) => {
   const from = LOADING_NODES[fromIdx];

@@ -26,7 +26,31 @@ const variantMap: Record<TooltipVariant, string> = {
   "frosted-glass": "bg-background/70 backdrop-blur-sm",
 };
 
-function ChartTooltipContent({
+function ChartTooltipContent(
+  props: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+    React.ComponentProps<"div"> & {
+      hideLabel?: boolean;
+      hideIndicator?: boolean;
+      indicator?: "line" | "dot" | "dashed";
+      nameKey?: string;
+      labelKey?: string;
+      selected?: string | null;
+      roundness?: TooltipRoundness;
+      variant?: TooltipVariant;
+    } & Omit<
+      RechartsPrimitive.DefaultTooltipContentProps<ValueType, NameType>,
+      "accessibilityLayer"
+    >
+) {
+  if (!(props.active && props.payload?.length)) {
+    // Empty tooltip - to prevent position getting 0.0 so it doesnt animate tooltip every time from 0.0 origin
+    return <span className="p-4" />;
+  }
+
+  return <ChartTooltipContentInner {...props} />;
+}
+
+function ChartTooltipContentInner({
   active,
   payload,
   className,
@@ -56,11 +80,6 @@ function ChartTooltipContent({
     RechartsPrimitive.DefaultTooltipContentProps<ValueType, NameType>,
     "accessibilityLayer"
   >) {
-  if (!(active && payload?.length)) {
-    // Empty tooltip - to prevent position getting 0.0 so it doesnt animate tooltip every time from 0.0 origin
-    return <span className="p-4" />;
-  }
-
   const { config } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
