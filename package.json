@@ -28,7 +28,6 @@
     "@tanstack/react-router-devtools": "^1.132.0",
     "@tanstack/react-router-ssr-query": "^1.131.7",
     "@tanstack/react-start": "^1.132.0",
-    "@tanstack/router-plugin": "^1.132.0",
     "@uploadthing/react": "^7.3.3",
     "better-auth": "^1.5.5",
     "class-variance-authority": "^0.7.1",
@@ -64,7 +63,6 @@
     "typescript": "^5.7.2",
     "ultracite": "7.3.2",
     "vite": "^8.0.12",
-    "vitest": "^4",
-    "web-vitals": "^5.1.0"
+    "vitest": "^4"
   }
 }
