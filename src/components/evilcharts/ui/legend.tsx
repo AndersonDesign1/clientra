@@ -79,23 +79,38 @@ function ChartLegendContent({
           onSelectChange?.(selected === key ? null : key);
         };
 
+        if (isClickable) {
+          return (
+            <button
+              type="button"
+              className={cn(
+                "flex items-center gap-1.5 transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground cursor-pointer text-left bg-transparent border-none p-0 font-sans text-sm",
+                !isSelected && "opacity-30"
+              )}
+              key={key}
+              onClick={handleSelect}
+            >
+              {itemConfig?.icon && !hideIcon ? (
+                <itemConfig.icon />
+              ) : (
+                <LegendIndicator
+                  colorsCount={colorsCount}
+                  dataKey={key}
+                  variant={variant}
+                />
+              )}
+              {itemConfig?.label}
+            </button>
+          );
+        }
+
         return (
           <div
             className={cn(
               "flex items-center gap-1.5 transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
-              !isSelected && "opacity-30",
-              isClickable && "cursor-pointer"
+              !isSelected && "opacity-30"
             )}
             key={key}
-            role={isClickable ? "button" : undefined}
-            tabIndex={isClickable ? 0 : undefined}
-            onClick={handleSelect}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleSelect();
-              }
-            }}
           >
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />

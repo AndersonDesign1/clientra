@@ -210,7 +210,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     )
     .join("\n");
 
-  return <style dangerouslySetInnerHTML={{ __html: css }} />;
+  return <style>{css}</style>;
 };
 
 // Helper to extract item config from a payload.

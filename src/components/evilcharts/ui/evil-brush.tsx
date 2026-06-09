@@ -330,12 +330,12 @@ function EvilBrush({
   // Position always driven by internalRange (never lags behind controlled props)
   const range = internalRange;
 
-  const [prevStart, setPrevStart] = React.useState(controlledStart);
-  const [prevEnd, setPrevEnd] = React.useState(controlledEnd);
+  const prevStartRef = React.useRef(controlledStart);
+  const prevEndRef = React.useRef(controlledEnd);
 
-  if (isControlled && (controlledStart !== prevStart || controlledEnd !== prevEnd)) {
-    setPrevStart(controlledStart);
-    setPrevEnd(controlledEnd);
+  if (isControlled && (controlledStart !== prevStartRef.current || controlledEnd !== prevEndRef.current)) {
+    prevStartRef.current = controlledStart;
+    prevEndRef.current = controlledEnd;
     const syncedRange = {
       startIndex: controlledStart,
       endIndex: controlledEnd,
@@ -543,8 +543,9 @@ function MiniChart({
 }) {
   const gradients = React.useMemo(() => {
     const result: Array<{ dataKey: string; colorsCount: number }> = [];
+    const keysSet = new Set(keys);
     for (const [key, config] of Object.entries(chartConfig)) {
-      if (keys.includes(key)) {
+      if (keysSet.has(key)) {
         result.push({
           dataKey: key,
           colorsCount: getColorsCount(config),
