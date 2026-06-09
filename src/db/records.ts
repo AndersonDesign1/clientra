@@ -2642,12 +2642,18 @@ export async function reviewStatusChangeRequestRecord(
         .where(eq(projectsTable.id, updated.projectId))
         .limit(1);
 
-      const isValidTransition =
-        project && project.status !== updated.requestedStatus;
-
-      if (!(project && isValidTransition)) {
+      if (!project) {
         console.error(
-          `Status change approval failed: Project ${updated.projectId} missing or invalid transition to ${updated.requestedStatus}.`
+          `Status change approval failed: Project ${updated.projectId} missing.`
+        );
+        throw new Error("Project not found");
+      }
+
+      const isValidTransition = project.status !== updated.requestedStatus;
+
+      if (!isValidTransition) {
+        console.error(
+          `Status change approval failed: Invalid transition from ${project.status} to ${updated.requestedStatus} for Project ${project.id}.`
         );
         throw new Error(
           `Invalid status transition to ${updated.requestedStatus}`
