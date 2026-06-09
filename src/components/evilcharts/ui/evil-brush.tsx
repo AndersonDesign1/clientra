@@ -334,14 +334,14 @@ function EvilBrush({
   const prevEndRef = React.useRef(controlledEnd);
 
   if (isControlled && (controlledStart !== prevStartRef.current || controlledEnd !== prevEndRef.current)) {
-    prevStartRef.current = controlledStart;
-    prevEndRef.current = controlledEnd;
-    const syncedRange = {
+    const clamped = clampRange({
       startIndex: controlledStart,
       endIndex: controlledEnd,
-    };
-    setInternalRange(syncedRange);
-    lastCommittedRef.current = syncedRange;
+    });
+    prevStartRef.current = controlledStart;
+    prevEndRef.current = controlledEnd;
+    setInternalRange(clamped);
+    lastCommittedRef.current = clamped;
   }
 
   // ── Computed positions (%) ──────────────────────────────────────────────

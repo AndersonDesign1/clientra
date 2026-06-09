@@ -131,35 +131,39 @@ function ChartTooltipContentInner({
     >
       {nestLabel ? null : tooltipLabel}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
-          if (item.type === "none") {
-            return null;
-          }
+        {(() => {
+          let visibleIndex = 0;
+          return payload.map((item) => {
+            if (item.type === "none") {
+              return null;
+            }
 
-          // For pie charts, item.name contains the sector name (e.g., "chrome")
-          // For radial charts, the name is in item.payload[nameKey]
-          // For other charts, item.name or item.dataKey contains the series name
-          const payloadName =
-            nameKey && item.payload
-              ? (item.payload as Record<string, unknown>)[nameKey]
-              : undefined;
-          const key = `${payloadName ?? item.name ?? item.dataKey ?? "value"}`;
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+            const currentVisibleIndex = visibleIndex++;
 
-          // Get colors count for this item to determine gradient vs solid
-          const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
+            // For pie charts, item.name contains the sector name (e.g., "chrome")
+            // For radial charts, the name is in item.payload[nameKey]
+            // For other charts, item.name or item.dataKey contains the series name
+            const payloadName =
+              nameKey && item.payload
+                ? (item.payload as Record<string, unknown>)[nameKey]
+                : undefined;
+            const key = `${payloadName ?? item.value ?? item.dataKey ?? "value"}`;
+            const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
-          return (
-            <div
-              className={cn(
-                "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
-                indicator === "dot" && "items-center",
-                selected != null && selected !== item.dataKey && "opacity-30"
-              )}
-              key={key}
-            >
-              {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+            // Get colors count for this item to determine gradient vs solid
+            const colorsCount = itemConfig ? getColorsCount(itemConfig) : 1;
+
+            return (
+              <div
+                className={cn(
+                  "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+                  indicator === "dot" && "items-center",
+                  selected != null && selected !== item.dataKey && "opacity-30"
+                )}
+                key={key}
+              >
+                {formatter && item?.value !== undefined && item.name ? (
+                  formatter(item.value, item.name, item, currentVisibleIndex, item.payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -202,7 +206,8 @@ function ChartTooltipContentInner({
                 )}
               </div>
             );
-          })}
+          });
+        })()}
       </div>
     </div>
   );
