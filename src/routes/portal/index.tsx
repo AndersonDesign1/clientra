@@ -126,6 +126,12 @@ function PortalHomePage() {
   );
 }
 
+const portalDateFormatter = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 function formatDate(value: string) {
   if (!value) {
     return "No date set";
@@ -137,11 +143,7 @@ function formatDate(value: string) {
     return value;
   }
 
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return portalDateFormatter.format(date);
 }
 
 export function PortalSummaryView({ summary }: { summary: PortalSummary }) {

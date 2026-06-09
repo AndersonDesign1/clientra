@@ -116,11 +116,12 @@ function PortalFilesPage() {
     onClientUploadComplete: (uploaded) => {
       const newFiles: PortalFileWithProject[] = [];
       const invalidFiles: string[] = [];
+      const projectMap = new Map(
+        projectsQuery.data?.map((p) => [p.id, p]) ?? []
+      );
       for (const entry of uploaded) {
         if (isProjectFile(entry.serverData)) {
-          const project = projectsQuery.data?.find(
-            (p) => p.id === entry.serverData.projectId
-          );
+          const project = projectMap.get(entry.serverData.projectId);
           newFiles.push({
             ...entry.serverData,
             projectTitle: project?.title ?? "Project",

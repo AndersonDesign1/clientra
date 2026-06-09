@@ -8,7 +8,7 @@ import {
   File01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
@@ -80,7 +80,14 @@ export const Route = createFileRoute("/projects/$id")({
 
     // Return redirect target
     const { clientSlug, projectSlug } = getProjectPathParams(project, clients);
-    return { redirectTo: `/projects/${clientSlug}/${projectSlug}` as const };
+    throw redirect({
+      to: "/projects/$clientSlug/$projectSlug",
+      params: {
+        clientSlug,
+        projectSlug,
+      },
+      replace: true,
+    });
   },
   pendingComponent: ProjectDetailPendingPage,
   component: RedirectToModernProjectRoute,
@@ -303,23 +310,6 @@ function ProjectDetailActions({
 }
 
 function RedirectToModernProjectRoute() {
-  const navigate = useNavigate();
-  const { redirectTo } = Route.useLoaderData();
-
-  useEffect(() => {
-    // Navigate to the modern route format
-    navigate({
-      to: "/projects/$clientSlug/$projectSlug",
-      params: {
-        clientSlug: redirectTo.split("/")[2] ?? "",
-        projectSlug: redirectTo.split("/")[3] ?? "",
-      },
-      replace: true,
-    }).catch((err) => {
-      console.error("Failed to redirect to modern project route:", err);
-    });
-  }, [navigate, redirectTo]);
-
   return <ProjectDetailPendingPage />;
 }
 

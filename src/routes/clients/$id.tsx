@@ -545,6 +545,12 @@ function ClientDetailPage() {
   );
 }
 
+const inviteDateFormatter = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 function formatInviteDate(value: string) {
   const date = new Date(value);
 
@@ -552,11 +558,7 @@ function formatInviteDate(value: string) {
     return "Unknown";
   }
 
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return inviteDateFormatter.format(date);
 }
 
 export function PendingInvitesPanel({

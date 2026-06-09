@@ -163,78 +163,6 @@ function PrimarySuccessTeamWidget() {
   const users = usersQuery.data ?? [];
   const admins = users.filter((u) => u.role === "admin");
 
-  const renderContent = () => {
-    if (usersQuery.isLoading) {
-      return (
-        <div className="animate-pulse space-y-3 py-2">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-muted" />
-            <div className="flex-1 space-y-1.5">
-              <div className="h-3 w-24 rounded bg-muted" />
-              <div className="h-2 w-32 rounded bg-muted" />
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (admins.length === 0) {
-      return (
-        <p className="py-2 text-muted-foreground text-xs italic">
-          No success team members assigned.
-        </p>
-      );
-    }
-    return (
-      <div className="space-y-4 pt-1">
-        {admins.slice(0, 2).map((admin) => (
-          <div
-            className="group/item flex items-center justify-between gap-3 border-border/20 border-b pb-3 last:border-0 last:pb-0"
-            key={admin.id}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              {admin.image ? (
-                <img
-                  alt={admin.name}
-                  className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-primary/5"
-                  height={40}
-                  src={admin.image}
-                  width={40}
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-sm text-white shadow-sm">
-                  {admin.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0 space-y-0.5">
-                <h4 className="truncate font-bold text-foreground text-xs leading-none transition-colors duration-200 group-hover/item:text-primary">
-                  {admin.name}
-                </h4>
-                <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Agency Expert
-                </span>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1">
-              <a
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
-                href={`mailto:${admin.email}`}
-                title="Send Email"
-              >
-                <HugeiconsIcon icon={Mail01Icon} size={14} />
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between border-border/40 border-b pb-3">
@@ -246,7 +174,69 @@ function PrimarySuccessTeamWidget() {
           icon={UserGroupIcon}
         />
       </div>
-      {renderContent()}
+      {usersQuery.isLoading ? (
+        <div className="animate-pulse space-y-3 py-2">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-muted" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 w-24 rounded bg-muted" />
+              <div className="h-2 w-32 rounded bg-muted" />
+            </div>
+          </div>
+        </div>
+      ) : admins.length === 0 ? (
+        <p className="py-2 text-muted-foreground text-xs italic">
+          No success team members assigned.
+        </p>
+      ) : (
+        <div className="space-y-4 pt-1">
+          {admins.slice(0, 2).map((admin) => (
+            <div
+              className="group/item flex items-center justify-between gap-3 border-border/20 border-b pb-3 last:border-0 last:pb-0"
+              key={admin.id}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                {admin.image ? (
+                  <img
+                    alt={admin.name}
+                    className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-primary/5"
+                    height={40}
+                    src={admin.image}
+                    width={40}
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-sm text-white shadow-sm">
+                    {admin.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 space-y-0.5">
+                  <h4 className="truncate font-bold text-foreground text-xs leading-none transition-colors duration-200 group-hover/item:text-primary">
+                    {admin.name}
+                  </h4>
+                  <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                    Agency Expert
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1">
+                <a
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
+                  href={`mailto:${admin.email}`}
+                  title="Send Email"
+                >
+                  <HugeiconsIcon icon={Mail01Icon} size={14} />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
