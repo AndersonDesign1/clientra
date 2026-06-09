@@ -100,6 +100,8 @@ type EvilRadialChartPropsWithCallback<TData extends Record<string, unknown>> =
   EvilRadialChartProps<TData> &
     (EvilRadialChartClickable | EvilRadialChartNotClickable);
 
+const EMPTY_GLOWING_BARS: string[] = [];
+
 export function EvilRadialChart<TData extends Record<string, unknown>>({
   data,
   dataKey,
@@ -122,7 +124,7 @@ export function EvilRadialChart<TData extends Record<string, unknown>>({
   tooltipDefaultIndex,
   isClickable = false,
   isLoading = false,
-  glowingBars = [],
+  glowingBars = EMPTY_GLOWING_BARS,
   onSelectionChange,
   backgroundVariant,
 }: EvilRadialChartPropsWithCallback<TData>) {

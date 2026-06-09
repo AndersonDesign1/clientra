@@ -60,17 +60,17 @@ export function ProjectStatusPieChart({
       dark: ["#a1a1aa"],
     };
 
-    if (statusKey.includes("progress")) {
+    if (/progress/.test(statusKey)) {
       colors = {
         light: ["#0d9488"],
         dark: ["#2dd4bf"],
       };
-    } else if (statusKey.includes("completed")) {
+    } else if (/completed/.test(statusKey)) {
       colors = {
         light: ["#15803d"],
         dark: ["#22c55e"],
       };
-    } else if (statusKey.includes("planning")) {
+    } else if (/planning/.test(statusKey)) {
       colors = {
         light: ["#0284c7"],
         dark: ["#38bdf8"],
@@ -178,6 +178,14 @@ export function BudgetComposedChart({
 }
 
 // ── Activity Pie/Donut Chart ──────────────────────────────────────────────────
+// Build static chartConfig from data labels
+const ACTIVITY_COLOR_PALETTE = [
+  { light: palette.forest, dark: palette.forest },
+  { light: palette.mint, dark: palette.mint },
+  { light: palette.teal, dark: palette.teal },
+  { light: palette.sky, dark: palette.sky },
+];
+
 export function ActivityPieChart({
   data,
   isLoading,
@@ -197,17 +205,9 @@ export function ActivityPieChart({
     };
   });
 
-  // Build dynamic chartConfig from data labels
-  const colorPalette = [
-    { light: palette.forest, dark: palette.forest },
-    { light: palette.mint, dark: palette.mint },
-    { light: palette.teal, dark: palette.teal },
-    { light: palette.sky, dark: palette.sky },
-  ];
-
   const chartConfig: ChartConfig = {};
   keyedData.forEach((item, i) => {
-    const colors = colorPalette[i % colorPalette.length];
+    const colors = ACTIVITY_COLOR_PALETTE[i % ACTIVITY_COLOR_PALETTE.length];
     chartConfig[item._key] = {
       colors: { light: colors.light, dark: colors.dark },
       label: item.label,
@@ -231,6 +231,33 @@ export function ActivityPieChart({
 }
 
 // ── Activity Sankey Chart ────────────────────────────────────────────────────
+// Source nodes (activity types) get distinct brand colors
+const SANKEY_TYPE_COLORS: Record<string, { light: string[]; dark: string[] }> = {
+  Clients: {
+    light: ["#15803d"],
+    dark: ["#22c55e"],
+  },
+  Projects: {
+    light: ["#047857"],
+    dark: ["#10b981"],
+  },
+  Comments: {
+    light: ["#0284c7"],
+    dark: ["#38bdf8"],
+  },
+  Files: {
+    light: ["#d97706"],
+    dark: ["#f59e0b"],
+  },
+  Onboarding: {
+    light: ["#0d9488"],
+    dark: ["#2dd4bf"],
+  },
+};
+
+// All project/target nodes share a single unified teal
+const SANKEY_PROJECT_COLOR = { light: ["#0d9488"], dark: ["#2dd4bf"] };
+
 export function ActivitySankeyChart({
   data,
   isLoading,
@@ -238,45 +265,18 @@ export function ActivitySankeyChart({
   data: SankeyData;
   isLoading?: boolean;
 }) {
-  // Source nodes (activity types) get distinct brand colors
-  const typeColors: Record<string, { light: string[]; dark: string[] }> = {
-    Clients: {
-      light: ["#15803d"],
-      dark: ["#22c55e"],
-    },
-    Projects: {
-      light: ["#047857"],
-      dark: ["#10b981"],
-    },
-    Comments: {
-      light: ["#0284c7"],
-      dark: ["#38bdf8"],
-    },
-    Files: {
-      light: ["#d97706"],
-      dark: ["#f59e0b"],
-    },
-    Onboarding: {
-      light: ["#0d9488"],
-      dark: ["#2dd4bf"],
-    },
-  };
-
-  // All project/target nodes share a single unified teal
-  const projectColor = { light: ["#0d9488"], dark: ["#2dd4bf"] };
-
   const chartConfig: ChartConfig = {};
 
   for (const node of data.nodes) {
-    if (typeColors[node.name]) {
+    if (SANKEY_TYPE_COLORS[node.name]) {
       chartConfig[node.name] = {
         label: node.name,
-        colors: typeColors[node.name],
+        colors: SANKEY_TYPE_COLORS[node.name],
       };
     } else {
       chartConfig[node.name] = {
         label: node.name,
-        colors: projectColor,
+        colors: SANKEY_PROJECT_COLOR,
       };
     }
   }

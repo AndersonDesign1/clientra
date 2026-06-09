@@ -1,9 +1,11 @@
 import { type FormEvent, useState } from "react";
 import { UnifiedActivityList } from "@/components/common/activity-list";
+import { PanelSection } from "@/components/common/panel-section";
 import {
   EmptyPanel,
   ErrorPanel,
   LoadingPanel,
+  MutationErrorBanner,
 } from "@/components/common/state-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   type ProjectUpdate,
   type ProjectUpdatePayload,
@@ -201,6 +219,11 @@ function ProjectUpdateForm({
     }
   }
 
+  const statusItems = UPDATE_STATUS_OPTIONS.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }));
+
   return (
     <form
       className="flex flex-col gap-4"
@@ -208,66 +231,76 @@ function ProjectUpdateForm({
         handleSubmit(event).catch(() => undefined);
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-12">
-        <label className="grid gap-1.5 sm:col-span-8">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Title
-          </span>
-          <input
-            className="rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
+      <FieldGroup>
+        <div className="grid gap-4 sm:grid-cols-12">
+          <Field className="sm:col-span-8">
+            <FieldLabel htmlFor="update-title">Title</FieldLabel>
+            <Input
+              className="transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+              id="update-title"
+              onChange={(event) =>
+                setState((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
+              }
+              placeholder="e.g. Completed Sprint 2 Review & Milestones"
+              required
+              value={state.title}
+            />
+          </Field>
+          <Field className="sm:col-span-4">
+            <FieldLabel>Project Status Accent</FieldLabel>
+            <Select
+              items={statusItems}
+              onValueChange={(value) =>
+                setState((current) => ({
+                  ...current,
+                  status: value as ProjectUpdateStatus,
+                }))
+              }
+              value={state.status}
+            >
+              <SelectTrigger className="w-full transition-all focus-visible:border-primary focus-visible:ring-primary/20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {UPDATE_STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
+
+        <Field>
+          <FieldLabel htmlFor="update-description">
+            Update Description
+          </FieldLabel>
+          <Textarea
+            className="min-h-[110px] transition-all focus-visible:border-primary focus-visible:ring-primary/20"
+            id="update-description"
             onChange={(event) =>
               setState((current) => ({
                 ...current,
-                title: event.target.value,
+                body: event.target.value,
               }))
             }
-            placeholder="e.g. Completed Sprint 2 Review & Milestones"
-            value={state.title}
+            placeholder="Describe completed works, ongoing focus, or blockages..."
+            required
+            value={state.body}
           />
-        </label>
-        <label className="grid gap-1.5 sm:col-span-4">
-          <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Project Status Accent
-          </span>
-          <select
-            className="h-[38px] rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-            onChange={(event) =>
-              setState((current) => ({
-                ...current,
-                status: event.target.value as ProjectUpdateStatus,
-              }))
-            }
-            value={state.status}
-          >
-            {UPDATE_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <label className="grid gap-1.5">
-        <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-          Update Description
-        </span>
-        <textarea
-          className="min-h-[110px] rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-          onChange={(event) =>
-            setState((current) => ({
-              ...current,
-              body: event.target.value,
-            }))
-          }
-          placeholder="Describe completed works, ongoing focus, or blockages..."
-          value={state.body}
-        />
-      </label>
-      {formError || error ? (
-        <p className="animate-slide-up-fade rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-xs">
-          {formError ?? error}
-        </p>
-      ) : null}
+        </Field>
+
+        {formError || error ? (
+          <FieldError>{formError ?? error}</FieldError>
+        ) : null}
+      </FieldGroup>
+
       <DialogFooter>
         {onCancel ? (
           <Button onClick={onCancel} type="button" variant="outline">
@@ -286,6 +319,17 @@ function ProjectUpdateForm({
   );
 }
 
+function useCrudDialogs<T>() {
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<T | null>(null);
+  return {
+    isAddOpen,
+    setIsAddOpen,
+    editingItem,
+    setEditingItem,
+  };
+}
+
 export function ProjectUpdatesPanel({
   canManage,
   projectId,
@@ -295,10 +339,12 @@ export function ProjectUpdatesPanel({
   const updateUpdate = useUpdateProjectUpdateMutation();
   const deleteUpdate = useDeleteProjectUpdateMutation();
 
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingUpdate, setEditingUpdate] = useState<ProjectUpdate | null>(
-    null
-  );
+  const {
+    isAddOpen,
+    setIsAddOpen,
+    editingItem: editingUpdate,
+    setEditingItem: setEditingUpdate,
+  } = useCrudDialogs<ProjectUpdate>();
 
   if (updatesQuery.isLoading && !updatesQuery.data) {
     return (
@@ -318,17 +364,9 @@ export function ProjectUpdatesPanel({
   const updates = updatesQuery.data ?? [];
 
   return (
-    <section className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
-        <div>
-          <h2 className="font-semibold text-foreground text-lg">
-            Project Updates
-          </h2>
-          <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
-            Concise status reports outlining recent progress and forward plans.
-          </p>
-        </div>
-        {canManage && (
+    <PanelSection
+      action={
+        canManage && (
           <Button
             className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => setIsAddOpen(true)}
@@ -336,9 +374,11 @@ export function ProjectUpdatesPanel({
           >
             Publish Update
           </Button>
-        )}
-      </div>
-
+        )
+      }
+      description="Concise status reports outlining recent progress and forward plans."
+      title="Project Updates"
+    >
       {/* Add Update Dialog */}
       {canManage && (
         <Dialog onOpenChange={setIsAddOpen} open={isAddOpen}>
@@ -412,11 +452,7 @@ export function ProjectUpdatesPanel({
         onEdit={setEditingUpdate}
         updates={updates}
       />
-      {deleteUpdate.error ? (
-        <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-sm">
-          {deleteUpdate.error.message}
-        </p>
-      ) : null}
-    </section>
+      <MutationErrorBanner error={deleteUpdate.error} />
+    </PanelSection>
   );
 }

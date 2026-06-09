@@ -1,0 +1,27 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "ignore": {
+    "files": [
+      "src/components/ui/**",
+      "node_modules/**",
+      "drizzle/**",
+      "dist/**",
+      ".output/**",
+      "react-doctor-report.json"
+    ]
+  },
+  "rules": {
+    "react-doctor/only-export-components": "off",
+    "react-doctor/no-giant-component": "off",
+    "react-doctor/no-multi-comp": "off",
+    "react-doctor/prefer-useReducer": "off",
+    "react-doctor/no-many-boolean-props": "off",
+    "react-doctor/prefer-dynamic-import": "off",
+    "react-doctor/no-event-handler": "off",
+    "react-doctor/control-has-associated-label": "off",
+    "react-doctor/use-lazy-motion": "off",
+    "react-doctor/jsx-no-jsx-as-prop": "off",
+    "deslop/unused-export": "off",
+    "deslop/unused-file": "off"
+  }
+}

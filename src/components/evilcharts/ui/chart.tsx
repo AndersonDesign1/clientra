@@ -55,7 +55,7 @@ interface ChartContextProps {
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
 export function useChart() {
-  const context = React.useContext(ChartContext);
+  const context = React.use(ChartContext);
 
   if (!context) {
     throw new Error("useChart must be used within a <ChartContainer />");
@@ -102,8 +102,10 @@ function ChartContainer({
   // Validate chart config at runtime
   validateChartConfigColors(config);
 
+  const contextValue = React.useMemo(() => ({ config }), [config]);
+
   return (
-    <ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={contextValue}>
       <div
         className={cn(
           "min-h-0 w-full flex-1",
@@ -199,7 +201,6 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
           (color, index) => `  --color-${key}-${index}: ${color};`
         );
       })
-      .filter(Boolean)
       .join("\n");
 
   const css = Object.entries(THEMES)
@@ -209,7 +210,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     )
     .join("\n");
 
-  return <style dangerouslySetInnerHTML={{ __html: css }} />;
+  return <style>{css}</style>;
 };
 
 // Helper to extract item config from a payload.

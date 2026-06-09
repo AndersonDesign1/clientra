@@ -21,26 +21,40 @@ export const Route = createFileRoute("/api/portal/team")({
     handlers: {
       GET: async ({ request }) => {
         const user = await getSessionUserFromHeaders(request.headers);
-        if (!user) return unauthorizedError();
-        if (user.role !== "client") return forbiddenError("Client portal only.");
+        if (!user) {
+          return unauthorizedError();
+        }
+        if (user.role !== "client") {
+          return forbiddenError("Client portal only.");
+        }
         const team = await listPortalTeam(user);
         return Response.json(team);
       },
 
       POST: async ({ request }) => {
         const auth = await requireMutationSessionRequest(request);
-        if (auth.error) return auth.error;
-        if (auth.user.role !== "client") return forbiddenError("Client portal only.");
+        if (auth.error) {
+          return auth.error;
+        }
+        if (auth.user.role !== "client") {
+          return forbiddenError("Client portal only.");
+        }
 
         const parsed = await parseJsonBody(request, portalInviteSchema);
-        if (!parsed.ok) return parsed.error;
+        if (!parsed.ok) {
+          return parsed.error;
+        }
 
         // Get this client's clientId
         const team = await listPortalTeam(auth.user);
-        if (!team.clientId) return forbiddenError("No client linked to your account.");
+        if (!team.clientId) {
+          return forbiddenError("No client linked to your account.");
+        }
 
         const client = await getClientById(team.clientId);
-        if (!client) return internalServerError("Client not found.");
+        if (!client) {
+          return internalServerError("Client not found.");
+        }
 
         const token = crypto.randomUUID();
         const inviteId = crypto.randomUUID();
@@ -53,7 +67,9 @@ export const Route = createFileRoute("/api/portal/team")({
           token,
         });
 
-        if (!invite) return internalServerError("Invite could not be created.");
+        if (!invite) {
+          return internalServerError("Invite could not be created.");
+        }
 
         const inviteUrl = new URL(`/invite/${token}`, request.url);
 

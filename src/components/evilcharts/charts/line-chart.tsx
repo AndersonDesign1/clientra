@@ -130,6 +130,8 @@ type EvilLineChartPropsWithCallback<
 > = EvilLineChartProps<TData, TConfig> &
   (EvilLineChartClickable | EvilLineChartNotClickable);
 
+const EMPTY_GLOWING_LINES: any[] = [];
+
 export function EvilLineChart<
   TData extends Record<string, unknown>,
   TConfig extends Record<string, ChartConfig[string]>,
@@ -160,7 +162,7 @@ export function EvilLineChart<
   isClickable = false,
   isLoading = false,
   loadingPoints,
-  glowingLines = [],
+  glowingLines = EMPTY_GLOWING_LINES,
   showBrush = false,
   brushHeight,
   brushFormatLabel,

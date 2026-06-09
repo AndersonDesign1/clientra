@@ -119,7 +119,10 @@ export const invites = sqliteTable("invites", {
   revokedAt: integer("revoked_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   // Client-initiated colleague invite fields
-  initiatedByClientId: text("initiated_by_client_id").references(() => clients.id, { onDelete: "set null" }),
+  initiatedByClientId: text("initiated_by_client_id").references(
+    () => clients.id,
+    { onDelete: "set null" }
+  ),
   adminApprovedAt: integer("admin_approved_at", { mode: "timestamp" }),
 });
 
@@ -230,7 +233,9 @@ export const statusChangeRequests = sqliteTable("status_change_requests", {
   })
     .notNull()
     .default("pending"),
-  reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewedBy: text("reviewed_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
   reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });

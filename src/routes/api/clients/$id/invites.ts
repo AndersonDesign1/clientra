@@ -14,7 +14,9 @@ function serializePendingInvite(
     expiresAt: invite.expiresAt.toISOString(),
     id: invite.id,
     initiatedByClientId: invite.initiatedByClientId,
-    adminApprovedAt: invite.adminApprovedAt ? invite.adminApprovedAt.toISOString() : null,
+    adminApprovedAt: invite.adminApprovedAt
+      ? invite.adminApprovedAt.toISOString()
+      : null,
   };
 }
 

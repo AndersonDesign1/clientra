@@ -4,6 +4,40 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PortalShell } from "@/components/layout/portal-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const CLIENTS_CARD_SKELETONS = [
+  "client-s-1",
+  "client-s-2",
+  "client-s-3",
+  "client-s-4",
+  "client-s-5",
+  "client-s-6",
+];
+
+const CLIENT_DETAIL_DOSSIER_ITEMS = [
+  "dossier-s-1",
+  "dossier-s-2",
+  "dossier-s-3",
+  "dossier-s-4",
+  "dossier-s-5",
+  "dossier-s-6",
+];
+const CLIENT_DETAIL_PROJECT_SKELETONS = ["project-s-1", "project-s-2"];
+const CLIENT_DETAIL_INVITE_SKELETONS = ["invite-s-1", "invite-s-2"];
+
+const PROJECT_DETAIL_MILESTONES_SKELETONS = ["milestone-s-1", "milestone-s-2"];
+const PROJECT_DETAIL_COMMENT_SKELETONS = ["comment-s-1", "comment-s-2", "comment-s-3"];
+const PROJECT_DETAIL_FILE_SKELETONS = ["file-s-1", "file-s-2"];
+const PROJECT_DETAIL_UPDATE_SKELETONS = ["update-s-1", "update-s-2"];
+
+const PORTAL_HOME_CARD_SKELETONS = ["active-s-1", "active-s-2"];
+const PORTAL_PROJECTS_CARD_SKELETONS = ["proj-s-1", "proj-s-2", "proj-s-3"];
+
+const PORTAL_PROJECT_DETAIL_MILESTONES_SKELETONS = ["milestone-s-1", "milestone-s-2"];
+const PORTAL_PROJECT_DETAIL_COMMENT_SKELETONS = ["comment-s-1", "comment-s-2"];
+const PORTAL_PROJECT_DETAIL_FILE_SKELETONS = ["file-s-1", "file-s-2"];
+const PORTAL_PROJECT_DETAIL_UPDATE_SKELETONS = ["update-s-1", "update-s-2"];
+
+
 interface PendingShellProps {
   children: ReactNode;
   testId: string;
@@ -257,15 +291,6 @@ export function UsersPendingPage() {
 }
 
 export function ClientsPendingPage() {
-  const cardSkeletons = [
-    "client-s-1",
-    "client-s-2",
-    "client-s-3",
-    "client-s-4",
-    "client-s-5",
-    "client-s-6",
-  ];
-
   return (
     <AdminPendingShell testId="clients-route-pending">
       <PageHeader
@@ -279,7 +304,7 @@ export function ClientsPendingPage() {
         title="Clients"
       />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {cardSkeletons.map((id) => (
+        {CLIENTS_CARD_SKELETONS.map((id) => (
           <div
             className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/40 bg-card p-5"
             key={id}
@@ -320,17 +345,6 @@ export function ClientsPendingPage() {
 }
 
 export function ClientDetailPendingPage() {
-  const dossierItems = [
-    "dossier-s-1",
-    "dossier-s-2",
-    "dossier-s-3",
-    "dossier-s-4",
-    "dossier-s-5",
-    "dossier-s-6",
-  ];
-  const projectSkeletons = ["project-s-1", "project-s-2"];
-  const inviteSkeletons = ["invite-s-1", "invite-s-2"];
-
   return (
     <AdminPendingShell testId="client-detail-route-pending">
       <PageHeader
@@ -353,7 +367,7 @@ export function ClientDetailPendingPage() {
             Client Record
           </h2>
           <div className="space-y-3">
-            {dossierItems.map((id) => (
+            {CLIENT_DETAIL_DOSSIER_ITEMS.map((id) => (
               <div className="space-y-1" key={id}>
                 <Skeleton className="h-3 w-12" />
                 <Skeleton className="h-4 w-5/6" />
@@ -370,7 +384,7 @@ export function ClientDetailPendingPage() {
               Linked Projects
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {projectSkeletons.map((id) => (
+              {CLIENT_DETAIL_PROJECT_SKELETONS.map((id) => (
                 <div
                   className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card/30 p-4.5"
                   key={id}
@@ -406,7 +420,7 @@ export function ClientDetailPendingPage() {
             </div>
 
             <div className="divide-y divide-border/60 border-border/60 border-t">
-              {inviteSkeletons.map((id) => (
+              {CLIENT_DETAIL_INVITE_SKELETONS.map((id) => (
                 <div
                   className="grid items-center gap-2 py-3 text-xs sm:grid-cols-[minmax(0,1fr)_6rem_8rem_8rem_9rem]"
                   key={id}
@@ -477,11 +491,6 @@ export function ProjectsPendingPage() {
 }
 
 export function ProjectDetailPendingPage() {
-  const milestonesSkeletons = ["milestone-s-1", "milestone-s-2"];
-  const commentSkeletons = ["comment-s-1", "comment-s-2", "comment-s-3"];
-  const fileSkeletons = ["file-s-1", "file-s-2"];
-  const updateSkeletons = ["update-s-1", "update-s-2"];
-
   return (
     <AdminPendingShell testId="project-detail-route-pending">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -524,7 +533,7 @@ export function ProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-48" />
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {milestonesSkeletons.map((id) => (
+              {PROJECT_DETAIL_MILESTONES_SKELETONS.map((id) => (
                 <div
                   className="space-y-3 rounded-xl border border-border/40 bg-card p-4.5"
                   key={id}
@@ -551,7 +560,7 @@ export function ProjectDetailPendingPage() {
                   <Skeleton className="h-8 w-28" />
                 </div>
                 <div className="space-y-4">
-                  {commentSkeletons.map((id) => (
+                  {PROJECT_DETAIL_COMMENT_SKELETONS.map((id) => (
                     <div
                       className="flex items-start gap-3.5 border-border/40 border-b py-4 last:border-0"
                       key={id}
@@ -641,7 +650,7 @@ export function ProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-40" />
             </div>
             <div className="space-y-2">
-              {fileSkeletons.map((id) => (
+              {PROJECT_DETAIL_FILE_SKELETONS.map((id) => (
                 <div
                   className="flex items-center justify-between border-border/40 border-b py-2 last:border-0"
                   key={id}
@@ -663,7 +672,7 @@ export function ProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-36" />
             </div>
             <div className="space-y-3">
-              {updateSkeletons.map((id) => (
+              {PROJECT_DETAIL_UPDATE_SKELETONS.map((id) => (
                 <div
                   className="flex items-start gap-3 border-border/40 border-b py-2 last:border-0"
                   key={id}
@@ -684,8 +693,6 @@ export function ProjectDetailPendingPage() {
 }
 
 export function PortalHomePendingPage() {
-  const cardSkeletons = ["active-s-1", "active-s-2"];
-
   return (
     <PortalPendingShell testId="portal-home-route-pending">
       <PageHeader
@@ -724,7 +731,7 @@ export function PortalHomePendingPage() {
           <Skeleton className="h-6 w-28" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          {cardSkeletons.map((id) => (
+          {PORTAL_HOME_CARD_SKELETONS.map((id) => (
             <div
               className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-4.5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]"
               key={id}
@@ -754,7 +761,6 @@ export function PortalHomePendingPage() {
 }
 
 export function PortalProjectsPendingPage() {
-  const cardSkeletons = ["proj-s-1", "proj-s-2", "proj-s-3"];
   return (
     <PortalPendingShell testId="portal-projects-route-pending">
       <PageHeader
@@ -764,7 +770,7 @@ export function PortalProjectsPendingPage() {
       <div className="space-y-4">
         <Skeleton className="h-5 w-32" />
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {cardSkeletons.map((id) => (
+          {PORTAL_PROJECTS_CARD_SKELETONS.map((id) => (
             <div
               className="flex flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-4.5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]"
               key={id}
@@ -794,11 +800,6 @@ export function PortalProjectsPendingPage() {
 }
 
 export function PortalProjectDetailPendingPage() {
-  const milestonesSkeletons = ["milestone-s-1", "milestone-s-2"];
-  const commentSkeletons = ["comment-s-1", "comment-s-2"];
-  const fileSkeletons = ["file-s-1", "file-s-2"];
-  const updateSkeletons = ["update-s-1", "update-s-2"];
-
   return (
     <PortalPendingShell testId="portal-project-detail-route-pending">
       <div className="space-y-2">
@@ -832,7 +833,7 @@ export function PortalProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-48" />
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              {milestonesSkeletons.map((id) => (
+              {PORTAL_PROJECT_DETAIL_MILESTONES_SKELETONS.map((id) => (
                 <div
                   className="space-y-3 rounded-xl border border-border/40 bg-card p-4.5"
                   key={id}
@@ -859,7 +860,7 @@ export function PortalProjectDetailPendingPage() {
                   <Skeleton className="h-8 w-28" />
                 </div>
                 <div className="space-y-4">
-                  {commentSkeletons.map((id) => (
+                  {PORTAL_PROJECT_DETAIL_COMMENT_SKELETONS.map((id) => (
                     <div
                       className="flex items-start gap-3.5 border-border/40 border-b py-4 last:border-0"
                       key={id}
@@ -933,7 +934,7 @@ export function PortalProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-40" />
             </div>
             <div className="space-y-2">
-              {fileSkeletons.map((id) => (
+              {PORTAL_PROJECT_DETAIL_FILE_SKELETONS.map((id) => (
                 <div
                   className="flex items-center justify-between border-border/40 border-b py-2 last:border-0"
                   key={id}
@@ -955,7 +956,7 @@ export function PortalProjectDetailPendingPage() {
               <Skeleton className="h-3.5 w-36" />
             </div>
             <div className="space-y-3">
-              {updateSkeletons.map((id) => (
+              {PORTAL_PROJECT_DETAIL_UPDATE_SKELETONS.map((id) => (
                 <div
                   className="flex items-start gap-3 border-border/40 border-b py-2 last:border-0"
                   key={id}

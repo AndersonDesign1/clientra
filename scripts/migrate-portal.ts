@@ -5,8 +5,14 @@ let hadError = false;
 
 // Add new columns to invites table (ignore if already exist)
 for (const [col, ddl] of [
-  ["initiated_by_client_id", "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id) ON DELETE SET NULL"],
-  ["admin_approved_at", "ALTER TABLE invites ADD COLUMN admin_approved_at INTEGER"],
+  [
+    "initiated_by_client_id",
+    "ALTER TABLE invites ADD COLUMN initiated_by_client_id TEXT REFERENCES clients(id) ON DELETE SET NULL",
+  ],
+  [
+    "admin_approved_at",
+    "ALTER TABLE invites ADD COLUMN admin_approved_at INTEGER",
+  ],
 ] as const) {
   try {
     await db.run(sql.raw(ddl));
@@ -28,7 +34,8 @@ if (hadError) {
 
 // Create status_change_requests table
 try {
-  await db.run(sql.raw(`
+  await db.run(
+    sql.raw(`
     CREATE TABLE IF NOT EXISTS status_change_requests (
       id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -40,7 +47,8 @@ try {
       reviewed_at INTEGER,
       created_at INTEGER NOT NULL
     )
-  `));
+  `)
+  );
   console.log("✓ Created status_change_requests table");
 } catch (e: unknown) {
   console.error("status_change_requests error:", e);

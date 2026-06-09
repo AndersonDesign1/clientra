@@ -41,6 +41,7 @@ import {
   getProjectStatusData,
   parseDateOnlyLocal,
 } from "@/lib/insights";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
   beforeLoad: requireAdminSession,
@@ -55,6 +56,43 @@ export const Route = createFileRoute("/dashboard")({
   pendingComponent: DashboardPendingPage,
   component: DashboardPage,
 });
+
+interface ChartCardProps {
+  center?: boolean;
+  children: React.ReactNode;
+  className?: string;
+  delayMs?: number;
+  title: string;
+}
+
+function ChartCard({
+  title,
+  delayMs = 150,
+  className,
+  center = true,
+  children,
+}: ChartCardProps) {
+  return (
+    <div
+      className={cn(
+        "group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]",
+        className
+      )}
+      style={{ animationDelay: `${delayMs}ms` }}
+    >
+      <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
+        {title}
+      </div>
+      {center ? (
+        <div className="flex w-full flex-1 items-center justify-center">
+          {children}
+        </div>
+      ) : (
+        <div className="flex-1">{children}</div>
+      )}
+    </div>
+  );
+}
 
 function DashboardPage() {
   const activityQuery = useDashboardActivityData();
@@ -141,77 +179,41 @@ function DashboardPage() {
       >
         {/* Row 1: Project Status + Activity Sankey */}
         <div className="grid gap-4 md:grid-cols-3">
-          <div
-            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
-            style={{ animationDelay: "150ms" }}
+          <ChartCard delayMs={150} title="Project Status">
+            <ProjectStatusPieChart
+              data={getProjectStatusData(projects)}
+              isLoading={isLoading}
+            />
+          </ChartCard>
+          <ChartCard
+            className="md:col-span-2"
+            delayMs={200}
+            title="Activity Flow"
           >
-            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-              Project Status
-            </div>
-            <div className="flex w-full flex-1 items-center justify-center">
-              <ProjectStatusPieChart
-                data={getProjectStatusData(projects)}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
-          <div
-            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)] md:col-span-2"
-            style={{ animationDelay: "200ms" }}
-          >
-            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-              Activity Flow
-            </div>
-            <div className="flex w-full flex-1 items-center justify-center">
-              <ActivitySankeyChart
-                data={getActivitySankeyData(activity)}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
+            <ActivitySankeyChart
+              data={getActivitySankeyData(activity)}
+              isLoading={isLoading}
+            />
+          </ChartCard>
         </div>
 
         {/* Row 2: Deadlines + Budget + Recent Activity */}
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div
-            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
-            style={{ animationDelay: "250ms" }}
-          >
-            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-              Deadlines
-            </div>
-            <div className="flex w-full flex-1 items-center justify-center">
-              <DeadlineAreaChart
-                data={getDeadlineData(projects)}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
-          <div
-            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
-            style={{ animationDelay: "300ms" }}
-          >
-            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-              Budget by Status
-            </div>
-            <div className="flex w-full flex-1 items-center justify-center">
-              <BudgetComposedChart
-                data={getBudgetByStatusData(projects)}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
-          <div
-            className="group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
-            style={{ animationDelay: "350ms" }}
-          >
-            <div className="pb-3 font-semibold text-muted-foreground/80 text-xs uppercase tracking-wider">
-              Recent activity
-            </div>
-            <div className="flex-1">
-              <CompactActivityList activity={activity} isLoading={isLoading} />
-            </div>
-          </div>
+          <ChartCard delayMs={250} title="Deadlines">
+            <DeadlineAreaChart
+              data={getDeadlineData(projects)}
+              isLoading={isLoading}
+            />
+          </ChartCard>
+          <ChartCard delayMs={300} title="Budget by Status">
+            <BudgetComposedChart
+              data={getBudgetByStatusData(projects)}
+              isLoading={isLoading}
+            />
+          </ChartCard>
+          <ChartCard center={false} delayMs={350} title="Recent activity">
+            <CompactActivityList activity={activity} isLoading={isLoading} />
+          </ChartCard>
         </div>
       </DataSection>
     </AppShell>

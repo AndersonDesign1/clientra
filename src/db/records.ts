@@ -1,4 +1,15 @@
-import { and, desc, eq, gt, inArray, isNull, isNotNull, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
@@ -2494,9 +2505,7 @@ export async function updateWorkspaceSettings(
 
 // ── Status Change Requests ─────────────────────────────────────────────────
 
-import {
-  statusChangeRequests as statusChangeRequestsTable,
-} from "./schema";
+import { statusChangeRequests as statusChangeRequestsTable } from "./schema";
 
 export interface PublicStatusChangeRequest {
   approvalState: "pending" | "approved" | "rejected";
@@ -2505,8 +2514,8 @@ export interface PublicStatusChangeRequest {
   projectId: string;
   reason: string;
   requestedBy: string;
-  requesterName: string;
   requestedStatus: "planning" | "in_progress" | "completed";
+  requesterName: string;
   reviewedAt: string | null;
   reviewedBy: string | null;
 }
@@ -2549,11 +2558,16 @@ export async function createStatusChangeRequestRecord(input: {
   const [created] = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
     .from(statusChangeRequestsTable)
-    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .leftJoin(
+      usersTable,
+      eq(statusChangeRequestsTable.requestedBy, usersTable.id)
+    )
     .where(eq(statusChangeRequestsTable.id, input.id))
     .limit(1);
 
-  return created ? mapStatusChangeRequest(created.req, created.requesterName) : null;
+  return created
+    ? mapStatusChangeRequest(created.req, created.requesterName)
+    : null;
 }
 
 export async function getStatusChangeRequestById(id: string) {
@@ -2569,7 +2583,10 @@ export async function listStatusChangeRequestsForProject(projectId: string) {
   const rows = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
     .from(statusChangeRequestsTable)
-    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .leftJoin(
+      usersTable,
+      eq(statusChangeRequestsTable.requestedBy, usersTable.id)
+    )
     .where(eq(statusChangeRequestsTable.projectId, projectId))
     .orderBy(desc(statusChangeRequestsTable.createdAt));
 
@@ -2582,7 +2599,10 @@ export async function listAllPendingStatusChangeRequests() {
   const rows = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
     .from(statusChangeRequestsTable)
-    .leftJoin(usersTable, eq(statusChangeRequestsTable.requestedBy, usersTable.id))
+    .leftJoin(
+      usersTable,
+      eq(statusChangeRequestsTable.requestedBy, usersTable.id)
+    )
     .where(eq(statusChangeRequestsTable.approvalState, "pending"))
     .orderBy(desc(statusChangeRequestsTable.createdAt));
 
@@ -2610,7 +2630,9 @@ export async function reviewStatusChangeRequestRecord(
       )
       .returning();
 
-    if (!updated) return null;
+    if (!updated) {
+      return null;
+    }
 
     // If approved, update the project status
     if (approvalState === "approved") {
@@ -2620,13 +2642,16 @@ export async function reviewStatusChangeRequestRecord(
         .where(eq(projectsTable.id, updated.projectId))
         .limit(1);
 
-      const isValidTransition = project && project.status !== updated.requestedStatus;
+      const isValidTransition =
+        project && project.status !== updated.requestedStatus;
 
-      if (!project || !isValidTransition) {
+      if (!(project && isValidTransition)) {
         console.error(
           `Status change approval failed: Project ${updated.projectId} missing or invalid transition to ${updated.requestedStatus}.`
         );
-        throw new Error(`Invalid status transition to ${updated.requestedStatus}`);
+        throw new Error(
+          `Invalid status transition to ${updated.requestedStatus}`
+        );
       }
 
       const updatedProjects = await tx
@@ -2639,7 +2664,7 @@ export async function reviewStatusChangeRequestRecord(
         console.error(
           `Status change approval failed: No project was updated for ID ${updated.projectId}.`
         );
-        throw new Error(`No project was updated.`);
+        throw new Error("No project was updated.");
       }
     }
 
@@ -2659,7 +2684,9 @@ export async function listPortalFilesForUser(user: SessionUser) {
   const projects = await listPortalProjectsForUser(user);
   const projectIds = projects.map((p) => p.id);
 
-  if (projectIds.length === 0) return [];
+  if (projectIds.length === 0) {
+    return [];
+  }
 
   const rows = await db
     .select({
@@ -2685,13 +2712,19 @@ export async function listPortalActivityForUser(user: SessionUser) {
   const projects = await listPortalProjectsForUser(user);
   const projectIds = projects.map((p) => p.id);
 
-  if (projectIds.length === 0) return [];
+  if (projectIds.length === 0) {
+    return [];
+  }
 
   const projectTitles = new Map(projects.map((p) => [p.id, p.title]));
 
   const [notes, updates, files] = await Promise.all([
     db
-      .select({ authorName: usersTable.name, authorRole: usersTable.role, note: projectNotesTable })
+      .select({
+        authorName: usersTable.name,
+        authorRole: usersTable.role,
+        note: projectNotesTable,
+      })
       .from(projectNotesTable)
       .leftJoin(usersTable, eq(projectNotesTable.userId, usersTable.id))
       .where(inArray(projectNotesTable.projectId, projectIds))
@@ -2714,9 +2747,24 @@ export async function listPortalActivityForUser(user: SessionUser) {
   ]);
 
   type ActivityItem =
-    | { type: "comment"; createdAt: string; data: ReturnType<typeof mapProjectComment>; projectTitle: string }
-    | { type: "update"; createdAt: string; data: ReturnType<typeof mapProjectUpdate>; projectTitle: string }
-    | { type: "file"; createdAt: string; data: ReturnType<typeof mapProjectFile>; projectTitle: string };
+    | {
+        type: "comment";
+        createdAt: string;
+        data: ReturnType<typeof mapProjectComment>;
+        projectTitle: string;
+      }
+    | {
+        type: "update";
+        createdAt: string;
+        data: ReturnType<typeof mapProjectUpdate>;
+        projectTitle: string;
+      }
+    | {
+        type: "file";
+        createdAt: string;
+        data: ReturnType<typeof mapProjectFile>;
+        projectTitle: string;
+      };
 
   const items: ActivityItem[] = [
     ...notes.map(({ note, authorName, authorRole }) => {
@@ -2793,7 +2841,9 @@ export async function listPortalTeam(user: SessionUser) {
     .where(eq(clientUsersTable.userId, user.id))
     .limit(1);
 
-  if (!clientUser) return { clientId: null, members: [], pendingInvites: [] };
+  if (!clientUser) {
+    return { clientId: null, members: [], pendingInvites: [] };
+  }
 
   const clientId = clientUser.client.id;
 
@@ -2838,4 +2888,3 @@ export async function listPortalTeam(user: SessionUser) {
     })),
   };
 }
-

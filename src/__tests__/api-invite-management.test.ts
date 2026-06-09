@@ -21,18 +21,18 @@ vi.mock("@/server/email/notifications", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  approveInviteRecord,
   createInviteRecord,
   getActiveInviteById,
   getClientById,
   getInviteRecordById,
   refreshInviteExpiration,
   revokeInviteRecord,
-  approveInviteRecord,
 } from "@/db/records";
 import { Route as InvitesRoute } from "@/routes/api/invites";
+import { Route as ApproveInviteRoute } from "@/routes/api/invites/$id/approve";
 import { Route as ResendInviteRoute } from "@/routes/api/invites/$id/resend";
 import { Route as RevokeInviteRoute } from "@/routes/api/invites/$id/revoke";
-import { Route as ApproveInviteRoute } from "@/routes/api/invites/$id/approve";
 import { sendInviteEmail } from "@/server/email/notifications";
 
 const inviteHandlers = InvitesRoute.options.server?.handlers as {
