@@ -64,7 +64,12 @@ export function MutationErrorBanner({
     return null;
   }
   return (
-    <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-sm">
+    <p
+      aria-atomic="true"
+      aria-live="assertive"
+      className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-sm"
+      role="alert"
+    >
       {error.message}
     </p>
   );
