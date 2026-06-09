@@ -5,10 +5,12 @@ import {
 } from "@hugeicons/core-free-icons";
 import { type FormEvent, useState } from "react";
 import { UnifiedActivityList } from "@/components/common/activity-list";
+import { PanelSection } from "@/components/common/panel-section";
 import {
   EmptyPanel,
   ErrorPanel,
   LoadingPanel,
+  MutationErrorBanner,
 } from "@/components/common/state-panel";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +46,7 @@ import {
   useProjectMilestonesData,
   useUpdateProjectMilestoneMutation,
 } from "@/lib/api";
+import { optionalString } from "@/lib/utils";
 
 const MILESTONE_STATUS_OPTIONS = [
   { label: "To do", value: "todo" },
@@ -73,11 +76,6 @@ function toMilestonePayload(
     status: state.status,
     title: state.title.trim(),
   };
-}
-
-function optionalString(value: string) {
-  const trimmed = value.trim();
-  return trimmed ? trimmed : undefined;
 }
 
 export function formatMilestoneStatus(status: ProjectMilestoneStatus) {
@@ -335,6 +333,17 @@ function ProjectMilestoneForm({
   );
 }
 
+function useCrudDialogs<T>() {
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<T | null>(null);
+  return {
+    isAddOpen,
+    setIsAddOpen,
+    editingItem,
+    setEditingItem,
+  };
+}
+
 export function ProjectMilestonesPanel({
   canManage,
   projectId,
@@ -346,9 +355,12 @@ export function ProjectMilestonesPanel({
   const createMilestone = useCreateProjectMilestoneMutation();
   const updateMilestone = useUpdateProjectMilestoneMutation();
   const deleteMilestone = useDeleteProjectMilestoneMutation();
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [editingMilestone, setEditingMilestone] =
-    useState<ProjectMilestone | null>(null);
+  const {
+    isAddOpen,
+    setIsAddOpen,
+    editingItem: editingMilestone,
+    setEditingItem: setEditingMilestone,
+  } = useCrudDialogs<ProjectMilestone>();
 
   if (milestonesQuery.isLoading && !milestonesQuery.data) {
     return (
@@ -368,17 +380,9 @@ export function ProjectMilestonesPanel({
   const milestones = milestonesQuery.data ?? [];
 
   return (
-    <section className="space-y-6 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
-        <div>
-          <h2 className="font-semibold text-foreground text-lg">
-            Project Milestones
-          </h2>
-          <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
-            Track key deliverables and deadlines for maximum transparency.
-          </p>
-        </div>
-        {canManage && (
+    <PanelSection
+      action={
+        canManage && (
           <Button
             className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => setIsAddOpen(true)}
@@ -386,9 +390,11 @@ export function ProjectMilestonesPanel({
           >
             Add Milestone
           </Button>
-        )}
-      </div>
-
+        )
+      }
+      description="Track key deliverables and deadlines for maximum transparency."
+      title="Project Milestones"
+    >
       {/* Add Milestone Dialog */}
       {canManage && (
         <Dialog onOpenChange={setIsAddOpen} open={isAddOpen}>
@@ -462,11 +468,7 @@ export function ProjectMilestonesPanel({
         }}
         onEdit={setEditingMilestone}
       />
-      {deleteMilestone.error ? (
-        <p className="rounded-lg border border-rose-200/50 bg-rose-50/10 p-3 text-rose-700 text-sm">
-          {deleteMilestone.error.message}
-        </p>
-      ) : null}
-    </section>
+      <MutationErrorBanner error={deleteMilestone.error} />
+    </PanelSection>
   );
 }

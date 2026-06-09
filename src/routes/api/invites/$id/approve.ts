@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  approveInviteRecord,
-  getClientById,
-} from "@/db/records";
+import { approveInviteRecord, getClientById } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
   notFoundError,
@@ -23,7 +20,9 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
         const approvedInvite = await approveInviteRecord(id);
 
         if (!approvedInvite) {
-          return notFoundError("That pending invite could not be found or approved.");
+          return notFoundError(
+            "That pending invite could not be found or approved."
+          );
         }
 
         const client = await getClientById(approvedInvite.clientId);
@@ -32,7 +31,10 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
           return notFoundError("The invited client could not be found.");
         }
 
-        const inviteUrl = new URL(`/invite/${approvedInvite.token}`, request.url);
+        const inviteUrl = new URL(
+          `/invite/${approvedInvite.token}`,
+          request.url
+        );
 
         let emailSent = true;
         try {
@@ -62,7 +64,8 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
           email: approvedInvite.email,
           expiresAt: approvedInvite.expiresAt.toISOString(),
           id: approvedInvite.id,
-          adminApprovedAt: approvedInvite.adminApprovedAt?.toISOString() ?? null,
+          adminApprovedAt:
+            approvedInvite.adminApprovedAt?.toISOString() ?? null,
           initiatedByClientId: approvedInvite.initiatedByClientId,
           emailSent,
         });

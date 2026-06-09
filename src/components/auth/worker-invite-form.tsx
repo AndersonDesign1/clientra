@@ -22,6 +22,11 @@ interface InvitationData {
   role: string;
 }
 
+const handleSignOut = async () => {
+  await authClient.signOut();
+  window.location.reload();
+};
+
 export function WorkerInviteForm({ token }: { token: string }) {
   const router = useRouter();
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
@@ -85,10 +90,7 @@ export function WorkerInviteForm({ token }: { token: string }) {
     }
   };
 
-  const handleSignOut = async () => {
-    await authClient.signOut();
-    window.location.reload();
-  };
+
 
   if (loading) {
     return (

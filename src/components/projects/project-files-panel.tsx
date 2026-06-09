@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Delete02Icon,
   Download01Icon,
@@ -12,10 +10,12 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
+import { PanelSection } from "@/components/common/panel-section";
 import {
   EmptyPanel,
   ErrorPanel,
   LoadingPanel,
+  MutationErrorBanner,
 } from "@/components/common/state-panel";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,15 +83,23 @@ function getUploadValidationError(files: File[]) {
   return null;
 }
 
-function getFileIcon(mimeType: string, fileName: string) {
+function getFileTypeInfo(mimeType: string, fileName: string) {
   const name = fileName.toLowerCase();
   const mime = mimeType.toLowerCase();
 
   if (mime.startsWith("image/")) {
-    return FileImageIcon;
+    return {
+      icon: FileImageIcon,
+      colorStyles:
+        "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900",
+    };
   }
   if (mime === "application/pdf" || name.endsWith(".pdf")) {
-    return Pdf01Icon;
+    return {
+      icon: Pdf01Icon,
+      colorStyles:
+        "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900",
+    };
   }
   if (
     mime.includes("spreadsheet") ||
@@ -101,32 +109,17 @@ function getFileIcon(mimeType: string, fileName: string) {
     name.endsWith(".xls") ||
     name.endsWith(".xlsx")
   ) {
-    return FileChartColumnIcon;
+    return {
+      icon: FileChartColumnIcon,
+      colorStyles:
+        "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900",
+    };
   }
-  return FileEmpty01Icon;
-}
-
-function getFileIconColor(mimeType: string, fileName: string) {
-  const name = fileName.toLowerCase();
-  const mime = mimeType.toLowerCase();
-
-  if (mime.startsWith("image/")) {
-    return "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900";
-  }
-  if (mime === "application/pdf" || name.endsWith(".pdf")) {
-    return "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900";
-  }
-  if (
-    mime.includes("spreadsheet") ||
-    mime.includes("csv") ||
-    mime.includes("excel") ||
-    name.endsWith(".csv") ||
-    name.endsWith(".xls") ||
-    name.endsWith(".xlsx")
-  ) {
-    return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900";
-  }
-  return "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900";
+  return {
+    icon: FileEmpty01Icon,
+    colorStyles:
+      "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900",
+  };
 }
 
 interface ProjectFilesPanelProps {
@@ -218,19 +211,10 @@ export function ProjectFilesPanel({
     Boolean(filesQuery.error && visibleFiles.length === 0);
 
   return (
-    <section className="space-y-5 rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-      {/* Panel Header */}
-      <div className="flex flex-col gap-4 border-border/40 border-b pb-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="animate-slide-up-fade font-semibold text-base text-foreground">
-            Project Files
-          </h2>
-          <p className="mt-1 animate-slide-up-fade text-muted-foreground text-xs leading-relaxed">
-            Share and retrieve assets, templates, or documents securely.
-          </p>
-        </div>
-      </div>
-
+    <PanelSection
+      description="Share and retrieve assets, templates, or documents securely."
+      title="Project Files"
+    >
       <input
         accept={fileInputAccept}
         className="hidden"
@@ -271,11 +255,9 @@ export function ProjectFilesPanel({
         </p>
       </button>
 
-      {mutationError ? (
-        <div className="animate-slide-up-fade rounded-lg border border-rose-200/50 bg-rose-50/10 p-2.5 text-rose-700 text-xs">
-          {mutationError}
-        </div>
-      ) : null}
+      <MutationErrorBanner
+        error={mutationError ? { message: mutationError } : null}
+      />
 
       {/* Loading & Error States */}
       {filesQuery.isLoading && visibleFiles.length === 0 ? (
@@ -316,8 +298,7 @@ export function ProjectFilesPanel({
             </thead>
             <tbody className="divide-y divide-border/15">
               {visibleFiles.map((file) => {
-                const IconComponent = getFileIcon(file.mimeType, file.fileName);
-                const colorStyles = getFileIconColor(
+                const { icon: IconComponent, colorStyles } = getFileTypeInfo(
                   file.mimeType,
                   file.fileName
                 );
@@ -389,6 +370,6 @@ export function ProjectFilesPanel({
           </table>
         </div>
       ) : null}
-    </section>
+    </PanelSection>
   );
 }

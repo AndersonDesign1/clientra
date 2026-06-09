@@ -49,7 +49,6 @@ import {
 } from "@/lib/project-slugs";
 import { cn } from "@/lib/utils";
 
-
 function extractErrorMessage(
   error: unknown,
   fallback = "Something went wrong."
@@ -164,78 +163,6 @@ function PrimarySuccessTeamWidget() {
   const users = usersQuery.data ?? [];
   const admins = users.filter((u) => u.role === "admin");
 
-  const renderContent = () => {
-    if (usersQuery.isLoading) {
-      return (
-        <div className="animate-pulse space-y-3 py-2">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-muted" />
-            <div className="flex-1 space-y-1.5">
-              <div className="h-3 w-24 rounded bg-muted" />
-              <div className="h-2 w-32 rounded bg-muted" />
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (admins.length === 0) {
-      return (
-        <p className="py-2 text-muted-foreground text-xs italic">
-          No success team members assigned.
-        </p>
-      );
-    }
-    return (
-      <div className="space-y-4 pt-1">
-        {admins.slice(0, 2).map((admin) => (
-          <div
-            className="group/item flex items-center justify-between gap-3 border-border/20 border-b pb-3 last:border-0 last:pb-0"
-            key={admin.id}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              {admin.image ? (
-                <img
-                  alt={admin.name}
-                  className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-primary/5"
-                  height={40}
-                  src={admin.image}
-                  width={40}
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-sm text-white shadow-sm">
-                  {admin.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")
-                    .toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0 space-y-0.5">
-                <h4 className="truncate font-bold text-foreground text-xs leading-none transition-colors duration-200 group-hover/item:text-primary">
-                  {admin.name}
-                </h4>
-                <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-                  Agency Expert
-                </span>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1">
-              <a
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
-                href={`mailto:${admin.email}`}
-                title="Send Email"
-              >
-                <HugeiconsIcon icon={Mail01Icon} size={14} />
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <div className="flex items-center justify-between border-border/40 border-b pb-3">
@@ -247,7 +174,69 @@ function PrimarySuccessTeamWidget() {
           icon={UserGroupIcon}
         />
       </div>
-      {renderContent()}
+      {usersQuery.isLoading ? (
+        <div className="animate-pulse space-y-3 py-2">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-muted" />
+            <div className="flex-1 space-y-1.5">
+              <div className="h-3 w-24 rounded bg-muted" />
+              <div className="h-2 w-32 rounded bg-muted" />
+            </div>
+          </div>
+        </div>
+      ) : admins.length === 0 ? (
+        <p className="py-2 text-muted-foreground text-xs italic">
+          No success team members assigned.
+        </p>
+      ) : (
+        <div className="space-y-4 pt-1">
+          {admins.slice(0, 2).map((admin) => (
+            <div
+              className="group/item flex items-center justify-between gap-3 border-border/20 border-b pb-3 last:border-0 last:pb-0"
+              key={admin.id}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                {admin.image ? (
+                  <img
+                    alt={admin.name}
+                    className="h-10 w-10 shrink-0 rounded-xl object-cover ring-2 ring-primary/5"
+                    height={40}
+                    src={admin.image}
+                    width={40}
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-800 font-bold text-sm text-white shadow-sm">
+                    {admin.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 space-y-0.5">
+                  <h4 className="truncate font-bold text-foreground text-xs leading-none transition-colors duration-200 group-hover/item:text-primary">
+                    {admin.name}
+                  </h4>
+                  <span className="block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                    Agency Expert
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1">
+                <a
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/50 bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
+                  href={`mailto:${admin.email}`}
+                  title="Send Email"
+                >
+                  <HugeiconsIcon icon={Mail01Icon} size={14} />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -682,8 +671,6 @@ function ProjectPortalHeader({
   );
 }
 
-
-
 const PROJECT_STATUSES: { value: ProjectStatusValue; label: string }[] = [
   { value: "planning", label: "Planning" },
   { value: "in_progress", label: "In Progress" },
@@ -691,9 +678,12 @@ const PROJECT_STATUSES: { value: ProjectStatusValue; label: string }[] = [
 ];
 
 const approvalColors: Record<string, string> = {
-  pending: "border-amber-200/60 bg-amber-50/50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-400",
-  approved: "border-emerald-200/60 bg-emerald-50/50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-400",
-  rejected: "border-rose-200/60 bg-rose-50/50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/20 dark:text-rose-400",
+  pending:
+    "border-amber-200/60 bg-amber-50/50 text-amber-600 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-400",
+  approved:
+    "border-emerald-200/60 bg-emerald-50/50 text-emerald-600 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-400",
+  rejected:
+    "border-rose-200/60 bg-rose-50/50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/20 dark:text-rose-400",
 };
 
 function StatusChangeRequestPanel({
@@ -705,7 +695,9 @@ function StatusChangeRequestPanel({
 }) {
   const requestsQuery = useStatusChangeRequestsData(projectId);
   const createMutation = useCreateStatusChangeRequestMutation();
-  const [requestedStatus, setRequestedStatus] = useState<ProjectStatusValue | "">("");
+  const [requestedStatus, setRequestedStatus] = useState<
+    ProjectStatusValue | ""
+  >("");
   const [reason, setReason] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState(false);
@@ -737,7 +729,9 @@ function StatusChangeRequestPanel({
       setReason("");
       setFormSuccess(true);
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Could not submit request.");
+      setFormError(
+        err instanceof Error ? err.message : "Could not submit request."
+      );
     }
   }
 
@@ -746,51 +740,70 @@ function StatusChangeRequestPanel({
       {/* Request Form */}
       <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
         <div className="mb-4 border-border/40 border-b pb-3">
-          <h2 className="font-semibold text-base text-foreground">Request Status Change</h2>
+          <h2 className="font-semibold text-base text-foreground">
+            Request Status Change
+          </h2>
           <p className="mt-0.5 text-muted-foreground text-xs leading-relaxed">
-            If the project needs to move to a different stage, submit a request. Our team will review and approve it.
+            If the project needs to move to a different stage, submit a request.
+            Our team will review and approve it.
           </p>
         </div>
 
         {hasPendingRequest ? (
           <div className="rounded-lg border border-amber-200/50 bg-amber-50/10 px-3 py-2.5 text-amber-700 text-xs dark:text-amber-400">
-            You already have a pending request. Please wait for it to be reviewed before submitting another.
+            You already have a pending request. Please wait for it to be
+            reviewed before submitting another.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-1.5">
-              <label className="font-semibold text-foreground text-xs" htmlFor="requested-status">
+              <label
+                className="font-semibold text-foreground text-xs"
+                htmlFor="requested-status"
+              >
                 Requested Status
               </label>
               <select
-                id="requested-status"
                 className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                id="requested-status"
+                onChange={(e) =>
+                  setRequestedStatus(e.target.value as ProjectStatusValue | "")
+                }
                 value={requestedStatus}
-                onChange={(e) => setRequestedStatus(e.target.value as ProjectStatusValue | "")}
               >
                 <option value="">Select new status…</option>
                 {PROJECT_STATUSES.map((s) => (
-                  <option key={s.value} value={s.value} disabled={s.value === currentStatus}>
-                    {s.label}{s.value === currentStatus ? " (current)" : ""}
+                  <option
+                    disabled={s.value === currentStatus}
+                    key={s.value}
+                    value={s.value}
+                  >
+                    {s.label}
+                    {s.value === currentStatus ? " (current)" : ""}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-semibold text-foreground text-xs" htmlFor="scr-reason">
+              <label
+                className="font-semibold text-foreground text-xs"
+                htmlFor="scr-reason"
+              >
                 Reason <span className="text-rose-500">*</span>
               </label>
               <textarea
-                id="scr-reason"
                 className="h-24 w-full resize-none rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="Explain why this status change is needed…"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                id="scr-reason"
                 maxLength={2000}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Explain why this status change is needed…"
                 required
+                value={reason}
               />
-              <p className="text-right text-[10px] text-muted-foreground">{reason.length}/2000</p>
+              <p className="text-right text-[10px] text-muted-foreground">
+                {reason.length}/2000
+              </p>
             </div>
 
             {formError && (
@@ -819,22 +832,28 @@ function StatusChangeRequestPanel({
       {/* Request History */}
       {requests.length > 0 && (
         <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-          <h3 className="mb-4 font-semibold text-sm text-foreground">Request History</h3>
+          <h3 className="mb-4 font-semibold text-foreground text-sm">
+            Request History
+          </h3>
           <div className="space-y-3">
             {requests.map((req) => (
               <div
-                key={req.id}
                 className="rounded-lg border border-border/30 bg-secondary/5 p-3.5"
+                key={req.id}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-foreground text-xs">
-                        → {PROJECT_STATUSES.find((s) => s.value === req.requestedStatus)?.label ?? req.requestedStatus}
+                        →{" "}
+                        {PROJECT_STATUSES.find(
+                          (s) => s.value === req.requestedStatus
+                        )?.label ?? req.requestedStatus}
                       </span>
                     </div>
-                    <p className="text-muted-foreground text-[10px]">
-                      {new Date(req.createdAt).toLocaleDateString()} · {req.requesterName}
+                    <p className="text-[10px] text-muted-foreground">
+                      {new Date(req.createdAt).toLocaleDateString()} ·{" "}
+                      {req.requesterName}
                     </p>
                   </div>
                   <span
@@ -864,7 +883,6 @@ function StatusChangeRequestPanel({
 }
 
 export function PortalProjectDetailPage({
-
   clientSlug,
   projectSlug,
 }: {
@@ -964,7 +982,9 @@ export function PortalProjectDetailPage({
                   )}
                   key={tab.id}
                   onClick={() =>
-                    setActiveTab(tab.id as "activity" | "milestones" | "files" | "status")
+                    setActiveTab(
+                      tab.id as "activity" | "milestones" | "files" | "status"
+                    )
                   }
                   type="button"
                 >
@@ -994,8 +1014,8 @@ export function PortalProjectDetailPage({
 
             {activeTab === "status" && (
               <StatusChangeRequestPanel
-                projectId={project.id}
                 currentStatus={project.status as ProjectStatusValue}
+                projectId={project.id}
               />
             )}
           </div>

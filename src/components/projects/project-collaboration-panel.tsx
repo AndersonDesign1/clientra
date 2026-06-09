@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { type FormEvent, useState } from "react";
 import { UnifiedActivityList } from "@/components/common/activity-list";
+import { PanelSection } from "@/components/common/panel-section";
 import {
   EmptyPanel,
   ErrorPanel,
@@ -220,16 +221,8 @@ export function ProjectCollaborationView({
     <div className="rounded-xl border border-border/40 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
       <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
         {/* Discussion Column */}
-        <section className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-border/40 border-b pb-4">
-            <div>
-              <h2 className="font-semibold text-base text-foreground">
-                Project Discussion
-              </h2>
-              <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-                Share updates, ask questions, or leave feedback.
-              </p>
-            </div>
+        <PanelSection
+          action={
             <Button
               className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => onAddOpenChange(true)}
@@ -237,8 +230,11 @@ export function ProjectCollaborationView({
             >
               Post Comment
             </Button>
-          </div>
-
+          }
+          description="Share updates, ask questions, or leave feedback."
+          title="Project Discussion"
+          variant="ghost"
+        >
           {/* Comment Creation Dialog */}
           <Dialog onOpenChange={onAddOpenChange} open={isAddOpen}>
             <DialogContent className="sm:max-w-lg">
@@ -325,19 +321,14 @@ export function ProjectCollaborationView({
               </div>
             )}
           </div>
-        </section>
+        </PanelSection>
 
         {/* Activity Timeline Column */}
-        <section className="space-y-5">
-          <div className="border-border/40 border-b pb-4">
-            <h2 className="font-semibold text-base text-foreground">
-              Activity Timeline
-            </h2>
-            <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-              Chronological feed of project events.
-            </p>
-          </div>
-
+        <PanelSection
+          description="Chronological feed of project events."
+          title="Activity Timeline"
+          variant="ghost"
+        >
           <UnifiedActivityList
             emptyState={
               <EmptyPanel
@@ -362,7 +353,7 @@ export function ProjectCollaborationView({
               </Button>
             </div>
           )}
-        </section>
+        </PanelSection>
       </div>
     </div>
   );

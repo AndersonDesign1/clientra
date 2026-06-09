@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import { PageHeader } from "@/components/common/product-ui";
 import { SettingsPendingPage } from "@/components/common/route-pending";
@@ -156,23 +156,31 @@ export function WorkspaceTab() {
     settings.supportEmail === DEFAULT_SUPPORT_EMAIL;
 
   // Sync local state when settings load
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Sync when defaults detection, user credentials, or server-side settings change
+  const workspaceNameVal = settings?.workspaceName;
+  const supportEmailVal = settings?.supportEmail;
+  const currentUserName = currentUser?.name;
+  const currentUserEmail = currentUser?.email;
+  const hasSettings = !!settings;
+  const hasUser = !!currentUser;
+
   useEffect(() => {
-    if (settings) {
-      if (isDefaultSettings && currentUser) {
-        setWorkspaceName(currentUser.name ?? "My Workspace");
-        setSupportEmail(currentUser.email ?? DEFAULT_SUPPORT_EMAIL);
+    if (hasSettings) {
+      if (isDefaultSettings && hasUser) {
+        setWorkspaceName(currentUserName ?? "My Workspace");
+        setSupportEmail(currentUserEmail ?? DEFAULT_SUPPORT_EMAIL);
       } else {
-        setWorkspaceName(settings.workspaceName);
-        setSupportEmail(settings.supportEmail);
+        setWorkspaceName(workspaceNameVal ?? "");
+        setSupportEmail(supportEmailVal ?? "");
       }
     }
   }, [
     isDefaultSettings,
-    currentUser?.name,
-    currentUser?.email,
-    settings?.workspaceName,
-    settings?.supportEmail,
+    hasSettings,
+    hasUser,
+    currentUserName,
+    currentUserEmail,
+    workspaceNameVal,
+    supportEmailVal,
   ]);
 
   async function handleSave() {
@@ -390,7 +398,7 @@ export function WorkspaceTab() {
             {saveStatus === "saving" ? "Saving..." : "Save Changes"}
           </Button>
           {saveStatus === "saved" && (
-            <span className="flex animate-bounce-short items-center gap-1 font-semibold text-emerald-600 text-xs">
+            <span className="flex animate-slide-up-fade items-center gap-1 font-semibold text-emerald-600 text-xs">
               <HugeiconsIcon icon={Tick02Icon} size={12} />
               Saved
             </span>
@@ -408,10 +416,12 @@ function FeaturesTab() {
   const updateMutation = useUpdateSettingsMutation();
   const settings = settingsQuery.data;
   const [optimisticSettings, setOptimisticSettings] = useState(settings);
+  const prevSettingsRef = useRef(settings);
 
-  useEffect(() => {
+  if (settings !== prevSettingsRef.current) {
+    prevSettingsRef.current = settings;
     setOptimisticSettings(settings);
-  }, [settings]);
+  }
 
   async function handleToggle(
     key: "allowSignups" | "enableNotifications" | "autoArchive"

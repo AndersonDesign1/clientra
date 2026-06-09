@@ -60,16 +60,16 @@ export function getBudgetByStatusData(projects: Project[]) {
 }
 
 export function getBudgetByClientData(projects: Project[], clients: Client[]) {
-  return clients
-    .map((client) => ({
-      budget: projects
-        .filter((project) => project.clientId === client.id)
-        .reduce((total, project) => total + project.budget, 0),
-      client: client.company,
-    }))
-    .filter((item) => item.budget > 0)
-    .sort((a, b) => b.budget - a.budget)
-    .slice(0, 6);
+  const result: { budget: number; client: string }[] = [];
+  for (const client of clients) {
+    const budget = projects
+      .filter((project) => project.clientId === client.id)
+      .reduce((total, project) => total + project.budget, 0);
+    if (budget > 0) {
+      result.push({ budget, client: client.company });
+    }
+  }
+  return result.sort((a, b) => b.budget - a.budget).slice(0, 6);
 }
 
 export function getDeadlineData(projects: Project[]) {
@@ -164,22 +164,25 @@ export function getActivitySankeyData(activity: DashboardActivityEvent[]) {
 export function getNextDeadline(projects: Project[]) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const todayTime = today.getTime();
 
-  return projects
-    .map((project) => {
-      const deadlineDate = parseDateOnlyLocal(project.deadline);
+  let nextProject: (Project & { deadlineTime: number }) | null = null;
 
-      return {
-        ...project,
-        deadlineTime: deadlineDate?.getTime() ?? Number.NaN,
-      };
-    })
-    .filter(
-      (project) =>
-        Number.isFinite(project.deadlineTime) &&
-        project.deadlineTime >= today.getTime()
-    )
-    .sort((a, b) => a.deadlineTime - b.deadlineTime)[0];
+  for (const project of projects) {
+    const deadlineDate = parseDateOnlyLocal(project.deadline);
+    if (!deadlineDate) {
+      continue;
+    }
+    const deadlineTime = deadlineDate.getTime();
+    if (
+      deadlineTime >= todayTime &&
+      (!nextProject || deadlineTime < nextProject.deadlineTime)
+    ) {
+      nextProject = { ...project, deadlineTime };
+    }
+  }
+
+  return nextProject ?? undefined;
 }
 
 export function getDeadlineLabel(value: string) {

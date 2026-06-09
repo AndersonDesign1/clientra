@@ -23,10 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   ensurePortalFilesData,
   type PortalFileWithProject,
+  type ProjectFile,
   portalFilesQueryOptions,
   usePortalFilesData,
   useProjectsData,
-  type ProjectFile,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useUploadThing } from "@/uploadthing/client";
@@ -38,35 +38,57 @@ export const Route = createFileRoute("/portal/files")({
 });
 
 function formatFileSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function getFileIcon(mimeType: string, fileName: string) {
   const name = fileName.toLowerCase();
   const mime = mimeType.toLowerCase();
-  if (mime.startsWith("image/")) return FileImageIcon;
-  if (mime === "application/pdf" || name.endsWith(".pdf")) return Pdf01Icon;
-  if (mime.includes("spreadsheet") || mime.includes("csv") || name.endsWith(".csv"))
+  if (mime.startsWith("image/")) {
+    return FileImageIcon;
+  }
+  if (mime === "application/pdf" || name.endsWith(".pdf")) {
+    return Pdf01Icon;
+  }
+  if (
+    mime.includes("spreadsheet") ||
+    mime.includes("csv") ||
+    name.endsWith(".csv")
+  ) {
     return FileChartColumnIcon;
+  }
   return FileEmpty01Icon;
 }
 
 function getFileIconColor(mimeType: string, fileName: string) {
   const name = fileName.toLowerCase();
   const mime = mimeType.toLowerCase();
-  if (mime.startsWith("image/"))
+  if (mime.startsWith("image/")) {
     return "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900";
-  if (mime === "application/pdf" || name.endsWith(".pdf"))
+  }
+  if (mime === "application/pdf" || name.endsWith(".pdf")) {
     return "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900";
-  if (mime.includes("spreadsheet") || mime.includes("csv") || name.endsWith(".csv"))
+  }
+  if (
+    mime.includes("spreadsheet") ||
+    mime.includes("csv") ||
+    name.endsWith(".csv")
+  ) {
     return "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900";
+  }
   return "text-teal-600 bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900";
 }
 
 function isProjectFile(value: unknown): value is ProjectFile {
-  if (!value || typeof value !== "object") return false;
+  if (!value || typeof value !== "object") {
+    return false;
+  }
   const c = value as Record<string, unknown>;
   return (
     typeof c.id === "string" &&
@@ -94,17 +116,25 @@ function PortalFilesPage() {
     onClientUploadComplete: (uploaded) => {
       const newFiles: PortalFileWithProject[] = [];
       const invalidFiles: string[] = [];
+      const projectMap = new Map(
+        projectsQuery.data?.map((p) => [p.id, p]) ?? []
+      );
       for (const entry of uploaded) {
         if (isProjectFile(entry.serverData)) {
-          const project = projectsQuery.data?.find(p => p.id === entry.serverData.projectId);
-          newFiles.push({ ...entry.serverData, projectTitle: project?.title ?? "Project" });
+          const project = projectMap.get(entry.serverData.projectId);
+          newFiles.push({
+            ...entry.serverData,
+            projectTitle: project?.title ?? "Project",
+          });
         } else {
           console.warn("Invalid project file uploaded:", entry);
           invalidFiles.push(entry.name || entry.key);
         }
       }
       if (invalidFiles.length > 0) {
-        setUploadError(`Failed validation for files: ${invalidFiles.join(", ")}`);
+        setUploadError(
+          `Failed validation for files: ${invalidFiles.join(", ")}`
+        );
       }
       queryClient.setQueryData<PortalFileWithProject[]>(
         portalFilesQueryOptions().queryKey,
@@ -117,21 +147,28 @@ function PortalFilesPage() {
 
   async function handleFileSelect(fileList: FileList | null) {
     const files = fileList ? Array.from(fileList) : [];
-    if (files.length === 0 || !uploadProjectId) return;
+    if (files.length === 0 || !uploadProjectId) {
+      return;
+    }
     setUploadError(null);
     try {
       await startUpload(files, { projectId: uploadProjectId });
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Upload failed.");
     } finally {
-      if (inputRef.current) inputRef.current.value = "";
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     }
   }
 
   const files = filesQuery.data ?? [];
 
   // Group files by project
-  const byProject = new Map<string, { title: string; files: PortalFileWithProject[] }>();
+  const byProject = new Map<
+    string,
+    { title: string; files: PortalFileWithProject[] }
+  >();
   for (const file of files) {
     if (!byProject.has(file.projectId)) {
       byProject.set(file.projectId, { title: file.projectTitle, files: [] });
@@ -144,8 +181,6 @@ function PortalFilesPage() {
   return (
     <PortalShell>
       <PageHeader
-        title="Files"
-        description="All shared files and assets across your projects."
         actions={
           <button
             className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-primary px-3 py-1.5 font-semibold text-primary-foreground text-xs shadow-sm transition-all hover:bg-primary/90 active:scale-95"
@@ -156,30 +191,38 @@ function PortalFilesPage() {
             Upload File
           </button>
         }
+        description="All shared files and assets across your projects."
+        title="Files"
       />
 
       {/* Upload Panel */}
       {showUpload && (
         <div className="mb-6 animate-slide-up-fade rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
-          <h3 className="mb-3 font-semibold text-sm text-foreground">Upload to a project</h3>
+          <h3 className="mb-3 font-semibold text-foreground text-sm">
+            Upload to a project
+          </h3>
           <div className="flex flex-wrap gap-3">
             <select
               className="flex-1 rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-              value={uploadProjectId}
               onChange={(e) => setUploadProjectId(e.target.value)}
+              value={uploadProjectId}
             >
               <option value="">Select a project…</option>
               {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.title}</option>
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
               ))}
             </select>
             <input
-              ref={inputRef}
-              type="file"
-              multiple
               accept="image/*,.pdf,.txt,.csv"
               className="hidden"
-              onChange={(e) => handleFileSelect(e.target.files).catch(() => undefined)}
+              multiple
+              onChange={(e) =>
+                handleFileSelect(e.target.files).catch(() => undefined)
+              }
+              ref={inputRef}
+              type="file"
             />
             <button
               className={cn(
@@ -201,20 +244,38 @@ function PortalFilesPage() {
         </div>
       )}
 
-      {filesQuery.isLoading && <LoadingPanel title="Loading files" description="Fetching your shared files…" />}
-      {!filesQuery.isLoading && filesQuery.error && <ErrorPanel description={filesQuery.error} />}
-      {!filesQuery.isLoading && !filesQuery.error && files.length === 0 && (
-        <EmptyPanel title="No files yet" description="Files shared on your projects will appear here." />
+      {filesQuery.isLoading && (
+        <LoadingPanel
+          description="Fetching your shared files…"
+          title="Loading files"
+        />
+      )}
+      {!filesQuery.isLoading && filesQuery.error && (
+        <ErrorPanel description={filesQuery.error} />
+      )}
+      {!(filesQuery.isLoading || filesQuery.error) && files.length === 0 && (
+        <EmptyPanel
+          description="Files shared on your projects will appear here."
+          title="No files yet"
+        />
       )}
 
       {files.length > 0 && (
         <div className="space-y-6">
           {Array.from(byProject.entries()).map(([projectId, group]) => (
-            <section key={projectId} className="animate-slide-up-fade">
+            <section className="animate-slide-up-fade" key={projectId}>
               <div className="mb-2 flex items-center gap-2">
-                <HugeiconsIcon icon={File01Icon} size={14} className="text-primary" />
-                <h2 className="font-bold text-xs text-foreground uppercase tracking-wider">{group.title}</h2>
-                <Badge variant="outline" className="text-[10px]">{group.files.length} files</Badge>
+                <HugeiconsIcon
+                  className="text-primary"
+                  icon={File01Icon}
+                  size={14}
+                />
+                <h2 className="font-bold text-foreground text-xs uppercase tracking-wider">
+                  {group.title}
+                </h2>
+                <Badge className="text-[10px]" variant="outline">
+                  {group.files.length} files
+                </Badge>
               </div>
               <div className="overflow-x-auto rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.015)]">
                 <table className="w-full border-collapse text-left text-xs">
@@ -230,22 +291,39 @@ function PortalFilesPage() {
                   <tbody className="divide-y divide-border/15">
                     {group.files.map((file) => {
                       const Icon = getFileIcon(file.mimeType, file.fileName);
-                      const color = getFileIconColor(file.mimeType, file.fileName);
+                      const color = getFileIconColor(
+                        file.mimeType,
+                        file.fileName
+                      );
                       return (
-                        <tr key={file.id} className="group transition-colors duration-150 hover:bg-secondary/10">
+                        <tr
+                          className="group transition-colors duration-150 hover:bg-secondary/10"
+                          key={file.id}
+                        >
                           <td className="px-4 py-2">
                             <div className="flex min-w-0 items-center gap-2.5">
-                              <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded border", color)}>
+                              <div
+                                className={cn(
+                                  "flex h-7 w-7 shrink-0 items-center justify-center rounded border",
+                                  color
+                                )}
+                              >
                                 <HugeiconsIcon icon={Icon} size={13} />
                               </div>
-                              <span className="max-w-[200px] truncate font-bold text-[#08361f] text-xs dark:text-foreground sm:max-w-[280px]">
+                              <span className="max-w-[200px] truncate font-bold text-[#08361f] text-xs sm:max-w-[280px] dark:text-foreground">
                                 {file.fileName}
                               </span>
                             </div>
                           </td>
-                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">{formatFileSize(file.fileSize)}</td>
-                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">{file.uploaderName}</td>
-                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">{new Date(file.createdAt).toLocaleDateString()}</td>
+                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
+                            {formatFileSize(file.fileSize)}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
+                            {file.uploaderName}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2 font-semibold text-muted-foreground text-xs">
+                            {new Date(file.createdAt).toLocaleDateString()}
+                          </td>
                           <td className="px-4 py-2 text-right">
                             <a
                               className="inline-flex h-7 items-center justify-center gap-1 rounded border border-border/60 bg-background px-2.5 font-bold text-[10px] text-foreground transition-all duration-200 hover:bg-secondary/40"

@@ -180,3 +180,16 @@ div[data-slot="sidebar"]:not(.fixed) {
 .animate-slide-up-fade {
   animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
