@@ -90,8 +90,6 @@ export function WorkerInviteForm({ token }: { token: string }) {
     }
   };
 
-
-
   if (loading) {
     return (
       <AuthShell

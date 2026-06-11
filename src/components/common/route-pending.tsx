@@ -25,18 +25,24 @@ const CLIENT_DETAIL_PROJECT_SKELETONS = ["project-s-1", "project-s-2"];
 const CLIENT_DETAIL_INVITE_SKELETONS = ["invite-s-1", "invite-s-2"];
 
 const PROJECT_DETAIL_MILESTONES_SKELETONS = ["milestone-s-1", "milestone-s-2"];
-const PROJECT_DETAIL_COMMENT_SKELETONS = ["comment-s-1", "comment-s-2", "comment-s-3"];
+const PROJECT_DETAIL_COMMENT_SKELETONS = [
+  "comment-s-1",
+  "comment-s-2",
+  "comment-s-3",
+];
 const PROJECT_DETAIL_FILE_SKELETONS = ["file-s-1", "file-s-2"];
 const PROJECT_DETAIL_UPDATE_SKELETONS = ["update-s-1", "update-s-2"];
 
 const PORTAL_HOME_CARD_SKELETONS = ["active-s-1", "active-s-2"];
 const PORTAL_PROJECTS_CARD_SKELETONS = ["proj-s-1", "proj-s-2", "proj-s-3"];
 
-const PORTAL_PROJECT_DETAIL_MILESTONES_SKELETONS = ["milestone-s-1", "milestone-s-2"];
+const PORTAL_PROJECT_DETAIL_MILESTONES_SKELETONS = [
+  "milestone-s-1",
+  "milestone-s-2",
+];
 const PORTAL_PROJECT_DETAIL_COMMENT_SKELETONS = ["comment-s-1", "comment-s-2"];
 const PORTAL_PROJECT_DETAIL_FILE_SKELETONS = ["file-s-1", "file-s-2"];
 const PORTAL_PROJECT_DETAIL_UPDATE_SKELETONS = ["update-s-1", "update-s-2"];
-
 
 interface PendingShellProps {
   children: ReactNode;

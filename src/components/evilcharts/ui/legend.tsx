@@ -82,13 +82,13 @@ function ChartLegendContent({
         if (isClickable) {
           return (
             <button
-              type="button"
               className={cn(
-                "flex items-center gap-1.5 transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground cursor-pointer text-left bg-transparent border-none p-0 font-sans text-sm",
+                "flex cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left font-sans text-sm transition-opacity [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
                 !isSelected && "opacity-30"
               )}
               key={key}
               onClick={handleSelect}
+              type="button"
             >
               {itemConfig?.icon && !hideIcon ? (
                 <itemConfig.icon />

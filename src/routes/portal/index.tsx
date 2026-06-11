@@ -101,7 +101,7 @@ function PortalHomePage() {
           />
           <DataSection className="mt-6" title="Project overview">
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+              <div className="min-w-0 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
                 <h3 className="mb-4 font-semibold text-foreground text-xs uppercase tracking-wider">
                   Status Distribution
                 </h3>
@@ -109,7 +109,7 @@ function PortalHomePage() {
                   data={getProjectStatusData(summary.activeProjects)}
                 />
               </div>
-              <div className="rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+              <div className="min-w-0 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
                 <h3 className="mb-4 font-semibold text-foreground text-xs uppercase tracking-wider">
                   Upcoming Deadlines
                 </h3>

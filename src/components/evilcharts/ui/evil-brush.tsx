@@ -9,7 +9,7 @@ import {
   useTransform,
 } from "motion/react";
 import * as React from "react";
-import { type ComponentProps, useCallback, useEffect } from "react";
+import { type ComponentProps, useCallback } from "react";
 import {
   Area,
   AreaChart,
@@ -250,9 +250,16 @@ function EvilBrush({
   const lastCommittedRef = React.useRef<EvilBrushRange>(internalRange);
 
   // Adjust range when totalPoints changes during render
-  if (totalPoints > 0 && (internalRange.startIndex > totalPoints - 1 || internalRange.endIndex > totalPoints - 1)) {
+  if (
+    totalPoints > 0 &&
+    (internalRange.startIndex > totalPoints - 1 ||
+      internalRange.endIndex > totalPoints - 1)
+  ) {
     const adjusted = {
-      startIndex: Math.min(internalRange.startIndex, Math.max(0, totalPoints - 1)),
+      startIndex: Math.min(
+        internalRange.startIndex,
+        Math.max(0, totalPoints - 1)
+      ),
       endIndex: Math.min(internalRange.endIndex, Math.max(0, totalPoints - 1)),
     };
     setInternalRange(adjusted);
@@ -320,7 +327,7 @@ function EvilBrush({
 
   // ── Drag ────────────────────────────────────────────────────────────────
 
-  const { isDragging, bind } = useBrushDrag({
+  const { bind } = useBrushDrag({
     range: internalRange,
     totalPoints,
     containerRef,
@@ -333,7 +340,11 @@ function EvilBrush({
   const prevStartRef = React.useRef(controlledStart);
   const prevEndRef = React.useRef(controlledEnd);
 
-  if (isControlled && (controlledStart !== prevStartRef.current || controlledEnd !== prevEndRef.current)) {
+  if (
+    isControlled &&
+    (controlledStart !== prevStartRef.current ||
+      controlledEnd !== prevEndRef.current)
+  ) {
     const clamped = clampRange({
       startIndex: controlledStart,
       endIndex: controlledEnd,

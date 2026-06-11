@@ -232,28 +232,29 @@ export function ActivityPieChart({
 
 // ── Activity Sankey Chart ────────────────────────────────────────────────────
 // Source nodes (activity types) get distinct brand colors
-const SANKEY_TYPE_COLORS: Record<string, { light: string[]; dark: string[] }> = {
-  Clients: {
-    light: ["#15803d"],
-    dark: ["#22c55e"],
-  },
-  Projects: {
-    light: ["#047857"],
-    dark: ["#10b981"],
-  },
-  Comments: {
-    light: ["#0284c7"],
-    dark: ["#38bdf8"],
-  },
-  Files: {
-    light: ["#d97706"],
-    dark: ["#f59e0b"],
-  },
-  Onboarding: {
-    light: ["#0d9488"],
-    dark: ["#2dd4bf"],
-  },
-};
+const SANKEY_TYPE_COLORS: Record<string, { light: string[]; dark: string[] }> =
+  {
+    Clients: {
+      light: ["#15803d"],
+      dark: ["#22c55e"],
+    },
+    Projects: {
+      light: ["#047857"],
+      dark: ["#10b981"],
+    },
+    Comments: {
+      light: ["#0284c7"],
+      dark: ["#38bdf8"],
+    },
+    Files: {
+      light: ["#d97706"],
+      dark: ["#f59e0b"],
+    },
+    Onboarding: {
+      light: ["#0d9488"],
+      dark: ["#2dd4bf"],
+    },
+  };
 
 // All project/target nodes share a single unified teal
 const SANKEY_PROJECT_COLOR = { light: ["#0d9488"], dark: ["#2dd4bf"] };

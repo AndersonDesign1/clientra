@@ -71,7 +71,8 @@ export function AuthShell({
             </p>
           </div>
           <div className="font-normal text-emerald-100/40 text-xs tracking-wide">
-            © <span suppressHydrationWarning>{new Date().getFullYear()}</span> Clientra. Refined workspace design.
+            © <span suppressHydrationWarning>{new Date().getFullYear()}</span>{" "}
+            Clientra. Refined workspace design.
           </div>
         </div>
       </div>

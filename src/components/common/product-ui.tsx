@@ -92,17 +92,21 @@ export function MetricLedger({
 }) {
   const columnCount = Math.min(Math.max(items.length, 1), 4) as 1 | 2 | 3 | 4;
   const columnClass = {
-    1: "sm:grid-cols-1",
-    2: "sm:grid-cols-2",
-    3: "sm:grid-cols-3",
-    4: "sm:grid-cols-4",
+    1: "grid-cols-1",
+    2: "grid-cols-1 sm:grid-cols-2",
+    3: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
+    4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
   }[columnCount];
 
   return (
     <dl className={cn("grid gap-4", columnClass)}>
       {items.map((item, index) => (
         <div
-          className="group relative flex animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]"
+          className={cn(
+            "group relative flex min-w-0 animate-slide-up-fade flex-col justify-between gap-4 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]",
+            columnCount === 3 && index === 2 && "sm:col-span-2 md:col-span-1",
+            columnCount === 4 && index >= 2 && "sm:col-span-1 lg:col-span-1"
+          )}
           key={item.label}
           style={{ animationDelay: `${index * 70}ms` }}
         >

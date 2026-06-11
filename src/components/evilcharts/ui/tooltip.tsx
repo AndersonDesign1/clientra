@@ -51,8 +51,7 @@ function ChartTooltipContent(
 }
 
 function ChartTooltipContentInner({
-  active,
-  payload,
+  payload = [],
   className,
   indicator = "dot",
   hideLabel = false,
@@ -163,7 +162,13 @@ function ChartTooltipContentInner({
                 key={key}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, currentVisibleIndex, item.payload)
+                  formatter(
+                    item.value,
+                    item.name,
+                    item,
+                    currentVisibleIndex,
+                    item.payload
+                  )
                 ) : (
                   <>
                     {itemConfig?.icon ? (

@@ -75,7 +75,7 @@ function ChartCard({
   return (
     <div
       className={cn(
-        "group flex animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]",
+        "group flex min-w-0 animate-slide-up-fade flex-col rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]",
         className
       )}
       style={{ animationDelay: `${delayMs}ms` }}
@@ -84,11 +84,11 @@ function ChartCard({
         {title}
       </div>
       {center ? (
-        <div className="flex w-full flex-1 items-center justify-center">
+        <div className="flex w-full min-w-0 flex-1 items-center justify-center">
           {children}
         </div>
       ) : (
-        <div className="flex-1">{children}</div>
+        <div className="min-w-0 flex-1">{children}</div>
       )}
     </div>
   );
@@ -178,7 +178,7 @@ function DashboardPage() {
         title="Delivery shape"
       >
         {/* Row 1: Project Status + Activity Sankey */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           <ChartCard delayMs={150} title="Project Status">
             <ProjectStatusPieChart
               data={getProjectStatusData(projects)}
@@ -186,7 +186,7 @@ function DashboardPage() {
             />
           </ChartCard>
           <ChartCard
-            className="md:col-span-2"
+            className="lg:col-span-2"
             delayMs={200}
             title="Activity Flow"
           >
@@ -198,7 +198,7 @@ function DashboardPage() {
         </div>
 
         {/* Row 2: Deadlines + Budget + Recent Activity */}
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <ChartCard delayMs={250} title="Deadlines">
             <DeadlineAreaChart
               data={getDeadlineData(projects)}
@@ -211,7 +211,12 @@ function DashboardPage() {
               isLoading={isLoading}
             />
           </ChartCard>
-          <ChartCard center={false} delayMs={350} title="Recent activity">
+          <ChartCard
+            center={false}
+            className="md:col-span-2 lg:col-span-1"
+            delayMs={350}
+            title="Recent activity"
+          >
             <CompactActivityList activity={activity} isLoading={isLoading} />
           </ChartCard>
         </div>

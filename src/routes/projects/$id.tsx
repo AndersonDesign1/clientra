@@ -8,8 +8,13 @@ import {
   File01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
+import { useState } from "react";
 import { requireAdminSession } from "@/auth/guards";
 import {
   DeleteProjectDialog,
@@ -368,11 +373,11 @@ function MilestoneAnalyticsWidget({
   ];
 
   return (
-    <div className="group rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
+    <div className="group min-w-0 rounded-xl border border-border/40 bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card hover:shadow-[0_3px_8px_rgba(0,0,0,0.01)]">
       <span className="font-bold text-[10px] text-muted-foreground uppercase leading-none tracking-widest">
         Milestone Status Shape
       </span>
-      <div className="relative mt-3 flex h-70 w-full items-center justify-center">
+      <div className="relative mt-3 flex h-70 w-full min-w-0 items-center justify-center">
         <ProjectStatusPieChart data={pieData} isLoading={isLoading} />
       </div>
     </div>
