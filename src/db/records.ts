@@ -26,6 +26,7 @@ import {
   files as filesTable,
   invites as invitesTable,
   members as membersTable,
+  organizations as organizationsTable,
   projectMilestones as projectMilestonesTable,
   projectNotes as projectNotesTable,
   projects as projectsTable,
@@ -2035,11 +2036,94 @@ export async function listPendingInvitesForClient(clientId: string) {
 }
 
 export async function seedIfEmpty() {
+  const targetOrgId = "8evtad539nwKicxa1ExyWAn1nL4BK4Zu";
+  const targetUserId = "fM8PYi0lmiMrFvbNSL9kkCRbdlZ9tJBw";
+  const now = new Date();
+
+  // 1. Seed user if not exists
+  const [existingUser] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, targetUserId))
+    .limit(1);
+
+  if (!existingUser) {
+    await db.insert(usersTable).values({
+      id: targetUserId,
+      name: "Anderson Joseph",
+      email: "hello@andersonjoseph.com",
+      emailVerified: true,
+      image: "https://avatars.githubusercontent.com/u/87978105?v=4",
+      role: "admin",
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  // 2. Seed organization if not exists
+  const [existingOrg] = await db
+    .select()
+    .from(organizationsTable)
+    .where(eq(organizationsTable.id, targetOrgId))
+    .limit(1);
+
+  if (!existingOrg) {
+    await db.insert(organizationsTable).values({
+      id: targetOrgId,
+      name: "Anderson Joseph",
+      slug: "andy",
+      logo: null,
+      createdAt: now,
+      metadata: null,
+    });
+  }
+
+  // 3. Seed member mapping if not exists
+  const [existingMember] = await db
+    .select()
+    .from(membersTable)
+    .where(
+      and(
+        eq(membersTable.organizationId, targetOrgId),
+        eq(membersTable.userId, targetUserId)
+      )
+    )
+    .limit(1);
+
+  if (!existingMember) {
+    await db.insert(membersTable).values({
+      id: "AuzRNRTDMt68bYrosjNgjJNtB0Ijfcql",
+      organizationId: targetOrgId,
+      userId: targetUserId,
+      role: "owner",
+      createdAt: now,
+    });
+  }
+
+  // 4. Seed workspace settings if not exists
+  const [existingSettings] = await db
+    .select()
+    .from(workspaceSettingsTable)
+    .where(eq(workspaceSettingsTable.id, "default"))
+    .limit(1);
+
+  if (!existingSettings) {
+    await db.insert(workspaceSettingsTable).values({
+      id: "default",
+      workspaceName: "Anderson Joseph",
+      supportEmail: "hello@andersonjoseph.com",
+      allowSignups: false,
+      enableNotifications: true,
+      autoArchive: true,
+      portalUrl: "https://useclientra.com/portal/anderson-joseph",
+      logoUrl: null,
+      updatedAt: now,
+    });
+  }
+
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(clientsTable);
-
-  const now = new Date();
 
   if (count === 0) {
     await db.insert(clientsTable).values([
@@ -2054,6 +2138,7 @@ export async function seedIfEmpty() {
         status: "active",
         tags: serializeTags(["retainer", "web"]),
         website: "https://acme.co",
+        organizationId: targetOrgId,
       },
       {
         company: "Northstar Labs",
@@ -2066,6 +2151,7 @@ export async function seedIfEmpty() {
         status: "active",
         tags: serializeTags(["mobile"]),
         website: "https://northstar.dev",
+        organizationId: targetOrgId,
       },
     ]);
 
@@ -2095,10 +2181,10 @@ export async function seedIfEmpty() {
     ]);
   }
 
-  await seedDemoDeliveryData(now);
+  await seedDemoDeliveryData(now, targetOrgId);
 }
 
-async function seedDemoDeliveryData(now: Date) {
+async function seedDemoDeliveryData(now: Date, targetOrgId: string) {
   const daysAgo = (days: number) =>
     new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   const existingClients = new Set(
@@ -2158,6 +2244,31 @@ async function seedDemoDeliveryData(now: Date) {
     ])
     .onConflictDoNothing();
 
+  // Seed member mapping for demo_admin so they belong to the organization
+  const [existingDemoAdminMember] = await db
+    .select()
+    .from(membersTable)
+    .where(
+      and(
+        eq(membersTable.organizationId, targetOrgId),
+        eq(membersTable.userId, "demo_admin")
+      )
+    )
+    .limit(1);
+
+  if (!existingDemoAdminMember) {
+    await db
+      .insert(membersTable)
+      .values({
+        id: "demo_member_maya",
+        organizationId: targetOrgId,
+        userId: "demo_admin",
+        role: "admin",
+        createdAt: daysAgo(18),
+      })
+      .onConflictDoNothing();
+  }
+
   const existingUsers = new Set(
     (
       await db
@@ -2178,11 +2289,13 @@ async function seedDemoDeliveryData(now: Date) {
       clientId: "cli_1",
       id: "demo_link_acme",
       userId: "demo_acme_client",
+      organizationId: targetOrgId,
     },
     {
       clientId: "cli_2",
       id: "demo_link_northstar",
       userId: "demo_northstar_client",
+      organizationId: targetOrgId,
     },
   ].filter(
     (link) =>
