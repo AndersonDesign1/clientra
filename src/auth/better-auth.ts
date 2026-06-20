@@ -14,6 +14,7 @@ import {
   users,
   verifications,
 } from "@/db/schema";
+import { ROLES } from "@/auth/roles";
 import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
@@ -105,6 +106,14 @@ const googleProvider = getSocialProviderConfig({
   provider: "google",
 });
 
+export const userAdditionalFields = {
+  role: {
+    type: "string",
+    defaultValue: ROLES.CLIENT,
+    input: false,
+  },
+} as const;
+
 export const auth = betterAuth({
   account: {
     accountLinking: {
@@ -116,6 +125,17 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === "production",
   },
   baseURL: validatedBaseUrl,
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          // Admins are seeded directly via Drizzle, never through Better Auth.
+          // Every Better-Auth-created user (signup + invite redemption) is a client.
+          return { data: { ...user, role: ROLES.CLIENT } };
+        },
+      },
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -172,12 +192,7 @@ export const auth = betterAuth({
       emailVerified: "emailVerified",
       image: "image",
     },
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "client",
-      },
-    },
+    additionalFields: userAdditionalFields,
   },
   plugins: [
     organization({
