@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { lastLoginMethod, organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { ROLES } from "@/auth/roles";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
 import {
@@ -14,7 +15,6 @@ import {
   users,
   verifications,
 } from "@/db/schema";
-import { ROLES } from "@/auth/roles";
 import { sendTransactionalEmail } from "@/server/email/loop";
 
 loadEnvFiles();
@@ -128,11 +128,10 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        before: async (user) => {
-          // Admins are seeded directly via Drizzle, never through Better Auth.
-          // Every Better-Auth-created user (signup + invite redemption) is a client.
-          return { data: { ...user, role: ROLES.CLIENT } };
-        },
+        before: (user) =>
+          Promise.resolve({
+            data: { ...user, role: ROLES.CLIENT },
+          }),
       },
     },
   },

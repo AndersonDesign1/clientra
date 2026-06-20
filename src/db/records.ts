@@ -1626,6 +1626,7 @@ export async function restoreProjectFileRecord(file: {
 export async function searchRecords(query: string, user: SessionUser) {
   const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
 
+  // biome-ignore lint/suspicious/noExplicitAny: Drizzle row accumulator; precise typing deferred to plan 006 (records.ts split)
   let matchedProjectsRows: any[] = [];
   if (user.role === ROLES.ADMIN) {
     if (user.activeOrganizationId) {
@@ -1946,6 +1947,7 @@ export async function listUsersForAdmin(orgId: string) {
   );
 
   const userIds = Array.from(userMap.keys());
+  // biome-ignore lint/suspicious/noExplicitAny: Drizzle row accumulator; precise typing deferred to plan 006 (records.ts split)
   let accountRows: any[] = [];
   if (userIds.length > 0) {
     accountRows = await db

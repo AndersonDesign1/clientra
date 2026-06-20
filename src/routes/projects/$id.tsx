@@ -384,6 +384,7 @@ function MilestoneAnalyticsWidget({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: tracked for extraction in plan 006
 export function AdminProjectDetailPage({
   clientSlug,
   projectSlug,
