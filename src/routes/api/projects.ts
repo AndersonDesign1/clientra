@@ -5,7 +5,6 @@ import {
   createProjectRecord,
   DuplicateProjectSlugError,
   listProjectsForUser,
-  seedIfEmpty,
 } from "@/db/records";
 import {
   conflictError,
@@ -24,8 +23,6 @@ export const Route = createFileRoute("/api/projects")({
         if (!user) {
           return unauthorizedError();
         }
-
-        await seedIfEmpty();
 
         return Response.json(await listProjectsForUser(user));
       },

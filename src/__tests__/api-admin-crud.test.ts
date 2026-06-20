@@ -24,7 +24,6 @@ vi.mock("@/db/records", () => ({
   listClientStorageKeys: vi.fn(),
   listProjectsForUser: vi.fn(),
   listProjectStorageKeys: vi.fn(),
-  seedIfEmpty: vi.fn(),
   updateClientRecord: vi.fn(),
   updateProjectRecord: vi.fn(),
 }));
@@ -38,7 +37,6 @@ import {
   listClientStorageKeys,
   listProjectStorageKeys,
   listProjectsForUser,
-  seedIfEmpty,
   updateClientRecord,
   updateProjectRecord,
 } from "@/db/records";
@@ -106,7 +104,6 @@ describe("admin CRUD API routes", () => {
     vi.mocked(listClientStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectsForUser).mockResolvedValue([]);
-    vi.mocked(seedIfEmpty).mockResolvedValue(undefined);
   });
 
   it("rejects unauthenticated client updates", async () => {

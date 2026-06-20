@@ -2036,6 +2036,12 @@ export async function listPendingInvitesForClient(clientId: string) {
 }
 
 export async function seedIfEmpty() {
+  const databaseUrl = process.env.TURSO_DATABASE_URL;
+  const isLocalDatabase = !databaseUrl || databaseUrl.startsWith("file:");
+  if (!isLocalDatabase) {
+    return;
+  }
+
   const targetOrgId = "8evtad539nwKicxa1ExyWAn1nL4BK4Zu";
   const targetUserId = "fM8PYi0lmiMrFvbNSL9kkCRbdlZ9tJBw";
   const now = new Date();

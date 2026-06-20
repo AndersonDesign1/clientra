@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import {
-  canAccessProject,
-  getProjectCollaboration,
-  seedIfEmpty,
-} from "@/db/records";
+import { canAccessProject, getProjectCollaboration } from "@/db/records";
 import {
   forbiddenError,
   notFoundError,
@@ -20,8 +16,6 @@ export const Route = createFileRoute("/api/projects/$id/collaboration")({
         if (!user) {
           return unauthorizedError();
         }
-
-        await seedIfEmpty();
 
         const hasAccess = await canAccessProject(user, params.id);
 
