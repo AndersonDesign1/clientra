@@ -78,6 +78,13 @@
       "when": 1780669963686,
       "tag": "0010_naive_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1781989131744,
+      "tag": "0011_medical_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }
