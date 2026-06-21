@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UTApi } from "uploadthing/server";
 import { updateProjectSchema } from "@/api/validation";
 import {
+  adminOwnsProject,
   DuplicateProjectSlugError,
   deleteProjectRecord,
   listProjectStorageKeys,
@@ -54,6 +55,10 @@ export const Route = createFileRoute("/api/projects/$id")({
           return parsed.error;
         }
 
+        if (!(await adminOwnsProject(auth.user, params.id))) {
+          return notFoundError("That project could not be found.");
+        }
+
         let updated: Awaited<ReturnType<typeof updateProjectRecord>>;
 
         try {
@@ -80,6 +85,10 @@ export const Route = createFileRoute("/api/projects/$id")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        if (!(await adminOwnsProject(auth.user, params.id))) {
+          return notFoundError("That project could not be found.");
         }
 
         const storageKeys = await listProjectStorageKeys(params.id);

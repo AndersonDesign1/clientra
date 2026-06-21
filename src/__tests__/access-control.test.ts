@@ -275,6 +275,10 @@ describe("access control", () => {
     expect(await records.adminOwnsClient(outsideAdmin, "client_a_record")).toBe(
       false
     );
+    expect(await records.adminOwnsProject(admin, "project_a")).toBe(true);
+    expect(await records.adminOwnsProject(outsideAdmin, "project_a")).toBe(
+      false
+    );
   }, 15_000);
 
   it("returns null from list helpers when access is denied", async () => {

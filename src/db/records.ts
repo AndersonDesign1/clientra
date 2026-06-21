@@ -1702,6 +1702,21 @@ export async function adminOwnsClient(user: SessionUser, clientId: string) {
   return client?.organizationId === user.activeOrganizationId;
 }
 
+export async function adminOwnsProject(user: SessionUser, projectId: string) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
+  }
+
+  const [project] = await db
+    .select({ organizationId: clientsTable.organizationId })
+    .from(projectsTable)
+    .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+    .where(eq(projectsTable.id, projectId))
+    .limit(1);
+
+  return project?.organizationId === user.activeOrganizationId;
+}
+
 export async function updateUserRole(
   userId: string,
   role: "admin" | "client",
