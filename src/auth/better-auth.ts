@@ -23,6 +23,10 @@ const rawBaseUrl = process.env.BETTER_AUTH_URL?.trim();
 if (!rawBaseUrl && process.env.NODE_ENV === "production") {
   throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_URL");
 }
+const rawAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
+if (!rawAuthSecret && process.env.NODE_ENV === "production") {
+  throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_SECRET");
+}
 const validatedBaseUrl = rawBaseUrl || "http://localhost:3000";
 
 function normalizeCredential(value: string | undefined) {

@@ -486,7 +486,7 @@ export function serializeProjectMilestone(
   return {
     createdAt: milestone.createdAt.toISOString(),
     description: milestone.description,
-    dueDate: milestone.dueDate,
+    dueDate: milestone.dueDate ?? "",
     id: milestone.id,
     projectId: milestone.projectId,
     sortOrder: milestone.sortOrder,
