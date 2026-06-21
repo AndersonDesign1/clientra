@@ -122,6 +122,25 @@ describe("invite management API routes", () => {
     expect(revokeInviteRecord).toHaveBeenCalledWith("invite_1");
   });
 
+  it("blocks resend for unapproved colleague invites", async () => {
+    vi.mocked(getActiveInviteById).mockResolvedValue({
+      ...invite,
+      initiatedByClientId: "client_1",
+      adminApprovedAt: null,
+    });
+
+    const response = await resendHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/resend", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(409);
+    expect(sendInviteEmail).not.toHaveBeenCalled();
+    expect(refreshInviteExpiration).not.toHaveBeenCalled();
+  });
+
   it("resends an active invite and blocks when Loop fails", async () => {
     vi.mocked(sendInviteEmail).mockRejectedValue(new Error("Loop failed"));
 

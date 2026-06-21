@@ -1,6 +1,6 @@
 # ADR 0002: Client-initiated colleague invites
 
-**Status:** Proposed — awaiting maintainer decision  
+**Status:** Accepted — Option A implemented
 **Date:** 2026-06-21  
 **Context:** Audit at `b44e631`; wiring re-verified 2026-06-21
 

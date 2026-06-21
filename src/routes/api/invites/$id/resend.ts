@@ -6,6 +6,7 @@ import {
 } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
+  conflictError,
   internalServerError,
   notFoundError,
   requireAdminMutationRequest,
@@ -32,6 +33,12 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
 
         if (!client) {
           return notFoundError("The invited client could not be found.");
+        }
+
+        if (invite.initiatedByClientId && !invite.adminApprovedAt) {
+          return conflictError(
+            "Approve this colleague invite before resending the invite email."
+          );
         }
 
         const inviteUrl = new URL(`/invite/${invite.token}`, request.url);
