@@ -721,19 +721,6 @@ function mapPortalProject({
 }
 
 async function listPortalProjectsForUser(user: SessionUser) {
-  if (user.role === ROLES.ADMIN) {
-    const rows = await db
-      .select({
-        client: clientsTable,
-        project: projectsTable,
-      })
-      .from(projectsTable)
-      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
-      .orderBy(desc(projectsTable.createdAt));
-
-    return rows.map(mapPortalProject);
-  }
-
   const rows = await db
     .select({
       client: clientsTable,
@@ -1364,7 +1351,23 @@ export async function createProjectFileRecord(input: ProjectFileInsert) {
 
 export async function canAccessProject(user: SessionUser, projectId: string) {
   if (user.role === ROLES.ADMIN) {
-    return true;
+    if (!user.activeOrganizationId) {
+      return false;
+    }
+
+    const [match] = await db
+      .select({ projectId: projectsTable.id })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(
+        and(
+          eq(projectsTable.id, projectId),
+          eq(clientsTable.organizationId, user.activeOrganizationId)
+        )
+      )
+      .limit(1);
+
+    return Boolean(match);
   }
 
   const [match] = await db
@@ -1683,6 +1686,20 @@ export async function getClientById(clientId: string) {
     .limit(1);
 
   return client ? mapClient(client) : null;
+}
+
+export async function adminOwnsClient(user: SessionUser, clientId: string) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
+  }
+
+  const [client] = await db
+    .select({ organizationId: clientsTable.organizationId })
+    .from(clientsTable)
+    .where(eq(clientsTable.id, clientId))
+    .limit(1);
+
+  return client?.organizationId === user.activeOrganizationId;
 }
 
 export async function updateUserRole(

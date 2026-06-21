@@ -50,10 +50,29 @@ async function createRecordsTestContext() {
   return { client, records };
 }
 
+async function seedOrganization(
+  client: ReturnType<typeof createClient>,
+  organizationId: string
+) {
+  await client.execute({
+    args: [
+      organizationId,
+      `Test Org ${organizationId}`,
+      `test-org-${organizationId}`,
+      1_741_000_000_000,
+    ],
+    sql: `insert into organization (id, name, slug, created_at)
+      values (?, ?, ?, ?)`,
+  });
+}
+
 async function seedAccessControlScenario(
   client: ReturnType<typeof createClient>
 ) {
   const timestamp = 1_741_000_000_000;
+
+  await seedOrganization(client, "org_1");
+  await seedOrganization(client, "org_2");
 
   const users = [
     ["admin_1", "Admin User", "admin@example.com", ROLES.ADMIN],
@@ -109,6 +128,16 @@ async function seedAccessControlScenario(
   await client.execute({
     args: ["link_a", "client_a_record", "client_a"],
     sql: "insert into client_users (id, client_id, user_id) values (?, ?, ?)",
+  });
+
+  await client.execute({
+    args: ["org_1", "client_a_record"],
+    sql: "update clients set organization_id = ? where id = ?",
+  });
+
+  await client.execute({
+    args: ["org_2", "client_b_record"],
+    sql: "update clients set organization_id = ? where id = ?",
   });
 
   await client.execute({
@@ -178,9 +207,17 @@ describe("access control", () => {
     await seedAccessControlScenario(client);
 
     const admin: SessionUser = {
+      activeOrganizationId: "org_1",
       email: "admin@example.com",
       id: "admin_1",
       name: "Admin User",
+      role: ROLES.ADMIN,
+    };
+    const outsideAdmin: SessionUser = {
+      activeOrganizationId: "org_2",
+      email: "outside-admin@example.com",
+      id: "admin_2",
+      name: "Outside Admin",
       role: ROLES.ADMIN,
     };
     const clientA: SessionUser = {
@@ -197,9 +234,45 @@ describe("access control", () => {
     };
 
     expect(await records.canAccessProject(admin, "project_a")).toBe(true);
+    expect(await records.canAccessProject(outsideAdmin, "project_a")).toBe(
+      false
+    );
+    expect(
+      await records.canAccessProject(
+        { ...admin, activeOrganizationId: null },
+        "project_a"
+      )
+    ).toBe(false);
     expect(await records.canAccessProject(clientA, "project_a")).toBe(true);
     expect(await records.canAccessProject(clientB, "project_a")).toBe(false);
     expect(await records.canAccessProject(clientA, "missing_project")).toBe(
+      false
+    );
+  }, 15_000);
+
+  it("scopes admin client mutations to the active organization", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedAccessControlScenario(client);
+
+    const admin: SessionUser = {
+      activeOrganizationId: "org_1",
+      email: "admin@example.com",
+      id: "admin_1",
+      name: "Admin User",
+      role: ROLES.ADMIN,
+    };
+    const outsideAdmin: SessionUser = {
+      activeOrganizationId: "org_2",
+      email: "outside-admin@example.com",
+      id: "admin_2",
+      name: "Outside Admin",
+      role: ROLES.ADMIN,
+    };
+
+    expect(await records.adminOwnsClient(admin, "client_a_record")).toBe(true);
+    expect(await records.adminOwnsClient(admin, "client_b_record")).toBe(false);
+    expect(await records.adminOwnsClient(outsideAdmin, "client_a_record")).toBe(
       false
     );
   }, 15_000);

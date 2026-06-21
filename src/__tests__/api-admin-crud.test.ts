@@ -12,6 +12,7 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsClient: vi.fn(),
   createProjectRecord: vi.fn(),
   deleteClientRecord: vi.fn(),
   deleteProjectRecord: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("@/db/records", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsClient,
   createProjectRecord,
   DuplicateProjectSlugError,
   deleteClientRecord,
@@ -60,6 +62,7 @@ const projectsHandlers = ProjectsRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -101,6 +104,7 @@ const validProjectPayload = {
 describe("admin CRUD API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
     vi.mocked(listClientStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectsForUser).mockResolvedValue([]);
@@ -193,6 +197,22 @@ describe("admin CRUD API routes", () => {
     expect(updateClientRecord).not.toHaveBeenCalled();
   });
 
+  it("rejects client updates outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await clientHandlers.PATCH({
+      params: { id: "client_other_org" },
+      request: createRequest("/api/clients/client_other_org", {
+        body: JSON.stringify(validClientPayload),
+        method: "PATCH",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(updateClientRecord).not.toHaveBeenCalled();
+  });
+
   it("updates a client for an admin", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
     vi.mocked(updateClientRecord).mockResolvedValue({
@@ -232,6 +252,21 @@ describe("admin CRUD API routes", () => {
     } as never);
 
     expect(response.status).toBe(404);
+  });
+
+  it("rejects client deletes outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await clientHandlers.DELETE({
+      params: { id: "client_other_org" },
+      request: createRequest("/api/clients/client_other_org", {
+        method: "DELETE",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(deleteClientRecord).not.toHaveBeenCalled();
   });
 
   it("deletes a client for an admin", async () => {

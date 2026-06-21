@@ -222,6 +222,27 @@ export async function listPendingInvitesForClient(clientId: string) {
   return rows.map(mapInvite);
 }
 
+async function findActivePendingInviteForClientEmail(
+  clientId: string,
+  email: string
+) {
+  const [invite] = await db
+    .select()
+    .from(invitesTable)
+    .where(
+      and(
+        eq(invitesTable.clientId, clientId),
+        eq(invitesTable.email, email),
+        isNull(invitesTable.consumedAt),
+        isNull(invitesTable.revokedAt),
+        gt(invitesTable.expiresAt, new Date())
+      )
+    )
+    .limit(1);
+
+  return invite ? mapInvite(invite) : null;
+}
+
 export async function createPortalColleagueInvite(input: {
   clientId: string;
   email: string;
@@ -229,6 +250,15 @@ export async function createPortalColleagueInvite(input: {
   initiatedByClientId: string;
   token: string;
 }) {
+  const existingInvite = await findActivePendingInviteForClientEmail(
+    input.clientId,
+    input.email
+  );
+
+  if (existingInvite) {
+    return existingInvite;
+  }
+
   await db.insert(invitesTable).values({
     clientId: input.clientId,
     createdAt: new Date(),

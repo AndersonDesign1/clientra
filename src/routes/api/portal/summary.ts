@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { getPortalSummary } from "@/db/records";
-import { unauthorizedError } from "@/server/http/route-utils";
+import { forbiddenError, unauthorizedError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/portal/summary")({
   server: {
@@ -11,6 +11,10 @@ export const Route = createFileRoute("/api/portal/summary")({
 
         if (!user) {
           return unauthorizedError();
+        }
+
+        if (user.role !== "client") {
+          return forbiddenError("Client portal only.");
         }
 
         return Response.json(await getPortalSummary(user));

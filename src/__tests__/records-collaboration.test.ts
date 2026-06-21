@@ -50,6 +50,17 @@ async function createRecordsTestContext() {
   return { client, records };
 }
 
+async function seedOrganization(
+  client: ReturnType<typeof createClient>,
+  organizationId: string
+) {
+  await client.execute({
+    args: [organizationId, "Test Org", "test-org", 1_741_000_000_000],
+    sql: `insert into organization (id, name, slug, created_at)
+      values (?, ?, ?, ?)`,
+  });
+}
+
 async function seedCollaborationScenario(
   client: ReturnType<typeof createClient>
 ) {
@@ -111,6 +122,8 @@ async function seedCollaborationScenario(
       values (?, ?, ?, ?, ?, ?, ?, ?)`,
   });
 
+  await seedOrganization(client, "org_1");
+
   await client.execute({
     args: [
       "client_1",
@@ -127,6 +140,11 @@ async function seedCollaborationScenario(
     sql: `insert into clients
       (id, name, company, email, phone, website, status, notes, tags, created_at)
       values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  });
+
+  await client.execute({
+    args: ["org_1", "client_1"],
+    sql: "update clients set organization_id = ? where id = ?",
   });
 
   await client.execute({
@@ -436,6 +454,7 @@ describe("records collaboration helpers", () => {
     await seedCollaborationScenario(client);
 
     const admin: SessionUser = {
+      activeOrganizationId: "org_1",
       email: "admin@example.com",
       id: "admin_1",
       name: "Admin User",

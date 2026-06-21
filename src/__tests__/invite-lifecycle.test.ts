@@ -190,6 +190,36 @@ describe("invite lifecycle", () => {
     expect(await records.getActiveInviteByToken(token)).toBeNull();
   }, 15_000);
 
+  it("reuses an active pending colleague invite for the same email", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedInviteClient(client);
+
+    const future = 4_102_444_800_000;
+
+    await insertInvite(client, {
+      id: "invite_existing",
+      token: "token-existing",
+      expiresAt: future,
+      initiatedByClientId: "invite_client",
+    });
+
+    const duplicate = await records.createPortalColleagueInvite({
+      clientId: "invite_client",
+      email: "redeem@example.com",
+      id: "invite_new",
+      initiatedByClientId: "invite_client",
+      token: "token-new",
+    });
+
+    expect(duplicate?.id).toBe("invite_existing");
+
+    const inviteRows = await client.execute(
+      "select count(*) as count from invites where client_id = 'invite_client' and email = 'redeem@example.com'"
+    );
+    expect(inviteRows.rows[0]?.count).toBe(1);
+  }, 15_000);
+
   it("keeps colleague invites inactive until admin approval", async () => {
     const { client, records } = await createRecordsTestContext();
     clientsToClose.push(client);

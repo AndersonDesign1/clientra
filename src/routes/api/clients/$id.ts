@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UTApi } from "uploadthing/server";
 import { updateClientSchema } from "@/api/validation";
 import {
+  adminOwnsClient,
   deleteClientRecord,
   listClientStorageKeys,
   updateClientRecord,
@@ -52,6 +53,10 @@ export const Route = createFileRoute("/api/clients/$id")({
           return parsed.error;
         }
 
+        if (!(await adminOwnsClient(auth.user, params.id))) {
+          return notFoundError("That client could not be found.");
+        }
+
         const updated = await updateClientRecord(params.id, {
           ...parsed.data,
           id: params.id,
@@ -68,6 +73,10 @@ export const Route = createFileRoute("/api/clients/$id")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        if (!(await adminOwnsClient(auth.user, params.id))) {
+          return notFoundError("That client could not be found.");
         }
 
         const storageKeys = await listClientStorageKeys(params.id);
