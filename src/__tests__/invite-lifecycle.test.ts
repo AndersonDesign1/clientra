@@ -91,9 +91,11 @@ async function seedInviteClient(client: ReturnType<typeof createClient>) {
 async function insertInvite(
   client: ReturnType<typeof createClient>,
   input: {
+    adminApprovedAt?: number | null;
     consumedAt?: number | null;
     expiresAt: number;
     id: string;
+    initiatedByClientId?: string | null;
     revokedAt?: number | null;
     token: string;
   }
@@ -110,8 +112,8 @@ async function insertInvite(
       input.consumedAt ?? null,
       input.revokedAt ?? null,
       createdAt,
-      null,
-      null,
+      input.initiatedByClientId ?? null,
+      input.adminApprovedAt ?? null,
     ],
     sql: `insert into invites
       (id, client_id, email, token, expires_at, consumed_at, revoked_at, created_at, initiated_by_client_id, admin_approved_at)
@@ -186,6 +188,41 @@ describe("invite lifecycle", () => {
     expect(await records.consumeInvite(token)).toBe(true);
     expect(await records.consumeInvite(token)).toBe(false);
     expect(await records.getActiveInviteByToken(token)).toBeNull();
+  }, 15_000);
+
+  it("keeps colleague invites inactive until admin approval", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedInviteClient(client);
+
+    const future = 4_102_444_800_000;
+    const token = "token-colleague";
+
+    await insertInvite(client, {
+      id: "invite_colleague",
+      token,
+      expiresAt: future,
+      initiatedByClientId: "invite_client",
+    });
+
+    expect(await records.getActiveInviteByToken(token)).toBeNull();
+    expect(await records.consumeInvite(token)).toBe(false);
+
+    const approved = await records.approveInviteRecord("invite_colleague");
+    expect(approved).not.toBeNull();
+
+    expect(await records.getActiveInviteByToken(token)).not.toBeNull();
+    expect(await records.consumeInvite(token)).toBe(true);
+  }, 15_000);
+
+  it("rejects linking users to missing clients", async () => {
+    const { client, records } = await createRecordsTestContext();
+    clientsToClose.push(client);
+    await seedInviteClient(client);
+
+    await expect(
+      records.linkUserToClient("missing_client", "redeem_user")
+    ).rejects.toThrow("Client not found");
   }, 15_000);
 
   it("updates user role and links users to clients idempotently", async () => {

@@ -14,7 +14,7 @@ CREATE TABLE `status_change_requests` (
 );
 --> statement-breakpoint
 CREATE INDEX `status_change_requests_project_id_idx` ON `status_change_requests` (`project_id`);--> statement-breakpoint
-ALTER TABLE `invites` ADD `initiated_by_client_id` text REFERENCES clients(id);--> statement-breakpoint
+ALTER TABLE `invites` ADD `initiated_by_client_id` text REFERENCES clients(id) ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE `invites` ADD `admin_approved_at` integer;--> statement-breakpoint
 CREATE INDEX `invites_client_id_idx` ON `invites` (`client_id`);--> statement-breakpoint
 CREATE INDEX `client_users_user_id_idx` ON `client_users` (`user_id`);--> statement-breakpoint

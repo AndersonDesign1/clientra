@@ -190,12 +190,16 @@ export async function linkUserToClient(
     .where(eq(clientsTable.id, clientId))
     .limit(1);
 
+  if (!client) {
+    throw new Error("Client not found");
+  }
+
   await executor
     .insert(clientUsersTable)
     .values({
       clientId,
       id: crypto.randomUUID(),
-      organizationId: client?.organizationId ?? null,
+      organizationId: client.organizationId,
       userId,
     })
     .onConflictDoNothing();
