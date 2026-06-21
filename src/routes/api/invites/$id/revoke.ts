@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { revokeInviteRecord } from "@/db/records";
+import {
+  adminOwnsClient,
+  getInviteRecordById,
+  revokeInviteRecord,
+} from "@/db/records";
 import {
   notFoundError,
   requireAdminMutationRequest,
@@ -14,6 +18,17 @@ export const Route = createFileRoute("/api/invites/$id/revoke")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        const pendingInvite = await getInviteRecordById(id);
+
+        if (
+          !(
+            pendingInvite &&
+            (await adminOwnsClient(auth.user, pendingInvite.clientId))
+          )
+        ) {
+          return notFoundError("That pending invite could not be found.");
         }
 
         const invite = await revokeInviteRecord(id);

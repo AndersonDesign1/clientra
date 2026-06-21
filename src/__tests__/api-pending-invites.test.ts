@@ -6,11 +6,12 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsClient: vi.fn(),
   listPendingInvitesForClient: vi.fn(),
 }));
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { listPendingInvitesForClient } from "@/db/records";
+import { adminOwnsClient, listPendingInvitesForClient } from "@/db/records";
 import { Route as PendingInvitesRoute } from "@/routes/api/clients/$id/invites";
 
 const pendingInvitesHandlers = PendingInvitesRoute.options.server?.handlers as {
@@ -24,6 +25,7 @@ function createRequest(path: string) {
 describe("pending invite API route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
     vi.mocked(listPendingInvitesForClient).mockResolvedValue([]);
   });
 
@@ -53,6 +55,25 @@ describe("pending invite API route", () => {
     } as never);
 
     expect(response.status).toBe(403);
+    expect(listPendingInvitesForClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects pending invite reads outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue({
+      activeOrganizationId: "org_1",
+      email: "admin@example.com",
+      id: "admin_1",
+      name: "Admin User",
+      role: ROLES.ADMIN,
+    });
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await pendingInvitesHandlers.GET({
+      params: { id: "client_other_org" },
+      request: createRequest("/api/clients/client_other_org/invites"),
+    } as never);
+
+    expect(response.status).toBe(404);
     expect(listPendingInvitesForClient).not.toHaveBeenCalled();
   });
 

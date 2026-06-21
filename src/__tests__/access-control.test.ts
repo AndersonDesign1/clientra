@@ -131,6 +131,12 @@ async function seedAccessControlScenario(
   });
 
   await client.execute({
+    args: ["member_admin", "org_1", "admin_1", "owner", timestamp],
+    sql: `insert into member (id, organization_id, user_id, role, created_at)
+      values (?, ?, ?, ?, ?)`,
+  });
+
+  await client.execute({
     args: ["org_1", "client_a_record"],
     sql: "update clients set organization_id = ? where id = ?",
   });
@@ -277,6 +283,12 @@ describe("access control", () => {
     );
     expect(await records.adminOwnsProject(admin, "project_a")).toBe(true);
     expect(await records.adminOwnsProject(outsideAdmin, "project_a")).toBe(
+      false
+    );
+    expect(await records.adminManagesUser(admin, "admin_1")).toBe(true);
+    expect(await records.adminManagesUser(admin, "client_a")).toBe(true);
+    expect(await records.adminManagesUser(admin, "client_b")).toBe(false);
+    expect(await records.adminManagesUser(outsideAdmin, "client_a")).toBe(
       false
     );
   }, 15_000);

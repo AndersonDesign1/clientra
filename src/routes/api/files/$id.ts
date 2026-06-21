@@ -7,7 +7,6 @@ import {
   restoreProjectFileRecord,
 } from "@/db/records";
 import {
-  forbiddenError,
   internalServerError,
   notFoundError,
   requireAdminMutationRequest,
@@ -40,7 +39,7 @@ export const Route = createFileRoute("/api/files/$id")({
         );
 
         if (!hasProjectAccess) {
-          return forbiddenError("You do not have access to that file.");
+          return notFoundError("That file could not be found.");
         }
 
         const deletedRecord = await deleteProjectFileRecord(existing.id);

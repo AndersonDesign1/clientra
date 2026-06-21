@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createProjectSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsClient,
   createProjectRecord,
   DuplicateProjectSlugError,
   listProjectsForUser,
@@ -9,6 +10,7 @@ import {
 import {
   conflictError,
   internalServerError,
+  notFoundError,
   parseJsonBody,
   requireAdminMutationRequest,
   unauthorizedError,
@@ -37,6 +39,10 @@ export const Route = createFileRoute("/api/projects")({
 
         if (!parsed.ok) {
           return parsed.error;
+        }
+
+        if (!(await adminOwnsClient(auth.user, parsed.data.clientId))) {
+          return notFoundError("We could not find a client with that id.");
         }
 
         let created: Awaited<ReturnType<typeof createProjectRecord>>;

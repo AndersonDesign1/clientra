@@ -1717,6 +1717,78 @@ export async function adminOwnsProject(user: SessionUser, projectId: string) {
   return project?.organizationId === user.activeOrganizationId;
 }
 
+export async function adminOwnsProjectUpdate(
+  user: SessionUser,
+  updateId: string
+) {
+  const [update] = await db
+    .select({ projectId: projectUpdatesTable.projectId })
+    .from(projectUpdatesTable)
+    .where(eq(projectUpdatesTable.id, updateId))
+    .limit(1);
+
+  if (!update) {
+    return false;
+  }
+
+  return adminOwnsProject(user, update.projectId);
+}
+
+export async function adminOwnsProjectMilestone(
+  user: SessionUser,
+  milestoneId: string
+) {
+  const [milestone] = await db
+    .select({ projectId: projectMilestonesTable.projectId })
+    .from(projectMilestonesTable)
+    .where(eq(projectMilestonesTable.id, milestoneId))
+    .limit(1);
+
+  if (!milestone) {
+    return false;
+  }
+
+  return adminOwnsProject(user, milestone.projectId);
+}
+
+export async function adminManagesUser(
+  user: SessionUser,
+  targetUserId: string
+) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
+  }
+
+  const [member] = await db
+    .select({ userId: membersTable.userId })
+    .from(membersTable)
+    .where(
+      and(
+        eq(membersTable.organizationId, user.activeOrganizationId),
+        eq(membersTable.userId, targetUserId)
+      )
+    )
+    .limit(1);
+
+  if (member) {
+    return true;
+  }
+
+  const [clientUser] = await db
+    .select({ userId: clientUsersTable.userId })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(
+      and(
+        eq(clientsTable.organizationId, user.activeOrganizationId),
+        eq(clientUsersTable.userId, targetUserId)
+      )
+    )
+    .limit(1);
+
+  return Boolean(clientUser);
+}
+
 export async function updateUserRole(
   userId: string,
   role: "admin" | "client",
@@ -2531,15 +2603,29 @@ export async function listStatusChangeRequestsForProject(projectId: string) {
   );
 }
 
-export async function listAllPendingStatusChangeRequests() {
+export async function listAllPendingStatusChangeRequests(orgId: string | null) {
+  if (!orgId) {
+    return [];
+  }
+
   const rows = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
     .from(statusChangeRequestsTable)
+    .innerJoin(
+      projectsTable,
+      eq(statusChangeRequestsTable.projectId, projectsTable.id)
+    )
+    .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
     .leftJoin(
       usersTable,
       eq(statusChangeRequestsTable.requestedBy, usersTable.id)
     )
-    .where(eq(statusChangeRequestsTable.approvalState, "pending"))
+    .where(
+      and(
+        eq(statusChangeRequestsTable.approvalState, "pending"),
+        eq(clientsTable.organizationId, orgId)
+      )
+    )
     .orderBy(desc(statusChangeRequestsTable.createdAt));
 
   return rows.map(({ req, requesterName }) =>

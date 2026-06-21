@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { projectUpdateSchema } from "@/api/validation";
 import {
+  adminOwnsProjectUpdate,
   deleteProjectUpdateRecord,
   serializeProjectUpdate,
   updateProjectUpdateRecord,
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/api/project-updates/$id")({
           return parsed.error;
         }
 
+        if (!(await adminOwnsProjectUpdate(auth.user, params.id))) {
+          return notFoundError("That project update could not be found.");
+        }
+
         const updated = await updateProjectUpdateRecord(params.id, parsed.data);
 
         if (!updated) {
@@ -46,6 +51,10 @@ export const Route = createFileRoute("/api/project-updates/$id")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        if (!(await adminOwnsProjectUpdate(auth.user, params.id))) {
+          return notFoundError("That project update could not be found.");
         }
 
         const deleted = await deleteProjectUpdateRecord(params.id);

@@ -16,7 +16,9 @@ export const Route = createFileRoute("/api/admin/status-change-requests")({
         if (auth.user.role !== "admin") {
           return forbiddenError("Admin only.");
         }
-        const requests = await listAllPendingStatusChangeRequests();
+        const requests = await listAllPendingStatusChangeRequests(
+          auth.user.activeOrganizationId ?? null
+        );
         return Response.json(requests);
       },
     },

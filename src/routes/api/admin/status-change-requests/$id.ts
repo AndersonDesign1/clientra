@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { reviewStatusChangeRequestSchema } from "@/api/validation";
 import {
+  adminOwnsProject,
   getStatusChangeRequestById,
   reviewStatusChangeRequestRecord,
 } from "@/db/records";
@@ -29,7 +30,12 @@ export const Route = createFileRoute("/api/admin/status-change-requests/$id")({
         }
 
         const requestRecord = await getStatusChangeRequestById(params.id);
-        if (!requestRecord) {
+        if (
+          !(
+            requestRecord &&
+            (await adminOwnsProject(auth.user, requestRecord.projectId))
+          )
+        ) {
           return notFoundError("Request not found");
         }
         if (requestRecord.approvalState !== "pending") {

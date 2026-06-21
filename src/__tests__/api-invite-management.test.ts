@@ -6,6 +6,7 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsClient: vi.fn(),
   createInviteRecord: vi.fn(),
   getActiveInviteById: vi.fn(),
   getClientById: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("@/server/email/notifications", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsClient,
   approveInviteRecord,
   createInviteRecord,
   getActiveInviteById,
@@ -49,6 +51,7 @@ const approveHandlers = ApproveInviteRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -100,7 +103,26 @@ describe("invite management API routes", () => {
     vi.mocked(refreshInviteExpiration).mockResolvedValue(invite);
     vi.mocked(revokeInviteRecord).mockResolvedValue(invite);
     vi.mocked(approveInviteRecord).mockResolvedValue(invite);
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
+    vi.mocked(getInviteRecordById).mockResolvedValue(invite);
     vi.mocked(sendInviteEmail).mockResolvedValue({ skipped: false });
+  });
+
+  it("rejects invite creation outside the active organization", async () => {
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await inviteHandlers.POST({
+      request: createRequest("/api/invites", {
+        body: JSON.stringify({
+          clientId: "client_other_org",
+          email: "jordan@example.com",
+        }),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(createInviteRecord).not.toHaveBeenCalled();
   });
 
   it("blocks invite creation when Loop invite email fails", async () => {

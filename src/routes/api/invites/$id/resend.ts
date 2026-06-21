@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  adminOwnsClient,
   getActiveInviteById,
   getClientById,
   refreshInviteExpiration,
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
 
         const invite = await getActiveInviteById(id);
 
-        if (!invite) {
+        if (!(invite && (await adminOwnsClient(auth.user, invite.clientId)))) {
           return notFoundError("That pending invite could not be found.");
         }
 

@@ -331,8 +331,24 @@ describe("admin CRUD API routes", () => {
     });
   });
 
+  it("rejects project creation outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await projectsHandlers.POST({
+      request: createRequest("/api/projects", {
+        body: JSON.stringify(validProjectPayload),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(createProjectRecord).not.toHaveBeenCalled();
+  });
+
   it("returns 409 when creating a duplicate project name under a client", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
     vi.mocked(createProjectRecord).mockRejectedValue(
       new DuplicateProjectSlugError()
     );

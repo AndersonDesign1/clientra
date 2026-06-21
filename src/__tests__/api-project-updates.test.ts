@@ -6,10 +6,11 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsProject: vi.fn(),
+  adminOwnsProjectUpdate: vi.fn(),
   canAccessProject: vi.fn(),
   createProjectUpdateRecord: vi.fn(),
   deleteProjectUpdateRecord: vi.fn(),
-  getProjectById: vi.fn(),
   getProjectNotificationContext: vi.fn(),
   listProjectUpdatesForUser: vi.fn(),
   serializeProjectUpdate: vi.fn((update) => ({
@@ -33,10 +34,10 @@ vi.mock("@/server/email/notifications", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
-  canAccessProject,
+  adminOwnsProject,
+  adminOwnsProjectUpdate,
   createProjectUpdateRecord,
   deleteProjectUpdateRecord,
-  getProjectById,
   getProjectNotificationContext,
   listProjectUpdatesForUser,
   updateProjectUpdateRecord,
@@ -56,6 +57,7 @@ const updateHandlers = ProjectUpdateRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -90,6 +92,8 @@ function createRequest(path: string, init?: RequestInit) {
 describe("project update API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminOwnsProject).mockResolvedValue(true);
+    vi.mocked(adminOwnsProjectUpdate).mockResolvedValue(true);
     vi.mocked(getProjectNotificationContext).mockResolvedValue({
       clientCompany: "Acme",
       clientName: "Jordan",
@@ -154,18 +158,6 @@ describe("project update API routes", () => {
 
   it("lets admins publish project updates", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
-    vi.mocked(getProjectById).mockResolvedValue({
-      budget: 12_000,
-      clientId: "client_1",
-      createdAt: new Date("2026-04-01T10:00:00.000Z"),
-      deadline: "2026-04-30",
-      description: "Delivery portal.",
-      id: "project_1",
-      slug: "delivery-portal",
-      status: "in_progress",
-      title: "Delivery Portal",
-    });
-    vi.mocked(canAccessProject).mockResolvedValue(true);
     vi.mocked(createProjectUpdateRecord).mockResolvedValue({
       authorId: "admin_1",
       authorName: "Admin User",
@@ -199,18 +191,6 @@ describe("project update API routes", () => {
 
   it("keeps project update creation successful when notifications fail", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
-    vi.mocked(canAccessProject).mockResolvedValue(true);
-    vi.mocked(getProjectById).mockResolvedValue({
-      budget: 12_000,
-      clientId: "client_1",
-      createdAt: new Date("2026-04-01T10:00:00.000Z"),
-      deadline: "2026-04-30",
-      description: "Delivery portal.",
-      id: "project_1",
-      slug: "delivery-portal",
-      status: "in_progress",
-      title: "Delivery Portal",
-    });
     vi.mocked(createProjectUpdateRecord).mockResolvedValue({
       authorId: "admin_1",
       authorName: "Admin User",
@@ -234,6 +214,21 @@ describe("project update API routes", () => {
 
     expect(response.status).toBe(201);
     expect(notifyProjectUpdate).toHaveBeenCalled();
+  });
+
+  it("rejects project update mutations outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsProjectUpdate).mockResolvedValue(false);
+
+    const response = await updateHandlers.DELETE({
+      params: { id: "update_other_org" },
+      request: createRequest("/api/project-updates/update_other_org", {
+        method: "DELETE",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(deleteProjectUpdateRecord).not.toHaveBeenCalled();
   });
 
   it("validates update payloads and missing records", async () => {

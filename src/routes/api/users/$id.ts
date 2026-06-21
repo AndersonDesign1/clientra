@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { updateUserRoleSchema } from "@/api/validation";
-import { deleteUserById, setUserRole } from "@/db/records";
+import { adminManagesUser, deleteUserById, setUserRole } from "@/db/records";
 import {
   forbiddenError,
   notFoundError,
@@ -28,6 +28,10 @@ export const Route = createFileRoute("/api/users/$id")({
           return parsed.error;
         }
 
+        if (!(await adminManagesUser(auth.user, params.id))) {
+          return notFoundError("That user could not be found.");
+        }
+
         const updated = await setUserRole(params.id, parsed.data.role);
 
         if (!updated) {
@@ -45,6 +49,10 @@ export const Route = createFileRoute("/api/users/$id")({
 
         if (auth.user.id === params.id) {
           return forbiddenError("You cannot delete your own account.");
+        }
+
+        if (!(await adminManagesUser(auth.user, params.id))) {
+          return notFoundError("That user could not be found.");
         }
 
         const deleted = await deleteUserById(params.id);
