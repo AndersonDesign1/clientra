@@ -163,6 +163,21 @@ describe("invite management API routes", () => {
     expect(refreshInviteExpiration).not.toHaveBeenCalled();
   });
 
+  it("does not send resend email when invite refresh fails", async () => {
+    vi.mocked(refreshInviteExpiration).mockResolvedValue(null);
+
+    const response = await resendHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/resend", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(500);
+    expect(refreshInviteExpiration).toHaveBeenCalled();
+    expect(sendInviteEmail).not.toHaveBeenCalled();
+  });
+
   it("resends an active invite and blocks when Loop fails", async () => {
     vi.mocked(sendInviteEmail).mockRejectedValue(new Error("Loop failed"));
 
@@ -174,8 +189,8 @@ describe("invite management API routes", () => {
     } as never);
 
     expect(response.status).toBe(500);
+    expect(refreshInviteExpiration).toHaveBeenCalled();
     expect(sendInviteEmail).toHaveBeenCalled();
-    expect(refreshInviteExpiration).not.toHaveBeenCalled();
   });
 
   it("revokes active pending invites", async () => {
@@ -243,6 +258,24 @@ describe("invite management API routes", () => {
 
     expect(response.status).toBe(403);
     expect(approveInviteRecord).not.toHaveBeenCalled();
+  });
+
+  it("rejects re-approving an already approved invite", async () => {
+    vi.mocked(getInviteRecordById).mockResolvedValue({
+      ...invite,
+      adminApprovedAt: new Date("2026-06-06T10:00:00.000Z"),
+    });
+
+    const response = await approveHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/approve", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(409);
+    expect(approveInviteRecord).not.toHaveBeenCalled();
+    expect(sendInviteEmail).not.toHaveBeenCalled();
   });
 
   it("approves client-initiated colleague invites", async () => {

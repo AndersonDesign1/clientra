@@ -10,6 +10,20 @@ import {
   unauthorizedError,
 } from "@/server/http/route-utils";
 
+function serializePortalColleagueInvite(
+  invite: NonNullable<Awaited<ReturnType<typeof createPortalColleagueInvite>>>
+) {
+  return {
+    adminApprovedAt: invite.adminApprovedAt?.toISOString() ?? null,
+    clientId: invite.clientId,
+    createdAt: invite.createdAt.toISOString(),
+    email: invite.email,
+    expiresAt: invite.expiresAt.toISOString(),
+    id: invite.id,
+    initiatedByClientId: invite.initiatedByClientId,
+  };
+}
+
 export const Route = createFileRoute("/api/portal/team")({
   server: {
     handlers: {
@@ -60,7 +74,11 @@ export const Route = createFileRoute("/api/portal/team")({
           return internalServerError("Invite could not be created.");
         }
 
-        return Response.json(invite, { status: 201 });
+        const isNew = invite.id === inviteId;
+
+        return Response.json(serializePortalColleagueInvite(invite), {
+          status: isNew ? 201 : 200,
+        });
       },
     },
   },

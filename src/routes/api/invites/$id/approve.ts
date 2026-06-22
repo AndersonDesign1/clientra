@@ -7,6 +7,7 @@ import {
 } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
+  conflictError,
   notFoundError,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -33,6 +34,10 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
           return notFoundError(
             "That pending invite could not be found or approved."
           );
+        }
+
+        if (pendingInvite.adminApprovedAt) {
+          return conflictError("That invite has already been approved.");
         }
 
         const approvedInvite = await approveInviteRecord(id);

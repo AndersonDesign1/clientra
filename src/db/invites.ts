@@ -154,6 +154,7 @@ export async function approveInviteRecord(inviteId: string) {
         eq(invitesTable.id, inviteId),
         isNull(invitesTable.consumedAt),
         isNull(invitesTable.revokedAt),
+        isNull(invitesTable.adminApprovedAt),
         gt(invitesTable.expiresAt, new Date())
       )
     )

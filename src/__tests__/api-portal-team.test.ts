@@ -64,7 +64,13 @@ describe("portal team API routes", () => {
       members: [],
       pendingInvites: [],
     });
-    vi.mocked(createPortalColleagueInvite).mockResolvedValue(createdInvite);
+    vi.mocked(createPortalColleagueInvite).mockImplementation(
+      async (input) => ({
+        ...createdInvite,
+        email: input.email,
+        id: input.id,
+      })
+    );
   });
 
   it("creates colleague invites without sending email before approval", async () => {
@@ -86,5 +92,35 @@ describe("portal team API routes", () => {
       })
     );
     expect(sendInviteEmail).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body).toMatchObject({
+      adminApprovedAt: null,
+      clientId: "client_1",
+      email: "colleague@example.com",
+      initiatedByClientId: "client_1",
+    });
+    expect(body.id).toEqual(expect.any(String));
+    expect(body).not.toHaveProperty("token");
+  });
+
+  it("returns 200 without leaking the token for duplicate pending invites", async () => {
+    vi.mocked(createPortalColleagueInvite).mockResolvedValue({
+      ...createdInvite,
+      id: "invite_existing",
+    });
+
+    const response = await portalTeamHandlers.POST({
+      request: createRequest("/api/portal/team", {
+        body: JSON.stringify({
+          email: "colleague@example.com",
+        }),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).not.toHaveProperty("token");
+    expect(body.id).toBe("invite_existing");
   });
 });
