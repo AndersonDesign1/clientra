@@ -44,7 +44,10 @@ function getTrustedOrigins() {
 }
 
 function getEmailLogId(email: string) {
-  const secret = process.env.BETTER_AUTH_SECRET ?? "clientra-auth-email-log";
+  // Salt for a non-reversible log-correlation id (keeps raw emails out of logs).
+  // In production `rawAuthSecret` is guaranteed set (we throw above otherwise);
+  // the dev-only constant is an explicit, non-secret salt — never a real key.
+  const secret = rawAuthSecret ?? "clientra-dev-email-log-salt";
 
   return createHmac("sha256", secret)
     .update(email.trim().toLowerCase())
