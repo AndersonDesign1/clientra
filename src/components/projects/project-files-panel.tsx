@@ -217,6 +217,7 @@ export function ProjectFilesPanel({
     >
       <input
         accept={fileInputAccept}
+        aria-label="Upload project files"
         className="hidden"
         multiple
         onChange={(event) => {

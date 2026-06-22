@@ -410,6 +410,7 @@ function UnifiedActivityPanel({ projectId }: { projectId: string }) {
       {/* Message Composer */}
       <form className="space-y-3" onSubmit={handleSubmit}>
         <textarea
+          aria-label="Send a message or ask a question"
           className="min-h-[96px] w-full rounded-lg border border-border/80 bg-background px-3 py-2 text-xs outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
           onChange={(event) => setContent(event.target.value)}
           placeholder="Send a message or ask a question..."

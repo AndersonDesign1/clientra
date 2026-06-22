@@ -90,6 +90,7 @@ function ClientsPage() {
         actions={
           <div className="flex items-center gap-3">
             <input
+              aria-label="Search clients or projects"
               className="h-9 min-w-64 rounded-md border border-border bg-card px-3 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search clients or projects..."

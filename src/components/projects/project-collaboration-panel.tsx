@@ -160,6 +160,7 @@ export function ProjectCommentForm({
   return (
     <form className="flex flex-col gap-4" onSubmit={onSubmit}>
       <textarea
+        aria-label="Post an update, ask a question, or leave feedback"
         className="min-h-[110px] w-full rounded-lg border border-border/80 bg-background px-3 py-2 text-sm outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
         onChange={(event) => onContentChange(event.target.value)}
         placeholder="Post an update, ask a question, or leave feedback..."
