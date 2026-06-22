@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ROLES } from "@/auth/roles";
 import { listAllPendingStatusChangeRequests } from "@/db/records";
 import {
   forbiddenError,
@@ -13,10 +14,12 @@ export const Route = createFileRoute("/api/admin/status-change-requests")({
         if (auth.error) {
           return auth.error;
         }
-        if (auth.user.role !== "admin") {
+        if (auth.user.role !== ROLES.ADMIN) {
           return forbiddenError("Admin only.");
         }
-        const requests = await listAllPendingStatusChangeRequests();
+        const requests = await listAllPendingStatusChangeRequests(
+          auth.user.activeOrganizationId ?? null
+        );
         return Response.json(requests);
       },
     },

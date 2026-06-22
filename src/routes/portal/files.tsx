@@ -173,7 +173,10 @@ function PortalFilesPage() {
     if (!byProject.has(file.projectId)) {
       byProject.set(file.projectId, { title: file.projectTitle, files: [] });
     }
-    byProject.get(file.projectId)!.files.push(file);
+    const projectGroup = byProject.get(file.projectId);
+    if (projectGroup) {
+      projectGroup.files.push(file);
+    }
   }
 
   const projects = projectsQuery.data ?? [];

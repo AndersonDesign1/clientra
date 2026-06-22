@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { lastLoginMethod, organization } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { ROLES } from "@/auth/roles";
 import { db } from "@/db/client";
 import { loadEnvFiles } from "@/db/load-env";
 import {
@@ -21,6 +22,10 @@ loadEnvFiles();
 const rawBaseUrl = process.env.BETTER_AUTH_URL?.trim();
 if (!rawBaseUrl && process.env.NODE_ENV === "production") {
   throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_URL");
+}
+const rawAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
+if (!rawAuthSecret && process.env.NODE_ENV === "production") {
+  throw new Error("Missing REQUIRED environment variable: BETTER_AUTH_SECRET");
 }
 const validatedBaseUrl = rawBaseUrl || "http://localhost:3000";
 
@@ -105,6 +110,14 @@ const googleProvider = getSocialProviderConfig({
   provider: "google",
 });
 
+export const userAdditionalFields = {
+  role: {
+    type: "string",
+    defaultValue: ROLES.CLIENT,
+    input: false,
+  },
+} as const;
+
 export const auth = betterAuth({
   account: {
     accountLinking: {
@@ -116,6 +129,16 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === "production",
   },
   baseURL: validatedBaseUrl,
+  databaseHooks: {
+    user: {
+      create: {
+        before: (user) =>
+          Promise.resolve({
+            data: { ...user, role: ROLES.CLIENT },
+          }),
+      },
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -172,12 +195,7 @@ export const auth = betterAuth({
       emailVerified: "emailVerified",
       image: "image",
     },
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "client",
-      },
-    },
+    additionalFields: userAdditionalFields,
   },
   plugins: [
     organization({

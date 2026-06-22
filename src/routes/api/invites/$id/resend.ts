@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  adminOwnsClient,
   getActiveInviteById,
   getClientById,
   refreshInviteExpiration,
 } from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
+  conflictError,
   internalServerError,
   notFoundError,
   requireAdminMutationRequest,
@@ -24,7 +26,7 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
 
         const invite = await getActiveInviteById(id);
 
-        if (!invite) {
+        if (!(invite && (await adminOwnsClient(auth.user, invite.clientId)))) {
           return notFoundError("That pending invite could not be found.");
         }
 
@@ -34,20 +36,10 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
           return notFoundError("The invited client could not be found.");
         }
 
-        const inviteUrl = new URL(`/invite/${invite.token}`, request.url);
-
-        try {
-          await sendInviteEmail({
-            clientCompany: client.company,
-            clientName: client.name,
-            email: invite.email,
-            inviteId: invite.id,
-            inviteUrl: inviteUrl.toString(),
-            requestUrl: request.url,
-          });
-        } catch (error) {
-          console.error("invite resend email failed", error);
-          return internalServerError("Invite email could not be sent.");
+        if (invite.initiatedByClientId && !invite.adminApprovedAt) {
+          return conflictError(
+            "Approve this colleague invite before resending the invite email."
+          );
         }
 
         const refreshedInvite = await refreshInviteExpiration(
@@ -59,11 +51,30 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
           return internalServerError("Invite could not be refreshed.");
         }
 
+        const inviteUrl = new URL(
+          `/invite/${refreshedInvite.token}`,
+          request.url
+        );
+
+        try {
+          await sendInviteEmail({
+            clientCompany: client.company,
+            clientName: client.name,
+            email: refreshedInvite.email,
+            inviteId: refreshedInvite.id,
+            inviteUrl: inviteUrl.toString(),
+            requestUrl: request.url,
+          });
+        } catch (error) {
+          console.error("invite resend email failed", error);
+          return internalServerError("Invite email could not be sent.");
+        }
+
         return Response.json({
           clientId: refreshedInvite.clientId,
-          createdAt: refreshedInvite.createdAt,
+          createdAt: refreshedInvite.createdAt.toISOString(),
           email: refreshedInvite.email,
-          expiresAt: refreshedInvite.expiresAt,
+          expiresAt: refreshedInvite.expiresAt.toISOString(),
           id: refreshedInvite.id,
         });
       },

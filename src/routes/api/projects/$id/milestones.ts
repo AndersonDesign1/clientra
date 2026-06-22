@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { projectMilestoneSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsProject,
   createProjectMilestoneRecord,
-  getProjectById,
   listProjectMilestonesForUser,
   serializeProjectMilestone,
 } from "@/db/records";
@@ -44,9 +44,7 @@ export const Route = createFileRoute("/api/projects/$id/milestones")({
           return auth.error;
         }
 
-        const project = await getProjectById(params.id);
-
-        if (!project) {
+        if (!(await adminOwnsProject(auth.user, params.id))) {
           return notFoundError("We could not find a project with that id.");
         }
 

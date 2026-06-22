@@ -6,10 +6,11 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsProject: vi.fn(),
+  adminOwnsProjectMilestone: vi.fn(),
   canAccessProject: vi.fn(),
   createProjectMilestoneRecord: vi.fn(),
   deleteProjectMilestoneRecord: vi.fn(),
-  getProjectById: vi.fn(),
   listProjectMilestonesForUser: vi.fn(),
   serializeProjectMilestone: vi.fn((milestone) => ({
     ...milestone,
@@ -27,10 +28,10 @@ vi.mock("@/db/records", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
-  canAccessProject,
+  adminOwnsProject,
+  adminOwnsProjectMilestone,
   createProjectMilestoneRecord,
   deleteProjectMilestoneRecord,
-  getProjectById,
   listProjectMilestonesForUser,
   updateProjectMilestoneRecord,
 } from "@/db/records";
@@ -48,6 +49,7 @@ const milestoneHandlers = ProjectMilestoneRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -84,6 +86,8 @@ function createRequest(path: string, init?: RequestInit) {
 describe("project milestone API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminOwnsProject).mockResolvedValue(true);
+    vi.mocked(adminOwnsProjectMilestone).mockResolvedValue(true);
   });
 
   it("lets authorized users read milestones", async () => {
@@ -134,18 +138,6 @@ describe("project milestone API routes", () => {
 
   it("lets admins create milestones", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
-    vi.mocked(getProjectById).mockResolvedValue({
-      budget: 12_000,
-      clientId: "client_1",
-      createdAt: new Date("2026-04-01T10:00:00.000Z"),
-      deadline: "2026-04-30",
-      description: "Delivery portal.",
-      id: "project_1",
-      slug: "delivery-portal",
-      status: "in_progress",
-      title: "Delivery Portal",
-    });
-    vi.mocked(canAccessProject).mockResolvedValue(true);
     vi.mocked(createProjectMilestoneRecord).mockResolvedValue({
       createdAt: new Date("2026-04-01T10:00:00.000Z"),
       description: validPayload.description,

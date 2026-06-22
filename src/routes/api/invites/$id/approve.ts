@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { approveInviteRecord, getClientById } from "@/db/records";
+import {
+  adminOwnsClient,
+  approveInviteRecord,
+  getClientById,
+  getInviteRecordById,
+} from "@/db/records";
 import { sendInviteEmail } from "@/server/email/notifications";
 import {
+  conflictError,
   notFoundError,
   requireAdminMutationRequest,
 } from "@/server/http/route-utils";
@@ -15,6 +21,23 @@ export const Route = createFileRoute("/api/invites/$id/approve")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        const pendingInvite = await getInviteRecordById(id);
+
+        if (
+          !(
+            pendingInvite &&
+            (await adminOwnsClient(auth.user, pendingInvite.clientId))
+          )
+        ) {
+          return notFoundError(
+            "That pending invite could not be found or approved."
+          );
+        }
+
+        if (pendingInvite.adminApprovedAt) {
+          return conflictError("That invite has already been approved.");
         }
 
         const approvedInvite = await approveInviteRecord(id);

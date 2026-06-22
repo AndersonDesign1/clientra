@@ -68,12 +68,11 @@ export async function redirectAuthenticatedUser() {
     return null;
   }
 
+  const adminDestination = user.activeOrganizationId
+    ? "/dashboard"
+    : "/onboarding";
+
   throw redirect({
-    to:
-      user.role === ROLES.ADMIN
-        ? user.activeOrganizationId
-          ? "/dashboard"
-          : "/onboarding"
-        : "/portal",
+    to: user.role === ROLES.ADMIN ? adminDestination : "/portal",
   });
 }

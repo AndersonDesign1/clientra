@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { listPendingInvitesForClient } from "@/db/records";
-import { forbiddenError, unauthorizedError } from "@/server/http/route-utils";
+import { adminOwnsClient, listPendingInvitesForClient } from "@/db/records";
+import {
+  forbiddenError,
+  notFoundError,
+  unauthorizedError,
+} from "@/server/http/route-utils";
 
 function serializePendingInvite(
   invite: Awaited<ReturnType<typeof listPendingInvitesForClient>>[number]
@@ -32,6 +36,10 @@ export const Route = createFileRoute("/api/clients/$id/invites")({
 
         if (user.role !== ROLES.ADMIN) {
           return forbiddenError();
+        }
+
+        if (!(await adminOwnsClient(user, params.id))) {
+          return notFoundError("That client could not be found.");
         }
 
         const invites = await listPendingInvitesForClient(params.id);

@@ -6,6 +6,7 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsClient: vi.fn(),
   createInviteRecord: vi.fn(),
   getActiveInviteById: vi.fn(),
   getClientById: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("@/server/email/notifications", () => ({
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsClient,
   approveInviteRecord,
   createInviteRecord,
   getActiveInviteById,
@@ -49,6 +51,7 @@ const approveHandlers = ApproveInviteRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -100,7 +103,26 @@ describe("invite management API routes", () => {
     vi.mocked(refreshInviteExpiration).mockResolvedValue(invite);
     vi.mocked(revokeInviteRecord).mockResolvedValue(invite);
     vi.mocked(approveInviteRecord).mockResolvedValue(invite);
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
+    vi.mocked(getInviteRecordById).mockResolvedValue(invite);
     vi.mocked(sendInviteEmail).mockResolvedValue({ skipped: false });
+  });
+
+  it("rejects invite creation outside the active organization", async () => {
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await inviteHandlers.POST({
+      request: createRequest("/api/invites", {
+        body: JSON.stringify({
+          clientId: "client_other_org",
+          email: "jordan@example.com",
+        }),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(createInviteRecord).not.toHaveBeenCalled();
   });
 
   it("blocks invite creation when Loop invite email fails", async () => {
@@ -122,6 +144,40 @@ describe("invite management API routes", () => {
     expect(revokeInviteRecord).toHaveBeenCalledWith("invite_1");
   });
 
+  it("blocks resend for unapproved colleague invites", async () => {
+    vi.mocked(getActiveInviteById).mockResolvedValue({
+      ...invite,
+      initiatedByClientId: "client_1",
+      adminApprovedAt: null,
+    });
+
+    const response = await resendHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/resend", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(409);
+    expect(sendInviteEmail).not.toHaveBeenCalled();
+    expect(refreshInviteExpiration).not.toHaveBeenCalled();
+  });
+
+  it("does not send resend email when invite refresh fails", async () => {
+    vi.mocked(refreshInviteExpiration).mockResolvedValue(null);
+
+    const response = await resendHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/resend", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(500);
+    expect(refreshInviteExpiration).toHaveBeenCalled();
+    expect(sendInviteEmail).not.toHaveBeenCalled();
+  });
+
   it("resends an active invite and blocks when Loop fails", async () => {
     vi.mocked(sendInviteEmail).mockRejectedValue(new Error("Loop failed"));
 
@@ -133,8 +189,8 @@ describe("invite management API routes", () => {
     } as never);
 
     expect(response.status).toBe(500);
+    expect(refreshInviteExpiration).toHaveBeenCalled();
     expect(sendInviteEmail).toHaveBeenCalled();
-    expect(refreshInviteExpiration).not.toHaveBeenCalled();
   });
 
   it("revokes active pending invites", async () => {
@@ -202,6 +258,24 @@ describe("invite management API routes", () => {
 
     expect(response.status).toBe(403);
     expect(approveInviteRecord).not.toHaveBeenCalled();
+  });
+
+  it("rejects re-approving an already approved invite", async () => {
+    vi.mocked(getInviteRecordById).mockResolvedValue({
+      ...invite,
+      adminApprovedAt: new Date("2026-06-06T10:00:00.000Z"),
+    });
+
+    const response = await approveHandlers.POST({
+      params: { id: "invite_1" },
+      request: createRequest("/api/invites/invite_1/approve", {
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(409);
+    expect(approveInviteRecord).not.toHaveBeenCalled();
+    expect(sendInviteEmail).not.toHaveBeenCalled();
   });
 
   it("approves client-initiated colleague invites", async () => {

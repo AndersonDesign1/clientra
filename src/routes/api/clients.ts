@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClientSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import {
-  createClientRecord,
-  listClientsForUser,
-  seedIfEmpty,
-} from "@/db/records";
+import { createClientRecord, listClientsForUser } from "@/db/records";
 import {
   forbiddenError,
   internalServerError,
@@ -23,8 +19,6 @@ export const Route = createFileRoute("/api/clients")({
         if (!user) {
           return unauthorizedError();
         }
-
-        await seedIfEmpty();
 
         return Response.json(await listClientsForUser(user));
       },

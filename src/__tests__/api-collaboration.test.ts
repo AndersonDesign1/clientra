@@ -10,7 +10,6 @@ vi.mock("@/db/records", () => ({
   createProjectNoteRecord: vi.fn(),
   getProjectCollaboration: vi.fn(),
   getProjectNotificationContext: vi.fn(),
-  seedIfEmpty: vi.fn(),
   serializeProjectComment: vi.fn((comment) => comment),
 }));
 
@@ -25,7 +24,6 @@ import {
   createProjectNoteRecord,
   getProjectCollaboration,
   getProjectNotificationContext,
-  seedIfEmpty,
   serializeProjectComment,
 } from "@/db/records";
 import { Route as NotesRoute } from "@/routes/api/notes";
@@ -85,7 +83,6 @@ describe("collaboration API routes", () => {
       ),
     } as never);
 
-    expect(seedIfEmpty).toHaveBeenCalled();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       activity: [

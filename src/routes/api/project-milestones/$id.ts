@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { projectMilestoneSchema } from "@/api/validation";
 import {
+  adminOwnsProjectMilestone,
   deleteProjectMilestoneRecord,
   serializeProjectMilestone,
   updateProjectMilestoneRecord,
@@ -30,6 +31,10 @@ export const Route = createFileRoute("/api/project-milestones/$id")({
           return parsed.error;
         }
 
+        if (!(await adminOwnsProjectMilestone(auth.user, params.id))) {
+          return notFoundError("That milestone could not be found.");
+        }
+
         const updated = await updateProjectMilestoneRecord(
           params.id,
           parsed.data
@@ -49,6 +54,10 @@ export const Route = createFileRoute("/api/project-milestones/$id")({
 
         if (auth.error) {
           return auth.error;
+        }
+
+        if (!(await adminOwnsProjectMilestone(auth.user, params.id))) {
+          return notFoundError("That milestone could not be found.");
         }
 
         const deleted = await deleteProjectMilestoneRecord(params.id);

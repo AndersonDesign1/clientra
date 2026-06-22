@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ZodError } from "zod";
 import { searchSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import { searchRecords, seedIfEmpty } from "@/db/records";
+import { searchRecords } from "@/db/records";
 import { unauthorizedError, validationError } from "@/server/http/route-utils";
 
 export const Route = createFileRoute("/api/search")({
@@ -34,7 +34,6 @@ export const Route = createFileRoute("/api/search")({
           return Response.json({ clients: [], projects: [] });
         }
 
-        await seedIfEmpty();
         return Response.json(await searchRecords(query, user));
       },
     },

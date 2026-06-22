@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { inviteSchema } from "@/api/validation";
 import {
+  adminOwnsClient,
   createInviteRecord,
   getClientById,
   getInviteRecordById,
@@ -28,6 +29,10 @@ export const Route = createFileRoute("/api/invites")({
 
         if (!parsed.ok) {
           return parsed.error;
+        }
+
+        if (!(await adminOwnsClient(auth.user, parsed.data.clientId))) {
+          return notFoundError("We could not find a client with that id.");
         }
 
         const client = await getClientById(parsed.data.clientId);

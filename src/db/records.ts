@@ -1,15 +1,4 @@
-import {
-  and,
-  desc,
-  eq,
-  gt,
-  inArray,
-  isNotNull,
-  isNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { ROLES, type Role, type SessionUser } from "@/auth/roles";
 import { getClientPathParam } from "@/lib/client-slugs";
 import { getProjectSlug } from "@/lib/project-slugs";
@@ -24,7 +13,6 @@ import {
   clients as clientsTable,
   clientUsers as clientUsersTable,
   files as filesTable,
-  invites as invitesTable,
   members as membersTable,
   organizations as organizationsTable,
   projectMilestones as projectMilestonesTable,
@@ -115,14 +103,6 @@ interface ProjectFileInsert {
   projectId: string;
   storageKey: string;
   uploadedBy: string;
-}
-
-interface InviteInsert {
-  clientId: string;
-  email: string;
-  expiresAt: Date;
-  id: string;
-  token: string;
 }
 
 interface ManagedUser {
@@ -336,21 +316,6 @@ function mapProject(row: typeof projectsTable.$inferSelect) {
   };
 }
 
-function mapInvite(row: typeof invitesTable.$inferSelect) {
-  return {
-    clientId: row.clientId,
-    consumedAt: row.consumedAt,
-    createdAt: row.createdAt,
-    email: row.email,
-    expiresAt: row.expiresAt,
-    id: row.id,
-    revokedAt: row.revokedAt,
-    token: row.token,
-    initiatedByClientId: row.initiatedByClientId,
-    adminApprovedAt: row.adminApprovedAt,
-  };
-}
-
 function mapManagedUser(
   row: typeof usersTable.$inferSelect,
   providers: string[]
@@ -486,7 +451,7 @@ export function serializeProjectMilestone(
   return {
     createdAt: milestone.createdAt.toISOString(),
     description: milestone.description,
-    dueDate: milestone.dueDate,
+    dueDate: milestone.dueDate ?? "",
     id: milestone.id,
     projectId: milestone.projectId,
     sortOrder: milestone.sortOrder,
@@ -756,19 +721,6 @@ function mapPortalProject({
 }
 
 async function listPortalProjectsForUser(user: SessionUser) {
-  if (user.role === ROLES.ADMIN) {
-    const rows = await db
-      .select({
-        client: clientsTable,
-        project: projectsTable,
-      })
-      .from(projectsTable)
-      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
-      .orderBy(desc(projectsTable.createdAt));
-
-    return rows.map(mapPortalProject);
-  }
-
   const rows = await db
     .select({
       client: clientsTable,
@@ -1399,7 +1351,23 @@ export async function createProjectFileRecord(input: ProjectFileInsert) {
 
 export async function canAccessProject(user: SessionUser, projectId: string) {
   if (user.role === ROLES.ADMIN) {
-    return true;
+    if (!user.activeOrganizationId) {
+      return false;
+    }
+
+    const [match] = await db
+      .select({ projectId: projectsTable.id })
+      .from(projectsTable)
+      .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+      .where(
+        and(
+          eq(projectsTable.id, projectId),
+          eq(clientsTable.organizationId, user.activeOrganizationId)
+        )
+      )
+      .limit(1);
+
+    return Boolean(match);
   }
 
   const [match] = await db
@@ -1626,6 +1594,7 @@ export async function restoreProjectFileRecord(file: {
 export async function searchRecords(query: string, user: SessionUser) {
   const normalized = `%${escapeLikePattern(query.toLowerCase())}%`;
 
+  // biome-ignore lint/suspicious/noExplicitAny: Drizzle row accumulator; precise typing deferred to plan 006 (records.ts split)
   let matchedProjectsRows: any[] = [];
   if (user.role === ROLES.ADMIN) {
     if (user.activeOrganizationId) {
@@ -1709,19 +1678,6 @@ export async function searchRecords(query: string, user: SessionUser) {
   };
 }
 
-export async function createInviteRecord(input: InviteInsert) {
-  await db.insert(invitesTable).values({
-    clientId: input.clientId,
-    consumedAt: null,
-    createdAt: new Date(),
-    email: input.email,
-    expiresAt: input.expiresAt,
-    id: input.id,
-    revokedAt: null,
-    token: input.token,
-  });
-}
-
 export async function getClientById(clientId: string) {
   const [client] = await db
     .select()
@@ -1732,156 +1688,105 @@ export async function getClientById(clientId: string) {
   return client ? mapClient(client) : null;
 }
 
-export async function getInviteRecordById(id: string) {
-  const [created] = await db
-    .select()
-    .from(invitesTable)
-    .where(eq(invitesTable.id, id))
-    .limit(1);
-
-  return created ? mapInvite(created) : null;
-}
-
-export async function getActiveInviteByToken(token: string) {
-  const [invite] = await db
-    .select()
-    .from(invitesTable)
-    .where(
-      and(
-        eq(invitesTable.token, token),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date()),
-        or(
-          isNull(invitesTable.initiatedByClientId),
-          isNotNull(invitesTable.adminApprovedAt)
-        )
-      )
-    )
-    .limit(1);
-
-  if (!invite) {
-    return null;
+export async function adminOwnsClient(user: SessionUser, clientId: string) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
   }
 
-  return mapInvite(invite);
-}
-
-export async function consumeInvite(
-  token: string,
-  executor: DatabaseExecutor = db
-) {
-  const consumedInvites = await executor
-    .update(invitesTable)
-    .set({ consumedAt: new Date() })
-    .where(
-      and(
-        eq(invitesTable.token, token),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date()),
-        or(
-          isNull(invitesTable.initiatedByClientId),
-          isNotNull(invitesTable.adminApprovedAt)
-        )
-      )
-    )
-    .returning({ token: invitesTable.token });
-
-  return consumedInvites.length > 0;
-}
-
-export async function getActiveInviteById(inviteId: string) {
-  const [invite] = await db
-    .select()
-    .from(invitesTable)
-    .where(
-      and(
-        eq(invitesTable.id, inviteId),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
-      )
-    )
-    .limit(1);
-
-  return invite ? mapInvite(invite) : null;
-}
-
-export async function refreshInviteExpiration(
-  inviteId: string,
-  expiresAt: Date
-) {
-  const [invite] = await db
-    .update(invitesTable)
-    .set({ expiresAt })
-    .where(
-      and(
-        eq(invitesTable.id, inviteId),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
-      )
-    )
-    .returning();
-
-  return invite ? mapInvite(invite) : null;
-}
-
-export async function approveInviteRecord(inviteId: string) {
-  const [invite] = await db
-    .update(invitesTable)
-    .set({ adminApprovedAt: new Date() })
-    .where(
-      and(
-        eq(invitesTable.id, inviteId),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
-      )
-    )
-    .returning();
-
-  return invite ? mapInvite(invite) : null;
-}
-
-export async function revokeInviteRecord(inviteId: string) {
-  const [invite] = await db
-    .update(invitesTable)
-    .set({ revokedAt: new Date() })
-    .where(
-      and(
-        eq(invitesTable.id, inviteId),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
-      )
-    )
-    .returning();
-
-  return invite ? mapInvite(invite) : null;
-}
-
-export async function linkUserToClient(
-  clientId: string,
-  userId: string,
-  executor: DatabaseExecutor = db
-) {
-  const [client] = await executor
+  const [client] = await db
     .select({ organizationId: clientsTable.organizationId })
     .from(clientsTable)
     .where(eq(clientsTable.id, clientId))
     .limit(1);
 
-  await executor
-    .insert(clientUsersTable)
-    .values({
-      clientId,
-      id: crypto.randomUUID(),
-      userId,
-      organizationId: client?.organizationId ?? null,
-    })
-    .onConflictDoNothing();
+  return client?.organizationId === user.activeOrganizationId;
+}
+
+export async function adminOwnsProject(user: SessionUser, projectId: string) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
+  }
+
+  const [project] = await db
+    .select({ organizationId: clientsTable.organizationId })
+    .from(projectsTable)
+    .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
+    .where(eq(projectsTable.id, projectId))
+    .limit(1);
+
+  return project?.organizationId === user.activeOrganizationId;
+}
+
+export async function adminOwnsProjectUpdate(
+  user: SessionUser,
+  updateId: string
+) {
+  const [update] = await db
+    .select({ projectId: projectUpdatesTable.projectId })
+    .from(projectUpdatesTable)
+    .where(eq(projectUpdatesTable.id, updateId))
+    .limit(1);
+
+  if (!update) {
+    return false;
+  }
+
+  return adminOwnsProject(user, update.projectId);
+}
+
+export async function adminOwnsProjectMilestone(
+  user: SessionUser,
+  milestoneId: string
+) {
+  const [milestone] = await db
+    .select({ projectId: projectMilestonesTable.projectId })
+    .from(projectMilestonesTable)
+    .where(eq(projectMilestonesTable.id, milestoneId))
+    .limit(1);
+
+  if (!milestone) {
+    return false;
+  }
+
+  return adminOwnsProject(user, milestone.projectId);
+}
+
+export async function adminManagesUser(
+  user: SessionUser,
+  targetUserId: string
+) {
+  if (user.role !== ROLES.ADMIN || !user.activeOrganizationId) {
+    return false;
+  }
+
+  const [member] = await db
+    .select({ userId: membersTable.userId })
+    .from(membersTable)
+    .where(
+      and(
+        eq(membersTable.organizationId, user.activeOrganizationId),
+        eq(membersTable.userId, targetUserId)
+      )
+    )
+    .limit(1);
+
+  if (member) {
+    return true;
+  }
+
+  const [clientUser] = await db
+    .select({ userId: clientUsersTable.userId })
+    .from(clientUsersTable)
+    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
+    .where(
+      and(
+        eq(clientsTable.organizationId, user.activeOrganizationId),
+        eq(clientUsersTable.userId, targetUserId)
+      )
+    )
+    .limit(1);
+
+  return Boolean(clientUser);
 }
 
 export async function updateUserRole(
@@ -1946,6 +1851,7 @@ export async function listUsersForAdmin(orgId: string) {
   );
 
   const userIds = Array.from(userMap.keys());
+  // biome-ignore lint/suspicious/noExplicitAny: Drizzle row accumulator; precise typing deferred to plan 006 (records.ts split)
   let accountRows: any[] = [];
   if (userIds.length > 0) {
     accountRows = await db
@@ -2018,24 +1924,13 @@ export function deleteUserById(userId: string) {
   });
 }
 
-export async function listPendingInvitesForClient(clientId: string) {
-  const rows = await db
-    .select()
-    .from(invitesTable)
-    .where(
-      and(
-        eq(invitesTable.clientId, clientId),
-        isNull(invitesTable.consumedAt),
-        isNull(invitesTable.revokedAt),
-        gt(invitesTable.expiresAt, new Date())
-      )
-    )
-    .orderBy(desc(invitesTable.createdAt));
-
-  return rows.map(mapInvite);
-}
-
 export async function seedIfEmpty() {
+  const databaseUrl = process.env.TURSO_DATABASE_URL;
+  const isLocalDatabase = !databaseUrl || databaseUrl.startsWith("file:");
+  if (!isLocalDatabase) {
+    return;
+  }
+
   const targetOrgId = "8evtad539nwKicxa1ExyWAn1nL4BK4Zu";
   const targetUserId = "fM8PYi0lmiMrFvbNSL9kkCRbdlZ9tJBw";
   const now = new Date();
@@ -2708,15 +2603,29 @@ export async function listStatusChangeRequestsForProject(projectId: string) {
   );
 }
 
-export async function listAllPendingStatusChangeRequests() {
+export async function listAllPendingStatusChangeRequests(orgId: string | null) {
+  if (!orgId) {
+    return [];
+  }
+
   const rows = await db
     .select({ requesterName: usersTable.name, req: statusChangeRequestsTable })
     .from(statusChangeRequestsTable)
+    .innerJoin(
+      projectsTable,
+      eq(statusChangeRequestsTable.projectId, projectsTable.id)
+    )
+    .innerJoin(clientsTable, eq(projectsTable.clientId, clientsTable.id))
     .leftJoin(
       usersTable,
       eq(statusChangeRequestsTable.requestedBy, usersTable.id)
     )
-    .where(eq(statusChangeRequestsTable.approvalState, "pending"))
+    .where(
+      and(
+        eq(statusChangeRequestsTable.approvalState, "pending"),
+        eq(clientsTable.organizationId, orgId)
+      )
+    )
     .orderBy(desc(statusChangeRequestsTable.createdAt));
 
   return rows.map(({ req, requesterName }) =>
@@ -2929,81 +2838,18 @@ export async function listPortalActivityForUser(user: SessionUser) {
     });
 }
 
-// ── Portal Team / Colleague Invites ────────────────────────────────────────
-
-export async function createPortalColleagueInvite(input: {
-  clientId: string;
-  email: string;
-  id: string;
-  initiatedByClientId: string;
-  token: string;
-}) {
-  await db.insert(invitesTable).values({
-    clientId: input.clientId,
-    createdAt: new Date(),
-    email: input.email,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-    id: input.id,
-    initiatedByClientId: input.initiatedByClientId,
-    token: input.token,
-  });
-
-  return getInviteRecordById(input.id);
-}
-
-export async function listPortalTeam(user: SessionUser) {
-  // Get the client linked to this portal user
-  const [clientUser] = await db
-    .select({ client: clientsTable })
-    .from(clientUsersTable)
-    .innerJoin(clientsTable, eq(clientUsersTable.clientId, clientsTable.id))
-    .where(eq(clientUsersTable.userId, user.id))
-    .limit(1);
-
-  if (!clientUser) {
-    return { clientId: null, members: [], pendingInvites: [] };
-  }
-
-  const clientId = clientUser.client.id;
-
-  const [members, pendingInvites] = await Promise.all([
-    db
-      .select({ user: usersTable })
-      .from(clientUsersTable)
-      .innerJoin(usersTable, eq(clientUsersTable.userId, usersTable.id))
-      .where(eq(clientUsersTable.clientId, clientId)),
-    db
-      .select()
-      .from(invitesTable)
-      .where(
-        and(
-          eq(invitesTable.clientId, clientId),
-          isNull(invitesTable.consumedAt),
-          isNull(invitesTable.revokedAt),
-          gt(invitesTable.expiresAt, new Date())
-        )
-      )
-      .orderBy(desc(invitesTable.createdAt)),
-  ]);
-
-  return {
-    clientId,
-    members: members.map(({ user }) => ({
-      createdAt: user.createdAt.toISOString(),
-      email: user.email,
-      id: user.id,
-      image: user.image,
-      name: user.name,
-      role: user.role,
-    })),
-    pendingInvites: pendingInvites.map((invite) => ({
-      adminApprovedAt: invite.adminApprovedAt?.toISOString() ?? null,
-      clientId: invite.clientId,
-      createdAt: invite.createdAt.toISOString(),
-      email: invite.email,
-      expiresAt: invite.expiresAt.toISOString(),
-      id: invite.id,
-      initiatedByClientId: invite.initiatedByClientId,
-    })),
-  };
-}
+// biome-ignore lint/performance/noBarrelFile: transitional re-export barrel during records.ts domain split (plan 006)
+export {
+  approveInviteRecord,
+  consumeInvite,
+  createInviteRecord,
+  createPortalColleagueInvite,
+  getActiveInviteById,
+  getActiveInviteByToken,
+  getInviteRecordById,
+  linkUserToClient,
+  listPendingInvitesForClient,
+  listPortalTeam,
+  refreshInviteExpiration,
+  revokeInviteRecord,
+} from "./invites";

@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { projectUpdateSchema } from "@/api/validation";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsProject,
   createProjectUpdateRecord,
-  getProjectById,
   getProjectNotificationContext,
   listProjectUpdatesForUser,
   serializeProjectUpdate,
@@ -49,9 +49,7 @@ export const Route = createFileRoute("/api/projects/$id/updates")({
           return auth.error;
         }
 
-        const project = await getProjectById(params.id);
-
-        if (!project) {
+        if (!(await adminOwnsProject(auth.user, params.id))) {
           return notFoundError("We could not find a project with that id.");
         }
 

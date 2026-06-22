@@ -12,6 +12,8 @@ vi.mock("@/auth/session.server", () => ({
 }));
 
 vi.mock("@/db/records", () => ({
+  adminOwnsClient: vi.fn(),
+  adminOwnsProject: vi.fn(),
   createProjectRecord: vi.fn(),
   deleteClientRecord: vi.fn(),
   deleteProjectRecord: vi.fn(),
@@ -24,13 +26,14 @@ vi.mock("@/db/records", () => ({
   listClientStorageKeys: vi.fn(),
   listProjectsForUser: vi.fn(),
   listProjectStorageKeys: vi.fn(),
-  seedIfEmpty: vi.fn(),
   updateClientRecord: vi.fn(),
   updateProjectRecord: vi.fn(),
 }));
 
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import {
+  adminOwnsClient,
+  adminOwnsProject,
   createProjectRecord,
   DuplicateProjectSlugError,
   deleteClientRecord,
@@ -38,7 +41,6 @@ import {
   listClientStorageKeys,
   listProjectStorageKeys,
   listProjectsForUser,
-  seedIfEmpty,
   updateClientRecord,
   updateProjectRecord,
 } from "@/db/records";
@@ -62,6 +64,7 @@ const projectsHandlers = ProjectsRoute.options.server?.handlers as {
 };
 
 const adminUser = {
+  activeOrganizationId: "org_1",
   email: "admin@example.com",
   id: "admin_1",
   name: "Admin User",
@@ -103,10 +106,11 @@ const validProjectPayload = {
 describe("admin CRUD API routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
+    vi.mocked(adminOwnsProject).mockResolvedValue(true);
     vi.mocked(listClientStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectStorageKeys).mockResolvedValue([]);
     vi.mocked(listProjectsForUser).mockResolvedValue([]);
-    vi.mocked(seedIfEmpty).mockResolvedValue(undefined);
   });
 
   it("rejects unauthenticated client updates", async () => {
@@ -196,6 +200,22 @@ describe("admin CRUD API routes", () => {
     expect(updateClientRecord).not.toHaveBeenCalled();
   });
 
+  it("rejects client updates outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await clientHandlers.PATCH({
+      params: { id: "client_other_org" },
+      request: createRequest("/api/clients/client_other_org", {
+        body: JSON.stringify(validClientPayload),
+        method: "PATCH",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(updateClientRecord).not.toHaveBeenCalled();
+  });
+
   it("updates a client for an admin", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
     vi.mocked(updateClientRecord).mockResolvedValue({
@@ -237,6 +257,21 @@ describe("admin CRUD API routes", () => {
     expect(response.status).toBe(404);
   });
 
+  it("rejects client deletes outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await clientHandlers.DELETE({
+      params: { id: "client_other_org" },
+      request: createRequest("/api/clients/client_other_org", {
+        method: "DELETE",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(deleteClientRecord).not.toHaveBeenCalled();
+  });
+
   it("deletes a client for an admin", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
     vi.mocked(deleteClientRecord).mockResolvedValue(true);
@@ -251,6 +286,22 @@ describe("admin CRUD API routes", () => {
     expect(deleteClientRecord).toHaveBeenCalledWith("client_1");
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ success: true });
+  });
+
+  it("rejects project updates outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsProject).mockResolvedValue(false);
+
+    const response = await projectHandlers.PATCH({
+      params: { id: "project_other_org" },
+      request: createRequest("/api/projects/project_other_org", {
+        body: JSON.stringify(validProjectPayload),
+        method: "PATCH",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(updateProjectRecord).not.toHaveBeenCalled();
   });
 
   it("updates a project for an admin", async () => {
@@ -280,8 +331,24 @@ describe("admin CRUD API routes", () => {
     });
   });
 
+  it("rejects project creation outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(false);
+
+    const response = await projectsHandlers.POST({
+      request: createRequest("/api/projects", {
+        body: JSON.stringify(validProjectPayload),
+        method: "POST",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(createProjectRecord).not.toHaveBeenCalled();
+  });
+
   it("returns 409 when creating a duplicate project name under a client", async () => {
     vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsClient).mockResolvedValue(true);
     vi.mocked(createProjectRecord).mockRejectedValue(
       new DuplicateProjectSlugError()
     );
@@ -331,6 +398,21 @@ describe("admin CRUD API routes", () => {
     } as never);
 
     expect(response.status).toBe(404);
+  });
+
+  it("rejects project deletes outside the active organization", async () => {
+    vi.mocked(getSessionUserFromHeaders).mockResolvedValue(adminUser);
+    vi.mocked(adminOwnsProject).mockResolvedValue(false);
+
+    const response = await projectHandlers.DELETE({
+      params: { id: "project_other_org" },
+      request: createRequest("/api/projects/project_other_org", {
+        method: "DELETE",
+      }),
+    } as never);
+
+    expect(response.status).toBe(404);
+    expect(deleteProjectRecord).not.toHaveBeenCalled();
   });
 
   it("deletes a project for an admin", async () => {

@@ -76,6 +76,13 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
   const update = isUpdate ? (item.data as ProjectUpdate) : null;
   const file = isFile ? (item.data as ProjectFile) : null;
 
+  let activityIcon = NotificationSquareIcon;
+  if (isComment) {
+    activityIcon = Comment01Icon;
+  } else if (isFile) {
+    activityIcon = FileUploadIcon;
+  }
+
   return (
     <div className="group flex gap-3 rounded-xl border border-border/40 bg-card px-4 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.015)] transition-colors duration-150 hover:bg-secondary/5">
       {/* Icon */}
@@ -89,16 +96,7 @@ function ActivityCard({ item }: { item: PortalActivityItem }) {
             "border-teal-200 bg-teal-50 text-teal-600 dark:border-teal-900 dark:bg-teal-950/20"
         )}
       >
-        <HugeiconsIcon
-          icon={
-            isComment
-              ? Comment01Icon
-              : isFile
-                ? FileUploadIcon
-                : NotificationSquareIcon
-          }
-          size={14}
-        />
+        <HugeiconsIcon icon={activityIcon} size={14} />
       </div>
 
       {/* Content */}
@@ -250,10 +248,10 @@ function PortalActivityPage() {
 
           {/* Activity list */}
           <div className="space-y-2">
-            {items.map((item, i) => (
+            {items.map((item) => (
               <ActivityCard
                 item={item}
-                key={`${item.type}-${(item.data as { id: string }).id}-${i}`}
+                key={`${item.type}-${(item.data as { id: string }).id}`}
               />
             ))}
           </div>

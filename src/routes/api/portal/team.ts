@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { portalInviteSchema } from "@/api/validation";
+import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
-import {
-  createPortalColleagueInvite,
-  getClientById,
-  listPortalTeam,
-} from "@/db/records";
-
-import { sendInviteEmail } from "@/server/email/notifications";
+import { createPortalColleagueInvite, listPortalTeam } from "@/db/records";
 import {
   forbiddenError,
   internalServerError,
@@ -15,6 +10,20 @@ import {
   requireMutationSessionRequest,
   unauthorizedError,
 } from "@/server/http/route-utils";
+
+function serializePortalColleagueInvite(
+  invite: NonNullable<Awaited<ReturnType<typeof createPortalColleagueInvite>>>
+) {
+  return {
+    adminApprovedAt: invite.adminApprovedAt?.toISOString() ?? null,
+    clientId: invite.clientId,
+    createdAt: invite.createdAt.toISOString(),
+    email: invite.email,
+    expiresAt: invite.expiresAt.toISOString(),
+    id: invite.id,
+    initiatedByClientId: invite.initiatedByClientId,
+  };
+}
 
 export const Route = createFileRoute("/api/portal/team")({
   server: {
@@ -24,7 +33,7 @@ export const Route = createFileRoute("/api/portal/team")({
         if (!user) {
           return unauthorizedError();
         }
-        if (user.role !== "client") {
+        if (user.role !== ROLES.CLIENT) {
           return forbiddenError("Client portal only.");
         }
         const team = await listPortalTeam(user);
@@ -36,7 +45,7 @@ export const Route = createFileRoute("/api/portal/team")({
         if (auth.error) {
           return auth.error;
         }
-        if (auth.user.role !== "client") {
+        if (auth.user.role !== ROLES.CLIENT) {
           return forbiddenError("Client portal only.");
         }
 
@@ -49,11 +58,6 @@ export const Route = createFileRoute("/api/portal/team")({
         const team = await listPortalTeam(auth.user);
         if (!team.clientId) {
           return forbiddenError("No client linked to your account.");
-        }
-
-        const client = await getClientById(team.clientId);
-        if (!client) {
-          return internalServerError("Client not found.");
         }
 
         const token = crypto.randomUUID();
@@ -71,23 +75,11 @@ export const Route = createFileRoute("/api/portal/team")({
           return internalServerError("Invite could not be created.");
         }
 
-        const inviteUrl = new URL(`/invite/${token}`, request.url);
+        const isNew = invite.id === inviteId;
 
-        try {
-          await sendInviteEmail({
-            clientCompany: client.company,
-            clientName: client.name,
-            email: invite.email,
-            inviteId: invite.id,
-            inviteUrl: inviteUrl.toString(),
-            requestUrl: request.url,
-          });
-        } catch (error) {
-          console.error("portal invite email failed", error);
-          // Don't roll back — the invite is still valid, email is best-effort
-        }
-
-        return Response.json(invite, { status: 201 });
+        return Response.json(serializePortalColleagueInvite(invite), {
+          status: isNew ? 201 : 200,
+        });
       },
     },
   },

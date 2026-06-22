@@ -22,23 +22,31 @@ export const users = sqliteTable("users", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-export const clients = sqliteTable("clients", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  company: text("company").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone"),
-  website: text("website"),
-  status: text("status", { enum: ["active", "archived"] })
-    .notNull()
-    .default("active"),
-  notes: text("notes"),
-  tags: text("tags"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  organizationId: text("organization_id").references(() => organizations.id, {
-    onDelete: "cascade",
-  }),
-});
+export const clients = sqliteTable(
+  "clients",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    company: text("company").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    website: text("website"),
+    status: text("status", { enum: ["active", "archived"] })
+      .notNull()
+      .default("active"),
+    notes: text("notes"),
+    tags: text("tags"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    organizationId: text("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
+  },
+  (table) => ({
+    clientsOrganizationIdIdx: index("clients_organization_id_idx").on(
+      table.organizationId
+    ),
+  })
+);
 
 export const sessions = sqliteTable("session", {
   id: text("id").primaryKey(),
@@ -104,27 +112,40 @@ export const clientUsers = sqliteTable(
       table.clientId,
       table.userId
     ),
+    clientUsersUserIdIdx: index("client_users_user_id_idx").on(table.userId),
   })
 );
 
-export const invites = sqliteTable("invites", {
-  id: text("id").primaryKey(),
-  clientId: text("client_id")
-    .notNull()
-    .references(() => clients.id, { onDelete: "cascade" }),
-  email: text("email").notNull(),
-  token: text("token").notNull().unique(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  consumedAt: integer("consumed_at", { mode: "timestamp" }),
-  revokedAt: integer("revoked_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  // Client-initiated colleague invite fields
-  initiatedByClientId: text("initiated_by_client_id").references(
-    () => clients.id,
-    { onDelete: "set null" }
-  ),
-  adminApprovedAt: integer("admin_approved_at", { mode: "timestamp" }),
-});
+export const invites = sqliteTable(
+  "invites",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    token: text("token").notNull().unique(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    consumedAt: integer("consumed_at", { mode: "timestamp" }),
+    revokedAt: integer("revoked_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    // Client-initiated colleague invite fields
+    initiatedByClientId: text("initiated_by_client_id").references(
+      () => clients.id,
+      { onDelete: "set null" }
+    ),
+    adminApprovedAt: integer("admin_approved_at", { mode: "timestamp" }),
+  },
+  (table) => ({
+    invitesClientIdIdx: index("invites_client_id_idx").on(table.clientId),
+    // Speeds up pending-invite dedupe lookups, which filter by client + email
+    // before narrowing on consumed/revoked/expiry.
+    invitesClientEmailIdx: index("invites_client_email_idx").on(
+      table.clientId,
+      table.email
+    ),
+  })
+);
 
 export const projects = sqliteTable(
   "projects",
@@ -151,94 +172,132 @@ export const projects = sqliteTable(
   })
 );
 
-export const projectNotes = sqliteTable("project_notes", {
-  id: text("id").primaryKey(),
-  projectId: text("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-});
-
-export const projectUpdates = sqliteTable("project_updates", {
-  id: text("id").primaryKey(),
-  projectId: text("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  body: text("body").notNull(),
-  status: text("status", {
-    enum: ["on_track", "at_risk", "blocked", "complete"],
+export const projectNotes = sqliteTable(
+  "project_notes",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    projectNotesProjectIdIdx: index("project_notes_project_id_idx").on(
+      table.projectId
+    ),
   })
-    .notNull()
-    .default("on_track"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-});
+);
 
-export const projectMilestones = sqliteTable("project_milestones", {
-  id: text("id").primaryKey(),
-  projectId: text("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  description: text("description"),
-  status: text("status", {
-    enum: ["todo", "in_progress", "done"],
+export const projectUpdates = sqliteTable(
+  "project_updates",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    status: text("status", {
+      enum: ["on_track", "at_risk", "blocked", "complete"],
+    })
+      .notNull()
+      .default("on_track"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    projectUpdatesProjectIdIdx: index("project_updates_project_id_idx").on(
+      table.projectId
+    ),
   })
-    .notNull()
-    .default("todo"),
-  dueDate: text("due_date"),
-  sortOrder: integer("sort_order").notNull().default(0),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-});
+);
 
-export const files = sqliteTable("files", {
-  id: text("id").primaryKey(),
-  projectId: text("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  uploadedBy: text("uploaded_by")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  storageKey: text("storage_key").notNull().unique(),
-  fileUrl: text("file_url").notNull(),
-  fileName: text("file_name").notNull(),
-  fileSize: integer("file_size").notNull(),
-  mimeType: text("mime_type").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-});
-
-export const statusChangeRequests = sqliteTable("status_change_requests", {
-  id: text("id").primaryKey(),
-  projectId: text("project_id")
-    .notNull()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  requestedBy: text("requested_by")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  requestedStatus: text("requested_status", {
-    enum: ["planning", "in_progress", "completed"],
-  }).notNull(),
-  reason: text("reason").notNull(),
-  approvalState: text("approval_state", {
-    enum: ["pending", "approved", "rejected"],
+export const projectMilestones = sqliteTable(
+  "project_milestones",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    status: text("status", {
+      enum: ["todo", "in_progress", "done"],
+    })
+      .notNull()
+      .default("todo"),
+    dueDate: text("due_date"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    projectMilestonesProjectIdIdx: index(
+      "project_milestones_project_id_idx"
+    ).on(table.projectId),
   })
-    .notNull()
-    .default("pending"),
-  reviewedBy: text("reviewed_by").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-});
+);
+
+export const files = sqliteTable(
+  "files",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    storageKey: text("storage_key").notNull().unique(),
+    fileUrl: text("file_url").notNull(),
+    fileName: text("file_name").notNull(),
+    fileSize: integer("file_size").notNull(),
+    mimeType: text("mime_type").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    filesProjectIdIdx: index("files_project_id_idx").on(table.projectId),
+  })
+);
+
+export const statusChangeRequests = sqliteTable(
+  "status_change_requests",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    requestedBy: text("requested_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    requestedStatus: text("requested_status", {
+      enum: ["planning", "in_progress", "completed"],
+    }).notNull(),
+    reason: text("reason").notNull(),
+    approvalState: text("approval_state", {
+      enum: ["pending", "approved", "rejected"],
+    })
+      .notNull()
+      .default("pending"),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    statusChangeRequestsProjectIdIdx: index(
+      "status_change_requests_project_id_idx"
+    ).on(table.projectId),
+  })
+);
 
 export const workspaceSettings = sqliteTable("workspace_settings", {
   id: text("id").primaryKey().default("default"),
