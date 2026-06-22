@@ -14,7 +14,7 @@
     "fix": "ultracite fix",
     "db:studio": "drizzle-kit studio",
     "db:sync": "bun x drizzle-kit push && bun run src/db/seed.ts",
-    "doctor": "npx react-doctor@2"
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

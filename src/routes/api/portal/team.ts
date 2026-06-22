@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { portalInviteSchema } from "@/api/validation";
+import { ROLES } from "@/auth/roles";
 import { getSessionUserFromHeaders } from "@/auth/session.server";
 import { createPortalColleagueInvite, listPortalTeam } from "@/db/records";
 import {
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/api/portal/team")({
         if (!user) {
           return unauthorizedError();
         }
-        if (user.role !== "client") {
+        if (user.role !== ROLES.CLIENT) {
           return forbiddenError("Client portal only.");
         }
         const team = await listPortalTeam(user);
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/api/portal/team")({
         if (auth.error) {
           return auth.error;
         }
-        if (auth.user.role !== "client") {
+        if (auth.user.role !== ROLES.CLIENT) {
           return forbiddenError("Client portal only.");
         }
 

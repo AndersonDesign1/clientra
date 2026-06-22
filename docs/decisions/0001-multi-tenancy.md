@@ -1,7 +1,7 @@
 # ADR 0001: Multi-tenancy direction
 
-**Status:** Proposed — awaiting maintainer decision  
-**Date:** 2026-06-21  
+**Status:** Accepted — Option B implemented  
+**Date:** 2026-06-21 (accepted 2026-06-22)  
 **Context:** Commit series through plan 007; audit at `b44e631`
 
 ## Context
@@ -103,15 +103,17 @@ org-filtered query. Verify session creation does not depend on an active org
 **Risk:** Incomplete enforcement is worse than no enforcement — every blind path
 must be closed before launch.
 
-## Recommendation
+## Decision
 
-**Option A (freeze/remove)** is the lower-risk path for launch given the PRD's
-single-operator model and lightweight non-goals. The org plugin and columns look
-like **premature infrastructure** — they add maintenance surface without a stated
-product requirement.
+**Option B (finish multi-tenancy)** is the implemented path. This PR closes the
+org-blind admin routes enumerated above by adding org-scoped ownership guards
+(`adminOwnsClient`, `adminOwnsProject`, and siblings in `src/db/records.ts`) to
+every admin mutation route, stamps `organizationId` on client/project creation,
+and adds cross-org isolation coverage in `src/__tests__/access-control.test.ts`.
 
-If the maintainer expects multiple agency workspaces soon, choose Option B and
-treat it as a **launch blocker** (not a post-launch nice-to-have).
+**Option A (freeze/remove)** remains a documented fallback if the product scope
+is reconsidered post-launch and multiple agency workspaces are ruled out; it
+would mean dropping the org plugin, columns, and org-scoped query filtering.
 
 ## Consequences
 

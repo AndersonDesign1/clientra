@@ -1,0 +1,1 @@
+CREATE INDEX `invites_client_email_idx` ON `invites` (`client_id`,`email`);

@@ -72,9 +72,9 @@ export const Route = createFileRoute("/api/invites/$id/resend")({
 
         return Response.json({
           clientId: refreshedInvite.clientId,
-          createdAt: refreshedInvite.createdAt,
+          createdAt: refreshedInvite.createdAt.toISOString(),
           email: refreshedInvite.email,
-          expiresAt: refreshedInvite.expiresAt,
+          expiresAt: refreshedInvite.expiresAt.toISOString(),
           id: refreshedInvite.id,
         });
       },

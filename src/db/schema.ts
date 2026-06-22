@@ -138,6 +138,12 @@ export const invites = sqliteTable(
   },
   (table) => ({
     invitesClientIdIdx: index("invites_client_id_idx").on(table.clientId),
+    // Speeds up pending-invite dedupe lookups, which filter by client + email
+    // before narrowing on consumed/revoked/expiry.
+    invitesClientEmailIdx: index("invites_client_email_idx").on(
+      table.clientId,
+      table.email
+    ),
   })
 );
 

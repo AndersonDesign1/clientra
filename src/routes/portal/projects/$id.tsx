@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { type FormEvent, type ReactNode, useState } from "react";
 import { requireClientSession } from "@/auth/guards";
+import { ROLES } from "@/auth/roles";
 import { PortalProjectDetailPendingPage } from "@/components/common/route-pending";
 import {
   EmptyPanel,
@@ -161,7 +162,7 @@ function PremiumDeadlineCard({ deadline }: { deadline: string }) {
 function PrimarySuccessTeamWidget() {
   const usersQuery = useUsersData();
   const users = usersQuery.data ?? [];
-  const admins = users.filter((u) => u.role === "admin");
+  const admins = users.filter((u) => u.role === ROLES.ADMIN);
 
   let successTeamBody: ReactNode;
   if (usersQuery.isLoading) {

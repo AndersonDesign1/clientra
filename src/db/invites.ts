@@ -224,10 +224,11 @@ export async function listPendingInvitesForClient(clientId: string) {
 }
 
 async function findActivePendingInviteForClientEmail(
+  executor: DatabaseExecutor,
   clientId: string,
   email: string
 ) {
-  const [invite] = await db
+  const [invite] = await executor
     .select()
     .from(invitesTable)
     .where(
@@ -244,33 +245,45 @@ async function findActivePendingInviteForClientEmail(
   return invite ? mapInvite(invite) : null;
 }
 
-export async function createPortalColleagueInvite(input: {
+export function createPortalColleagueInvite(input: {
   clientId: string;
   email: string;
   id: string;
   initiatedByClientId: string;
   token: string;
 }) {
-  const existingInvite = await findActivePendingInviteForClientEmail(
-    input.clientId,
-    input.email
-  );
+  // Run the dedupe check and insert in one transaction so concurrent requests
+  // for the same client/email cannot both pass the check and create duplicate
+  // active invites.
+  return db.transaction(async (tx) => {
+    const existingInvite = await findActivePendingInviteForClientEmail(
+      tx,
+      input.clientId,
+      input.email
+    );
 
-  if (existingInvite) {
-    return existingInvite;
-  }
+    if (existingInvite) {
+      return existingInvite;
+    }
 
-  await db.insert(invitesTable).values({
-    clientId: input.clientId,
-    createdAt: new Date(),
-    email: input.email,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-    id: input.id,
-    initiatedByClientId: input.initiatedByClientId,
-    token: input.token,
+    await tx.insert(invitesTable).values({
+      clientId: input.clientId,
+      createdAt: new Date(),
+      email: input.email,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+      id: input.id,
+      initiatedByClientId: input.initiatedByClientId,
+      token: input.token,
+    });
+
+    const [created] = await tx
+      .select()
+      .from(invitesTable)
+      .where(eq(invitesTable.id, input.id))
+      .limit(1);
+
+    return created ? mapInvite(created) : null;
   });
-
-  return getInviteRecordById(input.id);
 }
 
 export async function listPortalTeam(user: SessionUser) {
