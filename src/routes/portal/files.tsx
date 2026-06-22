@@ -219,6 +219,7 @@ function PortalFilesPage() {
             </select>
             <input
               accept="image/*,.pdf,.txt,.csv"
+              aria-label="Upload files"
               className="hidden"
               multiple
               onChange={(e) =>
